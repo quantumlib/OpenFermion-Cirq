@@ -2,6 +2,7 @@
 absl-py
 mypy
 numpy
+openfermion
 pylint
 pytest
 protobuf
