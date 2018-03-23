@@ -1,0 +1,9 @@
+3to2
+absl-py
+mypy
+numpy
+pylint
+pytest
+protobuf
+sortedcontainers
+git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
