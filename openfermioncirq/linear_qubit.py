@@ -11,6 +11,7 @@
 #   limitations under the License.
 from cirq.ops import QubitId
 
+
 class LinearQubit(QubitId):
     """A qubit on a line."""
 
