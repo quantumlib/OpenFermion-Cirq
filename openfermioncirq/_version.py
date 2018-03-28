@@ -10,4 +10,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._version import __version__
+"""Define version number here and read it from setup.py automatically"""
+__version__ = "0.1a0"
