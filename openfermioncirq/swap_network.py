@@ -67,7 +67,7 @@ def swap_network(qubits: Sequence[LinearQubit],
 def second_order_trotter_step(qubits: Sequence[LinearQubit],
                               one_body: numpy.ndarray,
                               two_body: numpy.ndarray,
-                              time_step: float):
+                              time: float):
     """Construct a second-order (first-order symmetric) Trotter step.
 
     This algorithm is described in arXiv:1711.04789. It assumes the
@@ -80,18 +80,18 @@ def second_order_trotter_step(qubits: Sequence[LinearQubit],
         one_body: The matrix of coefficients T_{ij}. Currently only
             real coefficients are supported.
         two_body: The matrix of coefficients V_{ij}.
-        time_step: The evolution time.
+        time: The evolution time.
     """
     n_qubits = len(qubits)
 
     # Apply one-body potential
     for i in range(n_qubits):
-        yield cirq.Z(qubits[i]) ** (one_body[i, i] * 0.5 * time_step / numpy.pi)
+        yield cirq.Z(qubits[i]) ** (one_body[i, i] * 0.5 * time / numpy.pi)
 
     # Define the operation to be performed on the modes
     def one_and_two_body_interaction(p, q, a, b):
-        yield XXYY(a, b) ** (one_body[p, q] * 0.5 * time_step / numpy.pi)
-        yield cirq.CZ(a, b) ** (two_body[p, q] * 0.5 * time_step / numpy.pi)
+        yield XXYY(a, b) ** (one_body[p, q] * 0.5 * time / numpy.pi)
+        yield cirq.CZ(a, b) ** (two_body[p, q] * 0.5 * time / numpy.pi)
 
     # Perform the operations using fswap networks
     yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
