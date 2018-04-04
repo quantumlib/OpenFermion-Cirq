@@ -13,8 +13,14 @@ import numpy
 
 from cirq.testing import EqualsTester
 
-from openfermioncirq.fermionic_simulation_gate import (FermionicSimulationGate,
-                                                       XXYYGate)
+from openfermioncirq import LinearQubit
+
+from openfermioncirq.gates import FSWAP, XXYY, XXYYGate
+
+
+def test_fswap_interchangeable():
+    a, b = LinearQubit(0), LinearQubit(1)
+    assert FSWAP(a, b) == FSWAP(b, a)
 
 
 def test_xx_yy_init():
@@ -28,6 +34,11 @@ def test_xx_yy_eq():
                           XXYYGate(half_turns=-0.5))
     eq.make_equality_pair(lambda: XXYYGate(half_turns=0))
     eq.make_equality_pair(lambda: XXYYGate(half_turns=0.5))
+
+
+def test_xx_yy_interchangeable():
+    a, b = LinearQubit(0), LinearQubit(1)
+    assert XXYY(a, b) == XXYY(b, a)
 
 
 def test_xx_yy_extrapolate():
@@ -61,71 +72,15 @@ def test_xx_yy__matrix():
                                        [0, 0, 0, 1]]))
 
 
-def test_fermionic_simulation_gate_init():
-    gate = FermionicSimulationGate(0.5, 5.0)
-    assert gate.kinetic_angle == 0.5
-    assert gate.potential_angle == 5.0 % (2. * numpy.pi)
-
-
-def test_fermionic_simulation_gate_matrix():
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=numpy.pi,
-                                    potential_coeff=numpy.pi).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, 0, -1, 0],
-                         [0, -1, 0, 0],
-                         [0, 0, 0, 1]]))
-
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=numpy.pi / 2,
-                                    potential_coeff=numpy.pi / 2).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, -1j, 0, 0],
-                         [0, 0, -1j, 0],
-                         [0, 0, 0, 1j]]))
-
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=numpy.pi / 2,
-                                    potential_coeff=0.).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, -1j, 0, 0],
-                         [0, 0, -1j, 0],
-                         [0, 0, 0, -1]]))
-
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=0.,
-                                    potential_coeff=numpy.pi / 2).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1j]]))
-
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=0.,
-                                    potential_coeff=0.).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, -1]]))
-
-    assert numpy.allclose(
-            FermionicSimulationGate(kinetic_coeff=-numpy.pi / 2,
-                                    potential_coeff=-numpy.pi).matrix(),
-            numpy.array([[1, 0, 0, 0],
-                         [0, 1j, 0, 0],
-                         [0, 0, 1j, 0],
-                         [0, 0, 0, 1]]))
-
-
 # Waiting on Cirq Issue #242
 # -------------------------
 # import cirq
-# def test_fermionic_simulation_gate_on_simulator():
+# def test_xxyy_on_simulator():
 #
 #     q0 = cirq.google.XmonQubit(0, 0)
 #     q1 = cirq.google.XmonQubit(1, 0)
-#     fsimgate = FermionicSimulationGate(numpy.pi / 2, numpy.pi / 2)
-#     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), fsimgate(q0, q1))
+#     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), FSWAP(q0, q1),
+#                                     XXYY(q0, q1) ** 0.5)
 #     simulator = cirq.google.Simulator()
 #     result = simulator.run(circuit)
 #

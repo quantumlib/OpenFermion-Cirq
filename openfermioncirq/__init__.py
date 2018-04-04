@@ -9,5 +9,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from openfermioncirq import swap_network
+
+from openfermioncirq.gates import (
+        FSWAP,
+        FermionicSwapGate,
+        XXYY,
+        XXYYGate)
+from openfermioncirq.linear_qubit import LinearQubit
+from openfermioncirq.planar_qubit import PlanarQubit
 
 from ._version import __version__
