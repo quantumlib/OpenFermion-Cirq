@@ -29,24 +29,24 @@ def test_swap_network():
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert (circuit.to_text_diagram(transpose=True).strip() == """
-0      1      2      3
-│      │      │      │
-XXYY───XXYY   XXYY───XXYY
-│      │      │      │
-SWAP:0─SWAP:1 SWAP:0─SWAP:1
-│      │      │      │
-│      XXYY───XXYY   │
-│      │      │      │
-│      SWAP:0─SWAP:1 │
-│      │      │      │
-XXYY───XXYY   XXYY───XXYY
-│      │      │      │
-SWAP:0─SWAP:1 SWAP:0─SWAP:1
-│      │      │      │
-│      XXYY───XXYY   │
-│      │      │      │
-│      SWAP:0─SWAP:1 │
-│      │      │      │
+0    1    2    3
+│    │    │    │
+XXYY─XXYY XXYY─XXYY
+│    │    │    │
+×────×    ×────×
+│    │    │    │
+│    XXYY─XXYY │
+│    │    │    │
+│    ×────×    │
+│    │    │    │
+XXYY─XXYY XXYY─XXYY
+│    │    │    │
+×────×    ×────×
+│    │    │    │
+│    XXYY─XXYY │
+│    │    │    │
+│    ×────×    │
+│    │    │    │
 """.strip())
 
     circuit = cirq.Circuit.from_ops(
@@ -98,21 +98,21 @@ XXYY─XXYY XXYY─XXYY
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: (),
-                         fermionic=True, offset=True),
+                         offset=True),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert (circuit.to_text_diagram(transpose=True).strip() == """
-0  1  2  3  4
-│  │  │  │  │
-│  ×ᶠ─×ᶠ ×ᶠ─×ᶠ
-│  │  │  │  │
-×ᶠ─×ᶠ ×ᶠ─×ᶠ │
-│  │  │  │  │
-│  ×ᶠ─×ᶠ ×ᶠ─×ᶠ
-│  │  │  │  │
-×ᶠ─×ᶠ ×ᶠ─×ᶠ │
-│  │  │  │  │
-│  ×ᶠ─×ᶠ ×ᶠ─×ᶠ
-│  │  │  │  │
+0 1 2 3 4
+│ │ │ │ │
+│ ×─× ×─×
+│ │ │ │ │
+×─× ×─× │
+│ │ │ │ │
+│ ×─× ×─×
+│ │ │ │ │
+×─× ×─× │
+│ │ │ │ │
+│ ×─× ×─×
+│ │ │ │ │
 """.strip())
 
 
