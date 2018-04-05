@@ -15,7 +15,9 @@ from openfermioncirq.gates import (
         FSWAP,
         FermionicSwapGate,
         XXYY,
-        XXYYGate)
+        XXYYGate,
+        YXXY,
+        YXXYGate)
 from openfermioncirq.linear_qubit import LinearQubit
 from openfermioncirq.planar_qubit import PlanarQubit
 

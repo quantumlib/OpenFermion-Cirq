@@ -10,12 +10,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 import numpy
+from scipy.linalg import expm, kron
 
 from cirq.testing import EqualsTester
 
 from openfermioncirq import LinearQubit
 
-from openfermioncirq.gates import FSWAP, XXYY, XXYYGate
+from openfermioncirq.gates import FSWAP, XXYY, XXYYGate, YXXYGate
 
 
 def test_fswap_interchangeable():
@@ -70,6 +71,64 @@ def test_xx_yy__matrix():
                                        [0, 0, 1j, 0],
                                        [0, 1j, 0, 0],
                                        [0, 0, 0, 1]]))
+
+    X = numpy.array([[0, 1], [1, 0]])
+    Y = numpy.array([[0, -1j], [1j, 0]])
+    XX = kron(X, X)
+    YY = kron(Y, Y)
+    assert numpy.allclose(XXYYGate(half_turns=0.25).matrix(),
+                          expm(-1j * numpy.pi * 0.25 * (XX + YY) / 2))
+
+
+def test_yx_xy_init():
+    assert YXXYGate(half_turns=0.5).half_turns == 0.5
+    assert YXXYGate(half_turns=5).half_turns == 1
+
+
+def test_yx_xy_eq():
+    eq = EqualsTester()
+    eq.add_equality_group(YXXYGate(half_turns=3.5),
+                          YXXYGate(half_turns=-0.5))
+    eq.make_equality_pair(lambda: YXXYGate(half_turns=0))
+    eq.make_equality_pair(lambda: YXXYGate(half_turns=0.5))
+
+
+def test_yx_xy_extrapolate():
+    assert YXXYGate(
+        half_turns=1).extrapolate_effect(0.5) == YXXYGate(half_turns=0.5)
+
+
+def test_yx_xy__matrix():
+    assert numpy.allclose(YXXYGate(half_turns=1).matrix(),
+                          numpy.array([[1, 0, 0, 0],
+                                       [0, -1, 0, 0],
+                                       [0, 0, -1, 0],
+                                       [0, 0, 0, 1]]))
+
+    assert numpy.allclose(YXXYGate(half_turns=0.5).matrix(),
+                          numpy.array([[1, 0, 0, 0],
+                                       [0, 0, -1, 0],
+                                       [0, 1, 0, 0],
+                                       [0, 0, 0, 1]]))
+
+    assert numpy.allclose(YXXYGate(half_turns=0).matrix(),
+                          numpy.array([[1, 0, 0, 0],
+                                       [0, 1, 0, 0],
+                                       [0, 0, 1, 0],
+                                       [0, 0, 0, 1]]))
+
+    assert numpy.allclose(YXXYGate(half_turns=-0.5).matrix(),
+                          numpy.array([[1, 0, 0, 0],
+                                       [0, 0, 1, 0],
+                                       [0, -1, 0, 0],
+                                       [0, 0, 0, 1]]))
+
+    X = numpy.array([[0, 1], [1, 0]])
+    Y = numpy.array([[0, -1j], [1j, 0]])
+    YX = kron(Y, X)
+    XY = kron(X, Y)
+    assert numpy.allclose(YXXYGate(half_turns=0.25).matrix(),
+                          expm(-1j * numpy.pi * 0.25 * (YX - XY) / 2))
 
 
 # Waiting on Cirq Issue #242

@@ -51,7 +51,10 @@ class XXYYGate(cirq.AsciiDiagrammableGate,
                cirq.InterchangeableQubitsGate,
                cirq.KnownMatrixGate,
                cirq.TwoQubitGate):
-    """XX + YY interaction."""
+    """XX + YY interaction.
+
+    This gate implements the unitary exp(-i pi half_turns (XX + YY) / 2)
+    """
 
     def __init__(self, *positional_args,
                  half_turns: float=1.0) -> None:
@@ -93,5 +96,55 @@ class XXYYGate(cirq.AsciiDiagrammableGate,
         return 'XXYYGate(half_turns={!r})'.format(self.half_turns)
 
 
+class YXXYGate(cirq.AsciiDiagrammableGate,
+               cirq.ExtrapolatableGate,
+               cirq.KnownMatrixGate,
+               cirq.TwoQubitGate):
+    """YX - XY interaction.
+
+    This gate implements the unitary exp(-i pi half_turns (YX - XY) / 2)
+    """
+
+    def __init__(self, *positional_args,
+                 half_turns: float=1.0) -> None:
+        assert not positional_args
+        self.half_turns = _canonicalize_half_turns(half_turns)
+
+    def matrix(self):
+        c = numpy.cos(numpy.pi * self.half_turns)
+        s = numpy.sin(numpy.pi * self.half_turns)
+        return numpy.array([[1, 0, 0, 0],
+                            [0, c, -s, 0],
+                            [0, s, c, 0],
+                            [0, 0, 0, 1]])
+
+    def ascii_wire_symbols(self):
+        return 'YXXY', '#2'
+
+    def ascii_exponent(self):
+        return self.half_turns
+
+    def extrapolate_effect(self, factor) -> 'YXXYGate':
+        return YXXYGate(half_turns=self.half_turns * factor)
+
+    def inverse(self) -> 'YXXYGate':
+        return self.extrapolate_effect(-1)
+
+    def __eq__(self, other):
+        if not isinstance(other, YXXYGate):
+            return NotImplemented
+        return self.half_turns == other.half_turns
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash((YXXYGate, self.half_turns))
+
+    def __repr__(self):
+        return 'YXXYGate(half_turns={!r})'.format(self.half_turns)
+
+
 FSWAP = FermionicSwapGate()
 XXYY = XXYYGate()
+YXXY = YXXYGate()
