@@ -12,11 +12,12 @@
 import numpy
 from scipy.linalg import expm, kron
 
+import cirq
 from cirq.testing import EqualsTester
 
 from openfermioncirq import LinearQubit
 
-from openfermioncirq.gates import FSWAP, XXYY, XXYYGate, YXXYGate
+from openfermioncirq.gates import FSWAP, XXYY, XXYYGate, YXXY, YXXYGate
 
 
 def test_fswap_interchangeable():
@@ -107,8 +108,8 @@ def test_yx_xy__matrix():
 
     assert numpy.allclose(YXXYGate(half_turns=0.5).matrix(),
                           numpy.array([[1, 0, 0, 0],
-                                       [0, 0, -1, 0],
-                                       [0, 1, 0, 0],
+                                       [0, 0, 1, 0],
+                                       [0, -1, 0, 0],
                                        [0, 0, 0, 1]]))
 
     assert numpy.allclose(YXXYGate(half_turns=0).matrix(),
@@ -119,29 +120,53 @@ def test_yx_xy__matrix():
 
     assert numpy.allclose(YXXYGate(half_turns=-0.5).matrix(),
                           numpy.array([[1, 0, 0, 0],
-                                       [0, 0, 1, 0],
-                                       [0, -1, 0, 0],
+                                       [0, 0, -1, 0],
+                                       [0, 1, 0, 0],
                                        [0, 0, 0, 1]]))
 
     X = numpy.array([[0, 1], [1, 0]])
     Y = numpy.array([[0, -1j], [1j, 0]])
-    YX = kron(Y, X)
-    XY = kron(X, Y)
+    YX = kron(X, Y)
+    XY = kron(Y, X)
     assert numpy.allclose(YXXYGate(half_turns=0.25).matrix(),
                           expm(-1j * numpy.pi * 0.25 * (YX - XY) / 2))
 
 
-# Waiting on Cirq Issue #242
-# -------------------------
-# import cirq
-# def test_xxyy_on_simulator():
-#
-#     q0 = cirq.google.XmonQubit(0, 0)
-#     q1 = cirq.google.XmonQubit(1, 0)
-#     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), FSWAP(q0, q1),
-#                                     XXYY(q0, q1) ** 0.5)
-#     simulator = cirq.google.Simulator()
-#     result = simulator.run(circuit)
-#
-#     assert cirq.allclose_up_to_global_phase(
-#             result.final_states[0], numpy.array([1, -1j, -1j, 1j]) / 4)
+def test_xxyy_on_simulator():
+    n_qubits = 2
+    qubits = [cirq.google.XmonQubit(i, 0) for i in range(n_qubits)]
+    initial_state = (numpy.array([0., 1., 1., 0.], dtype=numpy.complex64) /
+                     numpy.sqrt(2.))
+
+    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** 0.5)
+    simulator = cirq.google.Simulator()
+    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    assert cirq.allclose_up_to_global_phase(
+            result.final_states[0],
+            numpy.array([0., -1.j, -1.j, 0.]) / numpy.sqrt(2.),
+            atol=1e-7)
+
+
+def test_yxxy_on_simulator():
+    n_qubits = 2
+    qubits = [cirq.google.XmonQubit(i, 0) for i in range(n_qubits)]
+    initial_state = (numpy.array([0., 1., 1., 0.], dtype=numpy.complex64) /
+                     numpy.sqrt(2.))
+    simulator = cirq.google.Simulator()
+
+    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** 0.5)
+    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    assert cirq.allclose_up_to_global_phase(
+            result.final_states[0],
+            numpy.array([0., -1., 1., 0.]) / numpy.sqrt(2.),
+            atol=1e-7)
+
+    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** .25)
+    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    bit_flip_circuit = cirq.Circuit.from_ops(cirq.X(qubits[0]))
+    equivalent_result = simulator.run(bit_flip_circuit, qubits=qubits,
+                                      initial_state=0)
+    assert cirq.allclose_up_to_global_phase(
+            result.final_states[0],
+            equivalent_result.final_states[0],
+            atol=1e-7)
