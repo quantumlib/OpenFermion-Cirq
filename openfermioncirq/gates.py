@@ -25,6 +25,7 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
                         cirq.CompositeGate,
                         cirq.InterchangeableQubitsGate,
                         cirq.KnownMatrixGate,
+                        cirq.SelfInverseGate,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
