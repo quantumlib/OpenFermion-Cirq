@@ -21,7 +21,7 @@ def _canonicalize_half_turns(half_turns: float) -> float:
     return half_turns
 
 
-class FermionicSwapGate(cirq.AsciiDiagrammableGate,
+class FermionicSwapGate(cirq.TextDiagrammableGate,
                         cirq.CompositeGate,
                         cirq.InterchangeableQubitsGate,
                         cirq.KnownMatrixGate,
@@ -34,7 +34,7 @@ class FermionicSwapGate(cirq.AsciiDiagrammableGate,
                             [0, 1, 0, 0],
                             [0, 0, 0, -1]])
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self):
         return '×ᶠ', '×ᶠ'
 
     def default_decompose(self, qubits):
@@ -46,7 +46,7 @@ class FermionicSwapGate(cirq.AsciiDiagrammableGate,
         return 'FSWAP'
 
 
-class XXYYGate(cirq.AsciiDiagrammableGate,
+class XXYYGate(cirq.TextDiagrammableGate,
                cirq.ExtrapolatableGate,
                cirq.InterchangeableQubitsGate,
                cirq.KnownMatrixGate,
@@ -69,10 +69,10 @@ class XXYYGate(cirq.AsciiDiagrammableGate,
                             [0, -1j * s, c, 0],
                             [0, 0, 0, 1]])
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self):
         return 'XXYY', 'XXYY'
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         return self.half_turns
 
     def extrapolate_effect(self, factor) -> 'XXYYGate':
@@ -96,7 +96,7 @@ class XXYYGate(cirq.AsciiDiagrammableGate,
         return 'XXYYGate(half_turns={!r})'.format(self.half_turns)
 
 
-class YXXYGate(cirq.AsciiDiagrammableGate,
+class YXXYGate(cirq.TextDiagrammableGate,
                cirq.ExtrapolatableGate,
                cirq.KnownMatrixGate,
                cirq.TwoQubitGate):
@@ -118,10 +118,10 @@ class YXXYGate(cirq.AsciiDiagrammableGate,
                             [0, -s, c, 0],
                             [0, 0, 0, 1]])
 
-    def ascii_wire_symbols(self):
+    def text_diagram_wire_symbols(self):
         return 'YXXY', '#2'
 
-    def ascii_exponent(self):
+    def text_diagram_exponent(self):
         return self.half_turns
 
     def extrapolate_effect(self, factor) -> 'YXXYGate':
