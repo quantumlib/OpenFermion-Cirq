@@ -2,9 +2,9 @@
 absl-py
 mypy
 numpy
-openfermion
 pylint
 pytest
 protobuf
 sortedcontainers
 git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
+git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
