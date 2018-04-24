@@ -20,5 +20,10 @@ from openfermioncirq.gates import (
         YXXYGate)
 from openfermioncirq.linear_qubit import LinearQubit
 from openfermioncirq.planar_qubit import PlanarQubit
+from openfermioncirq.state_preparation import (
+        diagonalizing_basis_change,
+        orbital_basis_change,
+        prepare_gaussian_state,
+        prepare_slater_determinant)
 
 from ._version import __version__
