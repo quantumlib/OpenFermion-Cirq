@@ -35,7 +35,10 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
                             [0, 1, 0, 0],
                             [0, 0, 0, -1]])
 
-    def text_diagram_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True,
+                                  precision=3):
         return '×ᶠ', '×ᶠ'
 
     def default_decompose(self, qubits):
@@ -70,7 +73,10 @@ class XXYYGate(cirq.TextDiagrammableGate,
                             [0, -1j * s, c, 0],
                             [0, 0, 0, 1]])
 
-    def text_diagram_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'XXYY', 'XXYY'
 
     def text_diagram_exponent(self):
@@ -119,7 +125,10 @@ class YXXYGate(cirq.TextDiagrammableGate,
                             [0, -s, c, 0],
                             [0, 0, 0, 1]])
 
-    def text_diagram_wire_symbols(self):
+    def text_diagram_wire_symbols(self,
+                                  qubit_count=None,
+                                  use_unicode_characters=True,
+                                  precision=3):
         return 'YXXY', '#2'
 
     def text_diagram_exponent(self):

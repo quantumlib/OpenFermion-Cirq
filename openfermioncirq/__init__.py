@@ -9,8 +9,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from openfermioncirq import swap_network
-
 from openfermioncirq.gates import (
         FSWAP,
         FermionicSwapGate,
@@ -25,5 +23,7 @@ from openfermioncirq.state_preparation import (
         orbital_basis_change,
         prepare_gaussian_state,
         prepare_slater_determinant)
+from openfermioncirq.swap_network import swap_network
+from openfermioncirq.trotter import simulate_trotter
 
 from ._version import __version__
