@@ -51,7 +51,6 @@ def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
     circuit = cirq.Circuit.from_ops(orbital_basis_change(
         qubits, transformation_matrix, initial_state=initial_state))
     result = simulator.run(circuit,
-                           qubits=qubits,
                            initial_state=initial_state)
     state = result.final_states[0]
 
@@ -98,7 +97,7 @@ def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
 #        # Get the state using a circuit simulation
 #        result = simulator.run(
 #                circuit,
-#                qubits=list(reversed(qubits)),
+#                qubits=qubits[::-1],
 #                initial_state=sum(1 << (n_qubits - 1 - int(i))
 #                                  for i in occupied_orbitals))
 #        state1 = result.final_states[0]
@@ -110,7 +109,7 @@ def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
 #            initial_state=sum(1 << int(i) for i in occupied_orbitals)))
 #        result = simulator.run(
 #                special_circuit,
-#                qubits=list(reversed(qubits)),
+#                qubits=qubits[::-1],
 #                initial_state=sum(1 << (n_qubits - 1 - int(i))
 #                                  for i in occupied_orbitals))
 #        state2 = result.final_states[0]
@@ -152,7 +151,7 @@ def test_prepare_gaussian_state(n_qubits,
     # Get the state using a circuit simulation
     circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(qubits, quad_ham, occupied_orbitals))
-    result = simulator.run(circuit, qubits=list(reversed(qubits)))
+    result = simulator.run(circuit, qubit_order=qubits[::-1])
     state = result.final_states[0]
 
     # Check that the result is an eigenstate with the correct eigenvalue
@@ -182,7 +181,7 @@ def test_prepare_slater_determinant_test(slater_determinant_matrix,
 
     circuit = cirq.Circuit.from_ops(
             prepare_slater_determinant(qubits, slater_determinant_matrix))
-    result = simulator.run(circuit, qubits=list(reversed(qubits)))
+    result = simulator.run(circuit, qubit_order=qubits[::-1])
     state = result.final_states[0]
 
     assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)
@@ -223,7 +222,7 @@ def test_diagonalizing_basis_change(n_qubits,
         # Get the state using a circuit simulation
         result = simulator.run(
                 circuit,
-                qubits=list(reversed(qubits)),
+                qubit_order=qubits[::-1],
                 initial_state=sum(1 << (n_qubits - 1 - int(i))
                                   for i in occupied_orbitals))
         state = result.final_states[0]

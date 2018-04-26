@@ -32,7 +32,7 @@ def test_fswap_on_simulator():
 
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
-    result = simulator.run(circuit, qubits=[a, b], initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 0, 1, 0]) / numpy.sqrt(2),
@@ -40,7 +40,7 @@ def test_fswap_on_simulator():
 
     initial_state = (numpy.array([0, 1, 0, 1], dtype=numpy.complex64) /
                      numpy.sqrt(2))
-    result = simulator.run(circuit, qubits=[a, b], initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, 0, 1, -1]) / numpy.sqrt(2),
@@ -111,7 +111,7 @@ def test_xxyy_on_simulator():
     circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** 0.5)
     initial_state = (numpy.array([0, 1, 1, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2),
@@ -120,7 +120,7 @@ def test_xxyy_on_simulator():
     circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** .25)
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 1 / numpy.sqrt(2),
@@ -130,7 +130,7 @@ def test_xxyy_on_simulator():
     circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** -.25)
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 1 / numpy.sqrt(2),
@@ -197,21 +197,21 @@ def test_yxxy_on_simulator():
     simulator = cirq.google.Simulator()
 
     circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** 0.5)
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, -1, 1, 0]) / numpy.sqrt(2),
             atol=1e-7)
 
     circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** .25)
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, 1, 0, 0]),
             atol=1e-7)
 
     circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** -.25)
-    result = simulator.run(circuit, qubits=qubits, initial_state=initial_state)
+    result = simulator.run(circuit, initial_state=initial_state)
     assert cirq.allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, 0, 1, 0]),

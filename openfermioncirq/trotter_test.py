@@ -65,7 +65,7 @@ def test_trotter_step(hamiltonian, order, n_steps, algorithm):
     circuit = cirq.Circuit.from_ops(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm))
     result = simulator.run(
-            circuit, qubits=qubits[::-1], initial_state=initial_state)
+            circuit, qubit_order=qubits[::-1], initial_state=initial_state)
     final_state = result.final_states[0]
 
     # Hamiltonian evolution should simply apply a phase
