@@ -22,7 +22,6 @@ def _canonicalize_half_turns(half_turns: float) -> float:
 
 
 class FermionicSwapGate(cirq.TextDiagrammableGate,
-                        cirq.CompositeGate,
                         cirq.InterchangeableQubitsGate,
                         cirq.KnownMatrixGate,
                         cirq.SelfInverseGate,
@@ -41,19 +40,15 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
                                   precision=3):
         return '×ᶠ', '×ᶠ'
 
-    def default_decompose(self, qubits):
-        a, b = qubits
-        yield cirq.SWAP(a, b)
-        yield cirq.CZ(a, b)
-
     def __repr__(self):
         return 'FSWAP'
 
 
-class XXYYGate(cirq.TextDiagrammableGate,
+class XXYYGate(cirq.CompositeGate,
                cirq.ExtrapolatableGate,
                cirq.InterchangeableQubitsGate,
                cirq.KnownMatrixGate,
+               cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
     """XX + YY interaction.
 
@@ -72,6 +67,12 @@ class XXYYGate(cirq.TextDiagrammableGate,
                             [0, c, -1j * s, 0],
                             [0, -1j * s, c, 0],
                             [0, 0, 0, 1]])
+
+    def default_decompose(self, qubits):
+        a, b = qubits
+        yield cirq.Z(a) ** 0.5
+        yield YXXY(a, b) ** self.half_turns
+        yield cirq.Z(a) ** -0.5
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -103,9 +104,10 @@ class XXYYGate(cirq.TextDiagrammableGate,
         return 'XXYYGate(half_turns={!r})'.format(self.half_turns)
 
 
-class YXXYGate(cirq.TextDiagrammableGate,
+class YXXYGate(cirq.CompositeGate,
                cirq.ExtrapolatableGate,
                cirq.KnownMatrixGate,
+               cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
@@ -124,6 +126,12 @@ class YXXYGate(cirq.TextDiagrammableGate,
                             [0, c, s, 0],
                             [0, -s, c, 0],
                             [0, 0, 0, 1]])
+
+    def default_decompose(self, qubits):
+        a, b = qubits
+        yield cirq.Z(a) ** -0.5
+        yield XXYY(a, b) ** self.half_turns
+        yield cirq.Z(a) ** 0.5
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,

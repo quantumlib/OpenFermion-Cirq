@@ -43,7 +43,7 @@ def fourier_transform_matrix(n_modes):
 def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
                                                      initial_state,
                                                      correct_state,
-                                                     atol=1e-7):
+                                                     atol=1e-6):
     simulator = cirq.google.Simulator()
     n_qubits = transformation_matrix.shape[0]
     qubits = [LinearQubit(i) for i in range(n_qubits)]
