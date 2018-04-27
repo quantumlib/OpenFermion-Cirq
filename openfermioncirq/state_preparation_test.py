@@ -57,68 +57,64 @@ def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
     assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)
 
 
-# WAITING ON CIRQ ISSUE 301
-# -------------------------
-#@pytest.mark.parametrize(
-#        'n_qubits, conserves_particle_number',
-#        [(4, True), (4, False), (5, True), (5, False)])
-#def test_orbital_basis_change_quadratic_hamiltonian(n_qubits,
-#                                                    conserves_particle_number,
-#                                                    atol=1e-5):
-#    simulator = cirq.google.Simulator()
-#    qubits = [LinearQubit(i) for i in range(n_qubits)]
-#
-#    # Initialize a random quadratic Hamiltonian
-#    quad_ham = random_quadratic_hamiltonian(
-#            n_qubits, conserves_particle_number, real=False)
-#    quad_ham_sparse = get_sparse_operator(quad_ham)
-#
-#    # Compute the orbital energies and circuit
-#    orbital_energies, constant = quad_ham.orbital_energies()
-#    transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
-#    if not quad_ham.conserves_particle_number:
-#        transformation_matrix = transformation_matrix[:n_qubits]
-#    circuit = cirq.Circuit.from_ops(
-#            orbital_basis_change(qubits, transformation_matrix))
-#
-#    # Pick some random eigenstates to prepare, which correspond to random
-#    # subsets of [0 ... n_qubits - 1]
-#    n_eigenstates = min(1 << n_qubits, 5)
-#    subsets = [numpy.random.choice(range(n_qubits),
-#                                   numpy.random.randint(1, n_qubits + 1),
-#                                   False)
-#               for _ in range(n_eigenstates)]
-#
-#    for occupied_orbitals in subsets:
-#        # Compute the energy of this eigenstate
-#        energy = (sum(orbital_energies[i] for i in occupied_orbitals) +
-#                  constant)
-#
-#        # Get the state using a circuit simulation
-#        result = simulator.run(
-#                circuit,
-#                qubits=qubits[::-1],
-#                initial_state=sum(1 << (n_qubits - 1 - int(i))
-#                                  for i in occupied_orbitals))
-#        state1 = result.final_states[0]
-#
-#        # Also test the option to start with a computational basis state
-#        special_circuit = cirq.Circuit.from_ops(orbital_basis_change(
-#            qubits,
-#            transformation_matrix,
-#            initial_state=sum(1 << int(i) for i in occupied_orbitals)))
-#        result = simulator.run(
-#                special_circuit,
-#                qubits=qubits[::-1],
-#                initial_state=sum(1 << (n_qubits - 1 - int(i))
-#                                  for i in occupied_orbitals))
-#        state2 = result.final_states[0]
-#
-#        # Check that the result is an eigenstate with the correct eigenvalue
-#        numpy.testing.assert_allclose(
-#                quad_ham_sparse.dot(state1), energy * state1, atol=atol)
-#        numpy.testing.assert_allclose(
-#                quad_ham_sparse.dot(state2), energy * state2, atol=atol)
+@pytest.mark.parametrize(
+        'n_qubits, conserves_particle_number',
+        [(4, True), (4, False), (5, True), (5, False)])
+def test_orbital_basis_change_quadratic_hamiltonian(n_qubits,
+                                                    conserves_particle_number,
+                                                    atol=1e-5):
+    simulator = cirq.google.Simulator()
+    qubits = [LinearQubit(i) for i in range(n_qubits)]
+
+    # Initialize a random quadratic Hamiltonian
+    quad_ham = random_quadratic_hamiltonian(
+            n_qubits, conserves_particle_number, real=False)
+    quad_ham_sparse = get_sparse_operator(quad_ham)
+
+    # Compute the orbital energies and circuit
+    orbital_energies, constant = quad_ham.orbital_energies()
+    transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
+    circuit = cirq.Circuit.from_ops(
+            orbital_basis_change(qubits, transformation_matrix))
+
+    # Pick some random eigenstates to prepare, which correspond to random
+    # subsets of [0 ... n_qubits - 1]
+    n_eigenstates = min(1 << n_qubits, 5)
+    subsets = [numpy.random.choice(range(n_qubits),
+                                   numpy.random.randint(1, n_qubits + 1),
+                                   False)
+               for _ in range(n_eigenstates)]
+
+    for occupied_orbitals in subsets:
+        # Compute the energy of this eigenstate
+        energy = (sum(orbital_energies[i] for i in occupied_orbitals) +
+                  constant)
+
+        # Get the state using a circuit simulation
+        result = simulator.run(
+                circuit,
+                qubit_order=qubits[::-1],
+                initial_state=sum(1 << (n_qubits - 1 - int(i))
+                                  for i in occupied_orbitals))
+        state1 = result.final_states[0]
+
+        # Also test the option to start with a computational basis state
+        special_circuit = cirq.Circuit.from_ops(orbital_basis_change(
+            qubits,
+            transformation_matrix,
+            initial_state=sum(1 << int(i) for i in occupied_orbitals)))
+        result = simulator.run(
+                special_circuit,
+                qubit_order=qubits[::-1],
+                initial_state=sum(1 << (n_qubits - 1 - int(i))
+                                  for i in occupied_orbitals))
+        state2 = result.final_states[0]
+
+        # Check that the result is an eigenstate with the correct eigenvalue
+        numpy.testing.assert_allclose(
+                quad_ham_sparse.dot(state1), energy * state1, atol=atol)
+        numpy.testing.assert_allclose(
+                quad_ham_sparse.dot(state2), energy * state2, atol=atol)
 
 
 @pytest.mark.parametrize(
