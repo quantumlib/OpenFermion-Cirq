@@ -13,15 +13,14 @@ import numpy
 from scipy.linalg import expm, kron
 
 import cirq
+from cirq import LineQubit
 from cirq.testing import EqualsTester
-
-from openfermioncirq import LinearQubit
 
 from openfermioncirq.gates import FSWAP, XXYY, XXYYGate, YXXY, YXXYGate
 
 
 def test_fswap_interchangeable():
-    a, b = LinearQubit(0), LinearQubit(1)
+    a, b = LineQubit(0), LineQubit(1)
     assert FSWAP(a, b) == FSWAP(b, a)
 
 
@@ -61,7 +60,7 @@ def test_xx_yy_eq():
 
 
 def test_xx_yy_interchangeable():
-    a, b = LinearQubit(0), LinearQubit(1)
+    a, b = LineQubit(0), LineQubit(1)
     assert XXYY(a, b) == XXYY(b, a)
 
 

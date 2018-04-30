@@ -16,7 +16,6 @@ from openfermioncirq.gates import (
         XXYYGate,
         YXXY,
         YXXYGate)
-from openfermioncirq.linear_qubit import LinearQubit
 from openfermioncirq.planar_qubit import PlanarQubit
 from openfermioncirq.state_preparation import (
         diagonalizing_basis_change,

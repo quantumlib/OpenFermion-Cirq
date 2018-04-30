@@ -12,15 +12,14 @@
 from typing import Callable, Sequence
 
 import cirq
-from cirq import SWAP
+from cirq import LineQubit, SWAP
 
 from openfermioncirq.gates import FSWAP
-from openfermioncirq.linear_qubit import LinearQubit
 
 
-def swap_network(qubits: Sequence[LinearQubit],
+def swap_network(qubits: Sequence[LineQubit],
                  operation: Callable[
-                     [int, int, LinearQubit, LinearQubit], cirq.OP_TREE]=
+                     [int, int, LineQubit, LineQubit], cirq.OP_TREE]=
                      lambda i, j, q0, q1: (),
                  fermionic: bool=False,
                  offset: bool=False):

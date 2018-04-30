@@ -13,10 +13,9 @@ import numpy
 import pytest
 
 import cirq
+from cirq import LineQubit
 from openfermion import get_sparse_operator
 from openfermion.utils._testing_utils import random_quadratic_hamiltonian
-
-from openfermioncirq import LinearQubit
 
 from openfermioncirq.state_preparation import (
         diagonalizing_basis_change,
@@ -46,7 +45,7 @@ def test_orbital_basis_change_fourier_transform_test(transformation_matrix,
                                                      atol=1e-6):
     simulator = cirq.google.Simulator()
     n_qubits = transformation_matrix.shape[0]
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     circuit = cirq.Circuit.from_ops(orbital_basis_change(
         qubits, transformation_matrix, initial_state=initial_state))
@@ -64,7 +63,7 @@ def test_orbital_basis_change_quadratic_hamiltonian(n_qubits,
                                                     conserves_particle_number,
                                                     atol=1e-5):
     simulator = cirq.google.Simulator()
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(
@@ -130,7 +129,7 @@ def test_prepare_gaussian_state(n_qubits,
                                 occupied_orbitals,
                                 atol=1e-5):
     simulator = cirq.google.Simulator()
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(
@@ -173,7 +172,7 @@ def test_prepare_slater_determinant_test(slater_determinant_matrix,
                                          atol=1e-7):
     simulator = cirq.google.Simulator()
     n_qubits = slater_determinant_matrix.shape[1]
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     circuit = cirq.Circuit.from_ops(
             prepare_slater_determinant(qubits, slater_determinant_matrix))
@@ -190,7 +189,7 @@ def test_diagonalizing_basis_change(n_qubits,
                                     conserves_particle_number,
                                     atol=1e-5):
     simulator = cirq.google.Simulator()
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(

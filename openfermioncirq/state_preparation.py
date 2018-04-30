@@ -14,6 +14,7 @@ from typing import Sequence, Set, Tuple, Union
 import numpy
 
 import cirq
+from cirq import LineQubit
 from openfermion import (
         QuadraticHamiltonian,
         gaussian_state_preparation_circuit,
@@ -22,10 +23,10 @@ from openfermion.ops._givens_rotations import (
         fermionic_gaussian_decomposition,
         givens_decomposition_square)
 
-from openfermioncirq import LinearQubit, YXXY
+from openfermioncirq import YXXY
 
 
-def orbital_basis_change(qubits: Sequence[LinearQubit],
+def orbital_basis_change(qubits: Sequence[LineQubit],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
     r"""Perform an orbital basis change.
@@ -99,7 +100,7 @@ def _occupied_orbitals(computational_basis_state: int) -> Set[int]:
     return {j for j in range(len(bitstring)) if bitstring[j] == '1'}
 
 
-def _slater_basis_change(qubits: Sequence[LinearQubit],
+def _slater_basis_change(qubits: Sequence[LineQubit],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
     n_qubits = transformation_matrix.shape[0]
@@ -122,7 +123,7 @@ def _slater_basis_change(qubits: Sequence[LinearQubit],
             qubits, circuit_description)
 
 
-def _gaussian_basis_change(qubits: Sequence[LinearQubit],
+def _gaussian_basis_change(qubits: Sequence[LineQubit],
                            transformation_matrix: numpy.ndarray,
                            initial_state: int=None) -> cirq.OP_TREE:
     n_qubits = transformation_matrix.shape[0]
@@ -149,7 +150,7 @@ def _gaussian_basis_change(qubits: Sequence[LinearQubit],
 
 
 def _ops_from_givens_rotations_circuit_description(
-        qubits: Sequence[LinearQubit],
+        qubits: Sequence[LineQubit],
         circuit_description: Sequence[
             Tuple[Union[Tuple[int, int, float, float], str]]]) -> cirq.OP_TREE:
     """Yield operations from a Givens rotations circuit obtained from
@@ -165,7 +166,7 @@ def _ops_from_givens_rotations_circuit_description(
                 yield cirq.Z(qubits[j]) ** (phi / numpy.pi)
 
 
-def prepare_gaussian_state(qubits: Sequence[LinearQubit],
+def prepare_gaussian_state(qubits: Sequence[LineQubit],
                            quadratic_hamiltonian: QuadraticHamiltonian,
                            occupied_orbitals: Sequence[int]=None
                            ) -> cirq.OP_TREE:
@@ -193,7 +194,7 @@ def prepare_gaussian_state(qubits: Sequence[LinearQubit],
             qubits, circuit_description)
 
 
-def prepare_slater_determinant(qubits: Sequence[LinearQubit],
+def prepare_slater_determinant(qubits: Sequence[LineQubit],
                                slater_determinant_matrix: numpy.ndarray
                                ) -> cirq.OP_TREE:
     r"""Prepare a Slater determinant.
@@ -229,7 +230,7 @@ def prepare_slater_determinant(qubits: Sequence[LinearQubit],
             qubits, circuit_description)
 
 
-def diagonalizing_basis_change(qubits: Sequence[LinearQubit],
+def diagonalizing_basis_change(qubits: Sequence[LineQubit],
                                quadratic_hamiltonian: QuadraticHamiltonian
                                ) -> cirq.OP_TREE:
     r"""Change to the basis in which a quadratic Hamiltonian is diagonal.

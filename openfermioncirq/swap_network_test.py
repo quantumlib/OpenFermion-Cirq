@@ -10,14 +10,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 import cirq
+from cirq import LineQubit
 
-from openfermioncirq import LinearQubit, XXYY
+from openfermioncirq import XXYY
 
 from openfermioncirq.swap_network import swap_network
 
 def test_swap_network():
     n_qubits = 4
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
@@ -69,7 +70,7 @@ XXYY─XXYY XXYY─XXYY
 """.strip())
 
     n_qubits = 5
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: (),

@@ -14,13 +14,12 @@ import pytest
 import scipy.sparse.linalg
 
 import cirq
+from cirq import LineQubit
 from openfermion import (
         count_qubits,
         fermi_hubbard,
         get_diagonal_coulomb_hamiltonian,
         get_sparse_operator)
-
-from openfermioncirq import LinearQubit
 
 from openfermioncirq.trotter import (
         SPLIT_OPERATOR, SWAP_NETWORK, simulate_trotter)
@@ -57,7 +56,7 @@ def test_trotter_step(hamiltonian, order, n_steps, algorithm):
     assert numpy.allclose(numpy.linalg.norm(state), 1.0)
 
     # Simulate time evolution
-    qubits = [LinearQubit(i) for i in range(n_qubits)]
+    qubits = [LineQubit(i) for i in range(n_qubits)]
     simulator = cirq.google.Simulator()
     time = abs(energy) / 5
     initial_state = state

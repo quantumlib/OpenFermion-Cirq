@@ -14,11 +14,11 @@ from typing import Sequence
 import numpy
 
 import cirq
-from cirq import abc
+from cirq import LineQubit, abc
 from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
 
 from openfermioncirq import (
-        LinearQubit, XXYY, diagonalizing_basis_change, swap_network)
+        XXYY, diagonalizing_basis_change, swap_network)
 
 
 class TrotterStepAlgorithm:
@@ -35,7 +35,7 @@ class TrotterStepAlgorithm:
     """
 
     def prepare(self,
-                qubits: Sequence[LinearQubit],
+                qubits: Sequence[LineQubit],
                 hamiltonian: DiagonalCoulombHamiltonian) -> cirq.OP_TREE:
         """Operations to perform before doing the Trotter steps.
 
@@ -50,7 +50,7 @@ class TrotterStepAlgorithm:
 
     @abc.abstractmethod
     def second_order_trotter_step(self,
-                                  qubits: Sequence[LinearQubit],
+                                  qubits: Sequence[LineQubit],
                                   hamiltonian: DiagonalCoulombHamiltonian,
                                   time: float) -> cirq.OP_TREE:
         """Yield operations to perform a second-order Trotter step.
@@ -63,15 +63,15 @@ class TrotterStepAlgorithm:
         pass
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[LinearQubit]
-                               ) -> Sequence[LinearQubit]:
+                               qubits: Sequence[LineQubit]
+                               ) -> Sequence[LineQubit]:
         """The qubit permutation induced by a single second-order Trotter step.
         """
         # Default: identity permutation
         return qubits
 
     def finish(self,
-               qubits: Sequence[LinearQubit],
+               qubits: Sequence[LineQubit],
                hamiltonian: DiagonalCoulombHamiltonian,
                n_steps: int) -> cirq.OP_TREE:
         """Operations to perform after all Trotter steps are done.
@@ -92,7 +92,7 @@ class SwapNetworkTrotterStep(TrotterStepAlgorithm):
     """
 
     def second_order_trotter_step(self,
-                                  qubits: Sequence[LinearQubit],
+                                  qubits: Sequence[LineQubit],
                                   hamiltonian: DiagonalCoulombHamiltonian,
                                   time: float) -> cirq.OP_TREE:
         n_qubits = len(qubits)
@@ -125,7 +125,7 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
     """
 
     def prepare(self,
-                qubits: Sequence[LinearQubit],
+                qubits: Sequence[LineQubit],
                 hamiltonian: DiagonalCoulombHamiltonian) -> cirq.OP_TREE:
         #Change to the basis in which the one-body term is diagonal
         quad_ham = QuadraticHamiltonian(hamiltonian.one_body)
@@ -134,7 +134,7 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
         # TODO Maybe use FFFT instead
 
     def second_order_trotter_step(self,
-                                  qubits: Sequence[LinearQubit],
+                                  qubits: Sequence[LineQubit],
                                   hamiltonian: DiagonalCoulombHamiltonian,
                                   time: float) -> cirq.OP_TREE:
         n_qubits = len(qubits)
@@ -167,13 +167,13 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
                for i in range(n_qubits))
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[LinearQubit]
-                               ) -> Sequence[LinearQubit]:
+                               qubits: Sequence[LineQubit]
+                               ) -> Sequence[LineQubit]:
         # A second-order Trotter step reverses the qubit ordering
         return qubits[::-1]
 
     def finish(self,
-               qubits: Sequence[LinearQubit],
+               qubits: Sequence[LineQubit],
                hamiltonian: DiagonalCoulombHamiltonian,
                n_steps: int) -> cirq.OP_TREE:
         # Rotate back to the computational basis
@@ -188,7 +188,7 @@ SWAP_NETWORK = SwapNetworkTrotterStep()
 SPLIT_OPERATOR = SplitOperatorTrotterStep()
 
 
-def simulate_trotter(qubits: Sequence[LinearQubit],
+def simulate_trotter(qubits: Sequence[LineQubit],
                      hamiltonian: DiagonalCoulombHamiltonian,
                      time: float,
                      n_steps: int=1,
@@ -241,7 +241,7 @@ def simulate_trotter(qubits: Sequence[LinearQubit],
     yield algorithm.finish(qubits, hamiltonian, n_steps)
 
 
-def _trotter_step(qubits: Sequence[LinearQubit],
+def _trotter_step(qubits: Sequence[LineQubit],
                   hamiltonian: DiagonalCoulombHamiltonian,
                   time: float,
                   order: int,
