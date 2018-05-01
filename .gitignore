@@ -1,8 +1,14 @@
 # ignore compiled python files
 __pycache__
 *.pyc
+# ignore python egg files
+*.egg-info/
+*.egg
 # ignore idea SDK
 .idea/*
 # ignore cache
 .cache/*
-*.pytest_cache/*
+*.pytest_cache/
+*.mypy_cache/
+# ignore Vim swap files
+*.swp
