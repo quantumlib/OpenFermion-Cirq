@@ -4,6 +4,8 @@ __pycache__
 # ignore python egg files
 *.egg-info/
 *.egg
+# Jupyter notebook checkpoints
+*.ipynb_checkpoints/
 # ignore idea SDK
 .idea/*
 # ignore cache

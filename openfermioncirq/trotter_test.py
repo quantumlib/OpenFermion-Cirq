@@ -56,7 +56,7 @@ def test_trotter_step(hamiltonian, order, n_steps, algorithm):
     assert numpy.allclose(numpy.linalg.norm(state), 1.0)
 
     # Simulate time evolution
-    qubits = [LineQubit(i) for i in range(n_qubits)]
+    qubits = LineQubit.range(n_qubits)
     simulator = cirq.google.Simulator()
     time = abs(energy) / 5
     initial_state = state
