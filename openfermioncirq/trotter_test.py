@@ -25,26 +25,25 @@ from openfermioncirq.trotter import (
         SPLIT_OPERATOR, SWAP_NETWORK, simulate_trotter)
 
 
-def fidelity(state1, state2):
-    return abs(numpy.dot(state1, numpy.conjugate(state2)))
-
+hubbard_hamiltonian = get_diagonal_coulomb_hamiltonian(
+        fermi_hubbard(2, 2, 1., 4.))
+complex_hamiltonian = get_diagonal_coulomb_hamiltonian(
+        fermi_hubbard(2, 2, 1., 4.))
+complex_hamiltonian.one_body += 1j * numpy.triu(complex_hamiltonian.one_body)
+complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
 
 @pytest.mark.parametrize(
-        'hamiltonian, order, n_steps, algorithm', [
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                1, 2, SWAP_NETWORK),
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                1, 3, SWAP_NETWORK),
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                2, 1, SWAP_NETWORK),
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                1, 2, SPLIT_OPERATOR),
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                1, 3, SPLIT_OPERATOR),
-            (get_diagonal_coulomb_hamiltonian(fermi_hubbard(2, 2, 1., 4.)),
-                2, 1, SPLIT_OPERATOR),
+        'hamiltonian, order, n_steps, algorithm, result_fidelity', [
+            (hubbard_hamiltonian, 1, 2, SWAP_NETWORK, .97),
+            (hubbard_hamiltonian, 1, 3, SWAP_NETWORK, .97),
+            (hubbard_hamiltonian, 2, 1, SWAP_NETWORK, .97),
+            (hubbard_hamiltonian, 1, 2, SPLIT_OPERATOR, .97),
+            (hubbard_hamiltonian, 1, 3, SPLIT_OPERATOR, .97),
+            (hubbard_hamiltonian, 2, 1, SPLIT_OPERATOR, .97),
+            (complex_hamiltonian, 1, 3, SWAP_NETWORK, .97),
+            (complex_hamiltonian, 1, 3, SPLIT_OPERATOR, .97),
 ])
-def test_trotter_step(hamiltonian, order, n_steps, algorithm):
+def test_trotter_step(hamiltonian, order, n_steps, algorithm, result_fidelity):
     n_qubits = count_qubits(hamiltonian)
 
     # Get an eigenvalue and eigenvector
@@ -68,4 +67,6 @@ def test_trotter_step(hamiltonian, order, n_steps, algorithm):
     final_state = result.final_states[0]
 
     # Hamiltonian evolution should simply apply a phase
-    assert fidelity(final_state, initial_state) > .97
+    def fidelity(state1, state2):
+        return abs(numpy.dot(state1, numpy.conjugate(state2)))
+    assert fidelity(final_state, initial_state) > result_fidelity

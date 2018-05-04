@@ -20,7 +20,7 @@ from openfermioncirq.gates import FSWAP
 def swap_network(qubits: Sequence[LineQubit],
                  operation: Callable[
                      [int, int, LineQubit, LineQubit], cirq.OP_TREE]=
-                     lambda i, j, q0, q1: (),
+                     lambda p, q, p_qubit, q_qubit: (),
                  fermionic: bool=False,
                  offset: bool=False):
     """Apply operations to pairs of qubits or modes using a swap network.
