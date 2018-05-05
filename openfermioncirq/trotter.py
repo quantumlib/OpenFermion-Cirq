@@ -99,10 +99,10 @@ class SwapNetworkTrotterStep(TrotterStepAlgorithm):
 
         def one_and_two_body_interaction(p, q, a, b):
             yield XXYY(a, b)**(
-                    numpy.real(hamiltonian.one_body[p, q]) * 0.5 * time /
+                    numpy.real(hamiltonian.one_body[p, q]) * time /
                     numpy.pi)
             yield YXXY(a, b)**(
-                    numpy.imag(hamiltonian.one_body[p, q]) * 0.5 * time /
+                    numpy.imag(hamiltonian.one_body[p, q]) * time /
                     numpy.pi)
             yield cirq.CZ(a, b)**(
                     -hamiltonian.two_body[p, q] * time / numpy.pi)

@@ -32,15 +32,15 @@ def test_fswap_on_simulator():
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 0, 1, 0]) / numpy.sqrt(2),
-            atol=1e-7)
+            atol=5e-6)
 
     initial_state = (numpy.array([0, 1, 0, 1], dtype=numpy.complex64) /
                      numpy.sqrt(2))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, 0, 1, -1]) / numpy.sqrt(2),
             atol=1e-7)
@@ -70,36 +70,40 @@ def test_xx_yy_extrapolate():
 
 
 def test_xx_yy__matrix():
-    assert numpy.allclose(XXYYGate(half_turns=1).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, -1, 0, 0],
-                                       [0, 0, -1, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(XXYYGate(half_turns=2).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, -1, 0, 0],
+                                               [0, 0, -1, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(XXYYGate(half_turns=0.5).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 0, -1j, 0],
-                                       [0, -1j, 0, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(XXYYGate(half_turns=1).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0, -1j, 0],
+                                               [0, -1j, 0, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(XXYYGate(half_turns=0).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 1, 0, 0],
-                                       [0, 0, 1, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(XXYYGate(half_turns=0).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 1, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(XXYYGate(half_turns=-0.5).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 0, 1j, 0],
-                                       [0, 1j, 0, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(XXYYGate(half_turns=-1).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0, 1j, 0],
+                                               [0, 1j, 0, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
     X = numpy.array([[0, 1], [1, 0]])
     Y = numpy.array([[0, -1j], [1j, 0]])
     XX = kron(X, X)
     YY = kron(Y, Y)
-    assert numpy.allclose(XXYYGate(half_turns=0.25).matrix(),
-                          expm(-1j * numpy.pi * 0.25 * (XX + YY) / 2))
+    numpy.testing.assert_allclose(XXYYGate(half_turns=0.25).matrix(),
+                                  expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
 
 def test_xxyy_on_simulator():
@@ -107,30 +111,30 @@ def test_xxyy_on_simulator():
     qubits = [cirq.google.XmonQubit(i, 0) for i in range(n_qubits)]
     simulator = cirq.google.Simulator()
 
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** 0.5)
+    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]))
     initial_state = (numpy.array([0, 1, 1, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2),
-            atol=1e-7)
+            atol=5e-6)
 
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** .25)
+    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** .5)
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 1 / numpy.sqrt(2),
                          -1j / numpy.sqrt(2), 0]) / numpy.sqrt(2),
             atol=1e-7)
 
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** -.25)
+    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** -.5)
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
                      numpy.sqrt(2))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([1, 1 / numpy.sqrt(2),
                          1j / numpy.sqrt(2), 0]) / numpy.sqrt(2),
@@ -156,36 +160,40 @@ def test_yx_xy_extrapolate():
 
 
 def test_yx_xy__matrix():
-    assert numpy.allclose(YXXYGate(half_turns=1).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, -1, 0, 0],
-                                       [0, 0, -1, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(YXXYGate(half_turns=2).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, -1, 0, 0],
+                                               [0, 0, -1, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(YXXYGate(half_turns=0.5).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 0, 1, 0],
-                                       [0, -1, 0, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(YXXYGate(half_turns=1).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0, -1, 0],
+                                               [0, 1, 0, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(YXXYGate(half_turns=0).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 1, 0, 0],
-                                       [0, 0, 1, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(YXXYGate(half_turns=0).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 1, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
-    assert numpy.allclose(YXXYGate(half_turns=-0.5).matrix(),
-                          numpy.array([[1, 0, 0, 0],
-                                       [0, 0, -1, 0],
-                                       [0, 1, 0, 0],
-                                       [0, 0, 0, 1]]))
+    numpy.testing.assert_allclose(YXXYGate(half_turns=-1).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, -1, 0, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-7)
 
     X = numpy.array([[0, 1], [1, 0]])
     Y = numpy.array([[0, -1j], [1j, 0]])
-    YX = kron(X, Y)
-    XY = kron(Y, X)
-    assert numpy.allclose(YXXYGate(half_turns=0.25).matrix(),
-                          expm(-1j * numpy.pi * 0.25 * (YX - XY) / 2))
+    YX = kron(Y, X)
+    XY = kron(X, Y)
+    numpy.testing.assert_allclose(YXXYGate(half_turns=0.25).matrix(),
+                                  expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
 def test_yxxy_on_simulator():
@@ -195,23 +203,23 @@ def test_yxxy_on_simulator():
                      numpy.sqrt(2))
     simulator = cirq.google.Simulator()
 
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** 0.5)
+    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]))
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
-            numpy.array([0, -1, 1, 0]) / numpy.sqrt(2),
+            numpy.array([0, 1, -1, 0]) / numpy.sqrt(2),
             atol=1e-7)
 
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** .25)
+    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** .5)
     result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([0, 1, 0, 0]),
-            atol=1e-7)
-
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** -.25)
-    result = simulator.run(circuit, initial_state=initial_state)
-    assert cirq.allclose_up_to_global_phase(
+    cirq.testing.assert_allclose_up_to_global_phase(
             result.final_states[0],
             numpy.array([0, 0, 1, 0]),
+            atol=1e-7)
+
+    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** -.5)
+    result = simulator.run(circuit, initial_state=initial_state)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            result.final_states[0],
+            numpy.array([0, 1, 0, 0]),
             atol=1e-7)

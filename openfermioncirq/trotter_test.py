@@ -43,7 +43,8 @@ complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
             (complex_hamiltonian, 1, 3, SWAP_NETWORK, .97),
             (complex_hamiltonian, 1, 3, SPLIT_OPERATOR, .97),
 ])
-def test_trotter_step(hamiltonian, order, n_steps, algorithm, result_fidelity):
+def test_simulate_trotter(
+        hamiltonian, order, n_steps, algorithm, result_fidelity):
     n_qubits = count_qubits(hamiltonian)
 
     # Get an eigenvalue and eigenvector
@@ -63,7 +64,7 @@ def test_trotter_step(hamiltonian, order, n_steps, algorithm, result_fidelity):
     circuit = cirq.Circuit.from_ops(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm))
     result = simulator.run(
-            circuit, qubit_order=qubits[::-1], initial_state=initial_state)
+            circuit, qubit_order=qubits, initial_state=initial_state)
     final_state = result.final_states[0]
 
     # Hamiltonian evolution should simply apply a phase

@@ -93,10 +93,10 @@ def orbital_basis_change(qubits: Sequence[LineQubit],
                              shape))
 
 
-def _occupied_orbitals(computational_basis_state: int) -> Set[int]:
-    """Indices of ones in the binary expansion of an integer in little endian
-    order. e.g. 10110 -> [1, 2, 4]"""
-    bitstring = bin(computational_basis_state)[2:][::-1]
+def _occupied_orbitals(computational_basis_state: int, n_qubits) -> Set[int]:
+    """Indices of ones in the binary expansion of an integer in big endian
+    order. e.g. 010110 -> [1, 3, 4]"""
+    bitstring = bin(computational_basis_state)[2:].zfill(n_qubits)
     return {j for j in range(len(bitstring)) if bitstring[j] == '1'}
 
 
@@ -110,7 +110,7 @@ def _slater_basis_change(qubits: Sequence[LineQubit],
                 transformation_matrix)
         circuit_description = list(reversed(decomposition))
     else:
-        occupied_orbitals = _occupied_orbitals(initial_state)
+        occupied_orbitals = _occupied_orbitals(initial_state, n_qubits)
         transformation_matrix = transformation_matrix[list(occupied_orbitals)]
         n_occupied = len(occupied_orbitals)
         # Flip bits so that the first n_occupied are 1 and the rest 0
@@ -162,7 +162,7 @@ def _ops_from_givens_rotations_circuit_description(
                 yield cirq.X(qubits[-1])
             else:
                 i, j, theta, phi = op
-                yield YXXY(qubits[i], qubits[j]) ** (theta / numpy.pi)
+                yield YXXY(qubits[i], qubits[j]) ** (2 * theta / numpy.pi)
                 yield cirq.Z(qubits[j]) ** (phi / numpy.pi)
 
 

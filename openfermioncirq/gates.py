@@ -15,9 +15,9 @@ import cirq
 
 
 def _canonicalize_half_turns(half_turns: float) -> float:
-    half_turns %= 2
-    if half_turns > 1:
-        half_turns -= 2
+    half_turns %= 4
+    if half_turns > 2:
+        half_turns -= 4
     return half_turns
 
 
@@ -52,7 +52,7 @@ class XXYYGate(cirq.CompositeGate,
                cirq.TwoQubitGate):
     """XX + YY interaction.
 
-    This gate implements the unitary exp(-i pi half_turns (XX + YY) / 2)
+    This gate implements the unitary exp(-i pi half_turns (XX + YY) / 4)
     """
 
     def __init__(self, *positional_args,
@@ -61,8 +61,8 @@ class XXYYGate(cirq.CompositeGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     def matrix(self):
-        c = numpy.cos(numpy.pi * self.half_turns)
-        s = numpy.sin(numpy.pi * self.half_turns)
+        c = numpy.cos(numpy.pi * self.half_turns / 2)
+        s = numpy.sin(numpy.pi * self.half_turns / 2)
         return numpy.array([[1, 0, 0, 0],
                             [0, c, -1j * s, 0],
                             [0, -1j * s, c, 0],
@@ -111,7 +111,7 @@ class YXXYGate(cirq.CompositeGate,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
-    This gate implements the unitary exp(-i pi half_turns (YX - XY) / 2)
+    This gate implements the unitary exp(-i pi half_turns (YX - XY) / 4)
     """
 
     def __init__(self, *positional_args,
@@ -120,11 +120,11 @@ class YXXYGate(cirq.CompositeGate,
         self.half_turns = _canonicalize_half_turns(half_turns)
 
     def matrix(self):
-        c = numpy.cos(numpy.pi * self.half_turns)
-        s = numpy.sin(numpy.pi * self.half_turns)
+        c = numpy.cos(numpy.pi * self.half_turns / 2)
+        s = numpy.sin(numpy.pi * self.half_turns / 2)
         return numpy.array([[1, 0, 0, 0],
-                            [0, c, s, 0],
-                            [0, -s, c, 0],
+                            [0, c, -s, 0],
+                            [0, s, c, 0],
                             [0, 0, 0, 1]])
 
     def default_decompose(self, qubits):
