@@ -10,8 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from openfermioncirq.gates import (
+        CCZ,
+        CXXYY,
+        CYXXY,
+        ControlledXXYYGate,
+        ControlledYXXYGate,
         FSWAP,
         FermionicSwapGate,
+        Rot111Gate,
         XXYY,
         XXYYGate,
         YXXY,

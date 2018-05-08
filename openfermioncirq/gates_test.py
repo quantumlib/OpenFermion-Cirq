@@ -9,6 +9,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+import pytest
+
 import numpy
 from scipy.linalg import expm, kron
 
@@ -16,7 +18,8 @@ import cirq
 from cirq import LineQubit
 from cirq.testing import EqualsTester
 
-from openfermioncirq.gates import FSWAP, XXYY, XXYYGate, YXXY, YXXYGate
+from openfermioncirq.gates import (CCZ, CXXYY, CYXXY, FSWAP, XXYY, XXYYGate,
+                                   YXXY, YXXYGate)
 
 
 def test_fswap_interchangeable():
@@ -106,39 +109,24 @@ def test_xx_yy__matrix():
                                   expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
 
-def test_xxyy_on_simulator():
-    n_qubits = 2
-    qubits = [cirq.google.XmonQubit(i, 0) for i in range(n_qubits)]
+@pytest.mark.parametrize(
+        'half_turns, initial_state, correct_state, atol', [
+            (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2), 5e-6),
+            (0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([1 / numpy.sqrt(2), 0.5, -0.5j, 0]), 1e-7),
+            (-0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([1 / numpy.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
+])
+def test_xxyy_on_simulator(half_turns, initial_state, correct_state, atol):
+
     simulator = cirq.google.Simulator()
-
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]))
-    initial_state = (numpy.array([0, 1, 1, 0], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(XXYY(a, b)**half_turns)
+    initial_state = initial_state.astype(numpy.complex64)
     result = simulator.run(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2),
-            atol=5e-6)
-
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** .5)
-    initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
-    result = simulator.run(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([1, 1 / numpy.sqrt(2),
-                         -1j / numpy.sqrt(2), 0]) / numpy.sqrt(2),
-            atol=1e-7)
-
-    circuit = cirq.Circuit.from_ops(XXYY(qubits[0], qubits[1]) ** -.5)
-    initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
-    result = simulator.run(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([1, 1 / numpy.sqrt(2),
-                         1j / numpy.sqrt(2), 0]) / numpy.sqrt(2),
-            atol=1e-7)
+            result.final_states[0], correct_state, atol=atol)
 
 
 def test_yx_xy_init():
@@ -196,30 +184,137 @@ def test_yx_xy__matrix():
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
-def test_yxxy_on_simulator():
-    n_qubits = 2
-    qubits = [cirq.google.XmonQubit(i, 0) for i in range(n_qubits)]
-    initial_state = (numpy.array([0, 1, 1, 0], dtype=numpy.complex64) /
-                     numpy.sqrt(2))
+@pytest.mark.parametrize(
+        'half_turns, initial_state, correct_state, atol', [
+            (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-7),
+            (0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 1, 0]), 1e-7),
+            (-0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                   numpy.array([0, 1, 0, 0]), 1e-7)
+])
+def test_yxxy_on_simulator(half_turns, initial_state, correct_state, atol):
+
     simulator = cirq.google.Simulator()
-
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]))
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(YXXY(a, b)**half_turns)
+    initial_state = initial_state.astype(numpy.complex64)
     result = simulator.run(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([0, 1, -1, 0]) / numpy.sqrt(2),
-            atol=1e-7)
+            result.final_states[0], correct_state, atol=atol)
 
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** .5)
+
+@pytest.mark.parametrize(
+        'half_turns, initial_state, correct_state, atol', [
+            (0.5, numpy.array([1, 0, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
+                  numpy.array([1, 0, 0, 0, 0, 0, 0, 1j]) / numpy.sqrt(2), 5e-6),
+            (1.0, numpy.array([0, 1, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
+                  numpy.array([0, 1, 0, 0, 0, 0, 0, -1]) / numpy.sqrt(2), 5e-6),
+            (0.5, numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2), 1e-7),
+            (0.25, numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2), 5e-6),
+            (-0.5, numpy.array([0, 0, 0, 0, 1, 0, 0, 1j]) / numpy.sqrt(2),
+                   numpy.array([0, 0, 0, 0, 1, 0, 0, 1]) / numpy.sqrt(2), 1e-7)
+])
+def test_ccz_on_simulator(half_turns, initial_state, correct_state, atol):
+
+    simulator = cirq.google.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(CCZ(a, b, c)**half_turns)
+    initial_state = initial_state.astype(numpy.complex64)
     result = simulator.run(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([0, 0, 1, 0]),
-            atol=1e-7)
+            result.final_states[0], correct_state, atol=atol)
 
-    circuit = cirq.Circuit.from_ops(YXXY(qubits[0], qubits[1]) ** -.5)
+
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cxxyy_decompose(half_turns):
+
+    gate = CXXYY**half_turns
+    qubits = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
+    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            matrix, gate.matrix(), atol=1e-7)
+
+
+@pytest.mark.parametrize(
+        'half_turns, initial_state, correct_state, atol', [
+            (1.0, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 0, 0, 0, -1j, -1j, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (0.5, numpy.array([0, 0, 0, 0, 1, 1, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, -0.5j, 0]),
+                  5e-6),
+            (-0.5, numpy.array([0, 0, 0, 0, 1, 1, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, 0.5j, 0]),
+                   5e-6),
+            (1.0, numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, 0.5, 0.5, 0]),
+                  numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, -0.5j, -0.5j, 0]),
+                  5e-6),
+            (1.0, numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (0.5, numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (-0.5, numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
+                   5e-6)
+])
+def test_cxxyy_on_simulator(half_turns, initial_state, correct_state, atol):
+
+    simulator = cirq.google.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(CXXYY(a, b, c)**half_turns)
+    initial_state = initial_state.astype(numpy.complex64)
     result = simulator.run(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_states[0],
-            numpy.array([0, 1, 0, 0]),
-            atol=1e-7)
+            result.final_states[0], correct_state, atol=atol)
+
+
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cyxxy_decompose(half_turns):
+
+    gate = CYXXY**half_turns
+    qubits = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
+    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            matrix, gate.matrix(), atol=1e-7)
+
+
+@pytest.mark.parametrize(
+        'half_turns, initial_state, correct_state, atol', [
+            (1.0, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 0, 0, 0, 1, -1, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (0.5, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 0, 0, 0, 0, 1, 0]),
+                  5e-6),
+            (-0.5, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
+                   numpy.array([0, 0, 0, 0, 0, 1, 0, 0]),
+                   5e-6),
+            (-0.5, numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, 0.5, 0.5, 0]),
+                   numpy.array([1, 0, 0, 0, 0, 1, 0, 0]) / numpy.sqrt(2),
+                   5e-6),
+            (1.0, numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (0.5, numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
+                  5e-6),
+            (-0.5, numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
+                   5e-6)
+])
+def test_cyxxy_on_simulator(half_turns, initial_state, correct_state, atol):
+
+    simulator = cirq.google.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(CYXXY(a, b, c)**half_turns)
+    initial_state = initial_state.astype(numpy.complex64)
+    result = simulator.run(circuit, initial_state=initial_state)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            result.final_states[0], correct_state, atol=atol)
