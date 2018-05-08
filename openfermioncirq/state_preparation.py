@@ -26,10 +26,10 @@ from openfermion.ops._givens_rotations import (
 from openfermioncirq import YXXY
 
 
-def orbital_basis_change(qubits: Sequence[LineQubit],
+def bogoliubov_transform(qubits: Sequence[LineQubit],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
-    r"""Perform an orbital basis change.
+    r"""Perform a Bogoliubov transformation.
 
     This circuit performs the transformation to a basis determined by a new set
     of fermionic ladder operators. It performs the unitary :math:`U` such that
@@ -226,32 +226,5 @@ def prepare_slater_determinant(qubits: Sequence[LineQubit],
             slater_determinant_matrix)
     for mode in range(slater_determinant_matrix.shape[0]):
         yield cirq.X(qubits[mode])
-    yield _ops_from_givens_rotations_circuit_description(
-            qubits, circuit_description)
-
-
-def diagonalizing_basis_change(qubits: Sequence[LineQubit],
-                               quadratic_hamiltonian: QuadraticHamiltonian
-                               ) -> cirq.OP_TREE:
-    r"""Change to the basis in which a quadratic Hamiltonian is diagonal.
-
-    This circuit performs the transformation to a basis in which the
-    Hamiltonian takes the diagonal form
-
-    .. math::
-
-        \sum_{j} \varepsilon_j b^\dagger_j b_j + \text{constant}.
-
-    The :math:`\varepsilon_j` are the energies of the pseudoparticle orbitals
-    of the quadratic Hamiltonian, and the resulting basis has the orbitals
-    ordered in ascending order of energy.
-    The algorithm used is described in arXiv:1711.05395. It assumes the
-    Jordan-Wigner transform.
-
-    Args:
-        qubits: The qubits to which to apply the circuit.
-        quadratic_hamiltonian: The Hamiltonian whose eigenstate is desired.
-    """
-    circuit_description = quadratic_hamiltonian.diagonalizing_circuit()
     yield _ops_from_givens_rotations_circuit_description(
             qubits, circuit_description)

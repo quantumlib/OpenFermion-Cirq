@@ -18,7 +18,7 @@ from cirq import LineQubit, abc
 from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
 
 from openfermioncirq import (
-        XXYY, YXXY, diagonalizing_basis_change, swap_network)
+        XXYY, YXXY, bogoliubov_transform, swap_network)
 
 
 class TrotterStepAlgorithm:
@@ -133,7 +133,8 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
         #Change to the basis in which the one-body term is diagonal
         quad_ham = QuadraticHamiltonian(hamiltonian.one_body)
         yield cirq.inverse_of_invertible_op_tree(
-                diagonalizing_basis_change(qubits, quad_ham))
+                bogoliubov_transform(
+                    qubits, quad_ham.diagonalizing_bogoliubov_transform()))
         # TODO Maybe use FFFT instead
 
     def second_order_trotter_step(self,
@@ -145,13 +146,16 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
 
         # Get the coefficients of the one-body terms in the diagonalizing basis
         orbital_energies, _ = quad_ham.orbital_energies()
+        # Get the Bogoliubov transformation matrix that diagonalizes the
+        # one-body term
+        transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.Z(qubits[i])**(-orbital_energies[i] * 0.5 * time / numpy.pi)
                for i in range(n_qubits))
 
         # Rotate to the computational basis
-        yield diagonalizing_basis_change(qubits, quad_ham)
+        yield bogoliubov_transform(qubits, transformation_matrix)
 
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b):
@@ -163,7 +167,7 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
 
         # Rotate back to the basis in which the one-body term is diagonal
         yield cirq.inverse_of_invertible_op_tree(
-                diagonalizing_basis_change(qubits, quad_ham))
+                bogoliubov_transform(qubits, transformation_matrix))
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.Z(qubits[i])**(-orbital_energies[i] * 0.5 * time / numpy.pi)
@@ -181,7 +185,8 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
                n_steps: int) -> cirq.OP_TREE:
         # Rotate back to the computational basis
         quad_ham = QuadraticHamiltonian(hamiltonian.one_body)
-        yield diagonalizing_basis_change(qubits, quad_ham)
+        yield bogoliubov_transform(
+                qubits, quad_ham.diagonalizing_bogoliubov_transform())
         # If the number of Trotter steps is odd, swap qubits back
         if n_steps & 1:
             yield swap_network(qubits)

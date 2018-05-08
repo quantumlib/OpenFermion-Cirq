@@ -18,8 +18,7 @@ from openfermioncirq.gates import (
         YXXYGate)
 from openfermioncirq.planar_qubit import PlanarQubit
 from openfermioncirq.state_preparation import (
-        diagonalizing_basis_change,
-        orbital_basis_change,
+        bogoliubov_transform,
         prepare_gaussian_state,
         prepare_slater_determinant)
 from openfermioncirq.swap_network import swap_network
