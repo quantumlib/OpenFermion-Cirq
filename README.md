@@ -1,6 +1,8 @@
 OpenFermion-Cirq
 ================
 
+[![Build Status](https://travis-ci.com/quantumlib/OpenFermion-Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master)](https://travis-ci.com/quantumlib/OpenFermion-Cirq)
+
 Getting started
 ===============
 

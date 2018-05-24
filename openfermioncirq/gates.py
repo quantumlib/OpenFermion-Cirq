@@ -173,7 +173,7 @@ class Rot111Gate(cirq.CompositeGate,
 
     def _with_half_turns(self,
                          half_turns: Union[cirq.Symbol, float] = 1.0
-                         ) -> 'Rot11Gate':
+                         ) -> 'Rot111Gate':
         return Rot111Gate(half_turns=half_turns)
 
     def default_decompose(self, qubits):

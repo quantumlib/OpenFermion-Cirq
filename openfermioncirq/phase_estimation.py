@@ -61,7 +61,6 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
     # maybe take in error probability instead
 
     simulator = simulator or cirq.google.Simulator()
-    constant_reps = repetitions if isinstance(repetitions, int) else None
     n_bits = len(controlled_unitaries)
 
     # Prepare initial state
@@ -83,7 +82,7 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
 
         k = n_bits - 1 - i
         controlled_unitary = controlled_unitaries[k]
-        reps = constant_reps or repetitions[i]
+        reps = repetitions if isinstance(repetitions, int) else repetitions[i]
         feedback_half_turns = 2 * feedback_quarter_turns
 
         # If the last measured bit was 1, flip it back to 0
@@ -96,10 +95,11 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
                                       system_qubits,
                                       controlled_unitary,
                                       feedback_half_turns))
-        result = simulator.run(circuit,
-                               qubit_order=[ancilla_qubit] + system_qubits,
-                               initial_state=current_state,
-                               repetitions=reps)
+        result = simulator.run(
+            circuit,
+            qubit_order=[ancilla_qubit] + list(system_qubits),
+            initial_state=current_state,
+            repetitions=reps)
 
         # Determine the bit by majority vote
         num_ones = numpy.count_nonzero(result.measurements['ancilla_qubit'])

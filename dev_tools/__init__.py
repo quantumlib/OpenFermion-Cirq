@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tooling useful when developing (e.g. scripts to run tests).
 
-# This script runs all defined checks against a pull request or local code.
-
-set -e
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-bash ${own_directory}/pylint-pull-request.sh $@
-bash ${own_directory}/test-pull-request.sh $@
+These tools use shell commands, and so are not portable between operating
+systems. Currently they assume that the system is based on Debian Linux.
+"""

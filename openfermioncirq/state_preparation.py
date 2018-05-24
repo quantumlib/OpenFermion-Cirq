@@ -9,7 +9,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from typing import Sequence, Set, Tuple, Union
+from typing import Sequence, Set, Tuple, Union, Iterable, cast
 
 import numpy
 
@@ -151,8 +151,9 @@ def _gaussian_basis_change(qubits: Sequence[LineQubit],
 
 def _ops_from_givens_rotations_circuit_description(
         qubits: Sequence[LineQubit],
-        circuit_description: Sequence[
-            Tuple[Union[Tuple[int, int, float, float], str]]]) -> cirq.OP_TREE:
+        circuit_description: Iterable[Iterable[
+            Union[str, Tuple[int, int, float, float]]]]
+) -> cirq.OP_TREE:
     """Yield operations from a Givens rotations circuit obtained from
     OpenFermion.
     """
@@ -161,7 +162,7 @@ def _ops_from_givens_rotations_circuit_description(
             if op == 'pht':
                 yield cirq.X(qubits[-1])
             else:
-                i, j, theta, phi = op
+                i, j, theta, phi = cast(Tuple[int, int, float, float], op)
                 yield YXXY(qubits[i], qubits[j]) ** (2 * theta / numpy.pi)
                 yield cirq.Z(qubits[j]) ** (phi / numpy.pi)
 
