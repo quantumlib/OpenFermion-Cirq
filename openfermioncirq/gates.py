@@ -9,19 +9,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from typing import Union
+
+from typing import Optional, Union
 
 import numpy
 
 import cirq
-from cirq.ops.partial_reflection_gate import PartialReflectionGate
-
-
-def _canonicalize_half_turns(half_turns: float) -> float:
-    half_turns %= 4
-    if half_turns > 2:
-        half_turns -= 4
-    return half_turns
 
 
 class FermionicSwapGate(cirq.TextDiagrammableGate,
@@ -48,33 +41,47 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
 
 
 class XXYYGate(cirq.CompositeGate,
-               cirq.ExtrapolatableGate,
+               cirq.EigenGate,
                cirq.InterchangeableQubitsGate,
-               cirq.KnownMatrixGate,
                cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
     """XX + YY interaction.
 
-    This gate implements the unitary exp(-i pi half_turns (XX + YY) / 4)
+    This gate implements the unitary exp(-i pi quarter_turns (XX + YY) / 4)
     """
 
     def __init__(self, *positional_args,
-                 half_turns: float=1.0) -> None:
+                 quarter_turns: float=1.0) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        super().__init__(exponent=quarter_turns)
 
-    def matrix(self):
-        c = numpy.cos(numpy.pi * self.half_turns / 2)
-        s = numpy.sin(numpy.pi * self.half_turns / 2)
-        return numpy.array([[1, 0, 0, 0],
-                            [0, c, -1j * s, 0],
-                            [0, -1j * s, c, 0],
-                            [0, 0, 0, 1]])
+    @property
+    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, numpy.diag([1, 0, 0, 1])),
+            (-0.5, numpy.array([[0, 0, 0, 0],
+                                [0, 0.5, 0.5, 0],
+                                [0, 0.5, 0.5, 0],
+                                [0, 0, 0, 0]])),
+            (0.5, numpy.array([[0, 0, 0, 0],
+                               [0, 0.5, -0.5, 0],
+                               [0, -0.5, 0.5, 0],
+                               [0, 0, 0, 0]]))
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 4
+
+    def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
+        return XXYYGate(quarter_turns=exponent)
 
     def default_decompose(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** 0.5
-        yield YXXY(a, b) ** self.half_turns
+        yield YXXY(a, b) ** self.quarter_turns
         yield cirq.Z(a) ** -0.5
 
     def text_diagram_wire_symbols(self,
@@ -84,56 +91,55 @@ class XXYYGate(cirq.CompositeGate,
         return 'XXYY', 'XXYY'
 
     def text_diagram_exponent(self):
-        return self.half_turns
-
-    def extrapolate_effect(self, factor) -> 'XXYYGate':
-        return XXYYGate(half_turns=self.half_turns * factor)
-
-    def inverse(self) -> 'XXYYGate':
-        return self.extrapolate_effect(-1)
-
-    def __eq__(self, other):
-        if not isinstance(other, XXYYGate):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((XXYYGate, self.half_turns))
+        return self.quarter_turns
 
     def __repr__(self):
-        return 'XXYYGate(half_turns={!r})'.format(self.half_turns)
+        if self.quarter_turns == 1:
+            return 'XXYY'
+        return 'XXYY**{!r}'.format(self.quarter_turns)
 
 
 class YXXYGate(cirq.CompositeGate,
-               cirq.ExtrapolatableGate,
-               cirq.KnownMatrixGate,
+               cirq.EigenGate,
                cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
-    This gate implements the unitary exp(-i pi half_turns (YX - XY) / 4)
+    This gate implements the unitary exp(-i pi quarter_turns (YX - XY) / 4)
     """
 
     def __init__(self, *positional_args,
-                 half_turns: float=1.0) -> None:
+                 quarter_turns: float=1.0) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        super().__init__(exponent=quarter_turns)
 
-    def matrix(self):
-        c = numpy.cos(numpy.pi * self.half_turns / 2)
-        s = numpy.sin(numpy.pi * self.half_turns / 2)
-        return numpy.array([[1, 0, 0, 0],
-                            [0, c, -s, 0],
-                            [0, s, c, 0],
-                            [0, 0, 0, 1]])
+    @property
+    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, numpy.diag([1, 0, 0, 1])),
+            (-0.5, numpy.array([[0, 0, 0, 0],
+                                [0, 0.5, -0.5j, 0],
+                                [0, 0.5j, 0.5, 0],
+                                [0, 0, 0, 0]])),
+            (0.5, numpy.array([[0, 0, 0, 0],
+                               [0, 0.5, 0.5j, 0],
+                               [0, -0.5j, 0.5, 0],
+                               [0, 0, 0, 0]]))
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 4
+
+    def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
+        return YXXYGate(quarter_turns=exponent)
 
     def default_decompose(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** -0.5
-        yield XXYY(a, b) ** self.half_turns
+        yield XXYY(a, b) ** self.quarter_turns
         yield cirq.Z(a) ** 0.5
 
     def text_diagram_wire_symbols(self,
@@ -143,38 +149,42 @@ class YXXYGate(cirq.CompositeGate,
         return 'YXXY', '#2'
 
     def text_diagram_exponent(self):
-        return self.half_turns
-
-    def extrapolate_effect(self, factor) -> 'YXXYGate':
-        return YXXYGate(half_turns=self.half_turns * factor)
-
-    def inverse(self) -> 'YXXYGate':
-        return self.extrapolate_effect(-1)
-
-    def __eq__(self, other):
-        if not isinstance(other, YXXYGate):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((YXXYGate, self.half_turns))
+        return self.quarter_turns
 
     def __repr__(self):
-        return 'YXXYGate(half_turns={!r})'.format(self.half_turns)
+        if self.quarter_turns == 1:
+            return 'YXXY'
+        return 'YXXY**{!r}'.format(self.quarter_turns)
 
 
 class Rot111Gate(cirq.CompositeGate,
+                 cirq.EigenGate,
                  cirq.InterchangeableQubitsGate,
-                 PartialReflectionGate):
+                 cirq.TextDiagrammableGate):
     """Phases the |111> state of three qubits by a fixed amount."""
 
-    def _with_half_turns(self,
-                         half_turns: Union[cirq.Symbol, float] = 1.0
-                         ) -> 'Rot111Gate':
-        return Rot111Gate(half_turns=half_turns)
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Union[cirq.Symbol, float] = 1.0) -> None:
+        assert not positional_args
+        super().__init__(exponent=half_turns)
+
+    @property
+    def half_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, numpy.diag([1, 1, 1, 1, 1, 1, 1, 0])),
+            (1, numpy.diag([0, 0, 0, 0, 0, 0, 0, 1])),
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 2
+
+    def _with_exponent(self,
+                       exponent: Union[cirq.Symbol, float]) -> 'Rot111Gate':
+        return Rot111Gate(half_turns=exponent)
 
     def default_decompose(self, qubits):
         a, b, c = qubits
@@ -190,49 +200,73 @@ class Rot111Gate(cirq.CompositeGate,
                                   precision=3):
         return '@', '@', 'Z'
 
-    def _reflection_matrix(self):
-        """See base class."""
-        return numpy.diag([1, 1, 1, 1, 1, 1, 1, -1])
-
-    def __str__(self):
-        base = 'CCZ'
-        if self.half_turns == 1:
-            return base
-        return '{}**{}'.format(base, repr(self.half_turns))
+    def text_diagram_exponent(self):
+        return self.half_turns
 
     def __repr__(self) -> str:
-        return self.__str__()
+        if self.half_turns == 1:
+            return 'CCZ'
+        return 'CCZ**{!r}'.format(self.half_turns)
 
 
 class ControlledXXYYGate(cirq.CompositeGate,
-                         cirq.ExtrapolatableGate,
-                         cirq.KnownMatrixGate,
+                         cirq.EigenGate,
                          cirq.TextDiagrammableGate):
     """Controlled XX + YY interaction."""
 
     def __init__(self, *positional_args,
-                 half_turns: float=1.0) -> None:
+                 quarter_turns: float=1.0) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        super().__init__(exponent=quarter_turns)
 
-    def matrix(self):
-        return cirq.block_diag(numpy.eye(4), (XXYY**(self.half_turns)).matrix())
+    @property
+    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+            (-0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0.5, 0.5, 0],
+                                [0, 0, 0, 0, 0, 0.5, 0.5, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0]])),
+            (0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0.5, -0.5, 0],
+                               [0, 0, 0, 0, 0, -0.5, 0.5, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0]]))
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 4
+
+    def _with_exponent(self,
+                       exponent: Union[cirq.Symbol, float]
+                       ) -> 'ControlledXXYYGate':
+        return ControlledXXYYGate(quarter_turns=exponent)
 
     def default_decompose(self, qubits):
         control, a, b = qubits
         yield cirq.Z(a)
         yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
+        yield CCZ(control, a, b)**self.quarter_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
         yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
         yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
+        yield CCZ(control, a, b)**self.quarter_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
         yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
         yield cirq.Z(a)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        yield cirq.Z(control)**(0.5 * self.quarter_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -241,60 +275,74 @@ class ControlledXXYYGate(cirq.CompositeGate,
         return '@', 'XXYY', 'XXYY'
 
     def text_diagram_exponent(self):
-        return self.half_turns
-
-    def extrapolate_effect(self, factor) -> 'ControlledXXYYGate':
-        return ControlledXXYYGate(half_turns=self.half_turns * factor)
-
-    def inverse(self) -> 'ControlledXXYYGate':
-        return self.extrapolate_effect(-1)
-
-    def __eq__(self, other):
-        if not isinstance(other, ControlledXXYYGate):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ControlledXXYYGate, self.half_turns))
+        return self.quarter_turns
 
     def __repr__(self):
-        return 'ControlledXXYYGate(half_turns={!r})'.format(self.half_turns)
+        if self.quarter_turns == 1:
+            return 'CXXYY'
+        return 'CXXYY**{!r}'.format(self.quarter_turns)
 
 
 class ControlledYXXYGate(cirq.CompositeGate,
-                         cirq.ExtrapolatableGate,
-                         cirq.KnownMatrixGate,
+                         cirq.EigenGate,
                          cirq.TextDiagrammableGate):
     """Controlled YX - XY interaction."""
 
     def __init__(self, *positional_args,
-                 half_turns: float=1.0) -> None:
+                 quarter_turns: float=1.0) -> None:
         assert not positional_args
-        self.half_turns = _canonicalize_half_turns(half_turns)
+        super().__init__(exponent=quarter_turns)
 
-    def matrix(self):
-        return cirq.block_diag(numpy.eye(4), (YXXY**(self.half_turns)).matrix())
+    @property
+    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+        return self._exponent
+
+    def _eigen_components(self):
+        return [
+            (0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+            (-0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0.5, -0.5j, 0],
+                                [0, 0, 0, 0, 0, 0.5j, 0.5, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0]])),
+            (0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0.5, 0.5j, 0],
+                               [0, 0, 0, 0, 0, -0.5j, 0.5, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0]]))
+        ]
+
+    def _canonical_exponent_period(self) -> Optional[float]:
+        return 4
+
+    def _with_exponent(self,
+                       exponent: Union[cirq.Symbol, float]
+                       ) -> 'ControlledYXXYGate':
+        return ControlledYXXYGate(quarter_turns=exponent)
 
     def default_decompose(self, qubits):
         control, a, b = qubits
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
         yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
+        yield CCZ(control, a, b)**self.quarter_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
         yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
         yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
+        yield CCZ(control, a, b)**self.quarter_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
         yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        yield cirq.Z(control)**(0.5 * self.quarter_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -303,27 +351,12 @@ class ControlledYXXYGate(cirq.CompositeGate,
         return '@', 'YXXY', '#2'
 
     def text_diagram_exponent(self):
-        return self.half_turns
-
-    def extrapolate_effect(self, factor) -> 'ControlledYXXYGate':
-        return ControlledYXXYGate(half_turns=self.half_turns * factor)
-
-    def inverse(self) -> 'ControlledYXXYGate':
-        return self.extrapolate_effect(-1)
-
-    def __eq__(self, other):
-        if not isinstance(other, ControlledYXXYGate):
-            return NotImplemented
-        return self.half_turns == other.half_turns
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((ControlledYXXYGate, self.half_turns))
+        return self.quarter_turns
 
     def __repr__(self):
-        return 'ControlledYXXYGate(half_turns={!r})'.format(self.half_turns)
+        if self.quarter_turns == 1:
+            return 'CYXXY'
+        return 'CYXXY**{!r}'.format(self.quarter_turns)
 
 
 FSWAP = FermionicSwapGate()
