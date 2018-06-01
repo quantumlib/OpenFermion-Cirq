@@ -38,10 +38,10 @@ def fourier_transform_matrix(n_modes):
                 0, 1 - numpy.exp(2j * numpy.pi / 3),
                 numpy.exp(2j * numpy.pi / 3) - 1, 0]) / 3),
         ])
-def test_bogoliubov_transform_fourier_transform_test(transformation_matrix,
-                                                     initial_state,
-                                                     correct_state,
-                                                     atol=1e-7):
+def test_bogoliubov_transform_fourier_transform(transformation_matrix,
+                                                initial_state,
+                                                correct_state,
+                                                atol=1e-7):
     simulator = cirq.google.Simulator()
     n_qubits = transformation_matrix.shape[0]
     qubits = LineQubit.range(n_qubits)
@@ -164,9 +164,9 @@ def test_prepare_gaussian_state(n_qubits,
           numpy.array([0, 0, 0, numpy.exp(2j * numpy.pi / 3), 0,
              1 + numpy.exp(2j * numpy.pi / 3), 1, 0]) / numpy.sqrt(3))
         ])
-def test_prepare_slater_determinant_test(slater_determinant_matrix,
-                                         correct_state,
-                                         atol=1e-7):
+def test_prepare_slater_determinant(slater_determinant_matrix,
+                                    correct_state,
+                                    atol=1e-7):
     simulator = cirq.google.Simulator()
     n_qubits = slater_determinant_matrix.shape[1]
     qubits = LineQubit.range(n_qubits)
