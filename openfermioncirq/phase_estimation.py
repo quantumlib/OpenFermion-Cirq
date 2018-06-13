@@ -60,7 +60,7 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
     # TODO use reasonable default for repetitions parameter.
     # maybe take in error probability instead
 
-    simulator = simulator or cirq.google.Simulator()
+    simulator = simulator or cirq.google.XmonSimulator()
     n_bits = len(controlled_unitaries)
 
     # Prepare initial state
@@ -69,7 +69,7 @@ def iterative_phase_estimation(system_qubits: Sequence[cirq.QubitId],
                            qubit_order=system_qubits,
                            initial_state=initial_state)
     zero = [1, 0]
-    initial_state = numpy.kron(zero, result.final_states[0]).astype(
+    initial_state = numpy.kron(zero, result.final_state).astype(
             numpy.complex64)
 
     last_measured_bit = 0

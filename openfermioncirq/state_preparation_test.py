@@ -42,14 +42,13 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
                                                 initial_state,
                                                 correct_state,
                                                 atol=1e-7):
-    simulator = cirq.google.Simulator()
     n_qubits = transformation_matrix.shape[0]
     qubits = LineQubit.range(n_qubits)
 
     circuit = cirq.Circuit.from_ops(bogoliubov_transform(
         qubits, transformation_matrix, initial_state=initial_state))
-    result = simulator.run(circuit, initial_state=initial_state)
-    state = result.final_states[0]
+    result = circuit.simulate(initial_state=initial_state)
+    state = result.final_state
 
     assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)
 
@@ -60,7 +59,6 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
 def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                                                     conserves_particle_number,
                                                     atol=1e-5):
-    simulator = cirq.google.Simulator()
     qubits = LineQubit.range(n_qubits)
 
     # Initialize a random quadratic Hamiltonian
@@ -92,19 +90,18 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                             for i in occupied_orbitals)
 
         # Get the state using a circuit simulation
-        result = simulator.run(
-                circuit, qubit_order=qubits, initial_state=initial_state)
-        state1 = result.final_states[0]
+        result = circuit.simulate(qubit_order=qubits,
+                                  initial_state=initial_state)
+        state1 = result.final_state
 
         # Also test the option to start with a computational basis state
         special_circuit = cirq.Circuit.from_ops(bogoliubov_transform(
             qubits,
             transformation_matrix,
             initial_state=initial_state))
-        result = simulator.run(special_circuit,
-                               qubit_order=qubits,
-                               initial_state=initial_state)
-        state2 = result.final_states[0]
+        result = special_circuit.simulate(qubit_order=qubits,
+                                          initial_state=initial_state)
+        state2 = result.final_state
 
         # Check that the result is an eigenstate with the correct eigenvalue
         numpy.testing.assert_allclose(
@@ -125,7 +122,6 @@ def test_prepare_gaussian_state(n_qubits,
                                 conserves_particle_number,
                                 occupied_orbitals,
                                 atol=1e-5):
-    simulator = cirq.google.Simulator()
     qubits = LineQubit.range(n_qubits)
 
     # Initialize a random quadratic Hamiltonian
@@ -143,8 +139,8 @@ def test_prepare_gaussian_state(n_qubits,
     # Get the state using a circuit simulation
     circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(qubits, quad_ham, occupied_orbitals))
-    result = simulator.run(circuit, qubit_order=qubits)
-    state = result.final_states[0]
+    result = circuit.simulate(qubit_order=qubits)
+    state = result.final_state
 
     # Check that the result is an eigenstate with the correct eigenvalue
     numpy.testing.assert_allclose(
@@ -167,13 +163,12 @@ def test_prepare_gaussian_state(n_qubits,
 def test_prepare_slater_determinant(slater_determinant_matrix,
                                     correct_state,
                                     atol=1e-7):
-    simulator = cirq.google.Simulator()
     n_qubits = slater_determinant_matrix.shape[1]
     qubits = LineQubit.range(n_qubits)
 
     circuit = cirq.Circuit.from_ops(
             prepare_slater_determinant(qubits, slater_determinant_matrix))
-    result = simulator.run(circuit, qubit_order=qubits)
-    state = result.final_states[0]
+    result = circuit.simulate(qubit_order=qubits)
+    state = result.final_state
 
     assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)

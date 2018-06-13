@@ -107,7 +107,6 @@ def test_simulate_trotter(
 
     n_qubits = count_qubits(hamiltonian)
     qubits = LineQubit.range(n_qubits)
-    simulator = cirq.google.Simulator()
 
     if algorithm.controlled:
         control = LineQubit(-1)
@@ -118,10 +117,9 @@ def test_simulate_trotter(
         one = [0, 1]
         start_state = numpy.kron(one, initial_state).astype(
                 numpy.complex64, copy=False)
-        result = simulator.run(circuit,
-                               qubit_order=[control] + qubits,
-                               initial_state=start_state)
-        final_state = result.final_states[0]
+        result = circuit.simulate(qubit_order=[control] + qubits,
+                                  initial_state=start_state)
+        final_state = result.final_state
         correct_state = numpy.kron(one, exact_state)
         assert fidelity(final_state, correct_state) > result_fidelity
         # Make sure the time wasn't too small
@@ -131,20 +129,18 @@ def test_simulate_trotter(
         zero = [1, 0]
         start_state = numpy.kron(zero, initial_state).astype(
                 numpy.complex64, copy=False)
-        result = simulator.run(circuit,
-                               qubit_order=[control] + qubits,
-                               initial_state=start_state)
-        final_state = result.final_states[0]
+        result = circuit.simulate(qubit_order=[control] + qubits,
+                                  initial_state=start_state)
+        final_state = result.final_state
         correct_state = start_state
         assert fidelity(final_state, correct_state) > result_fidelity
     else:
         circuit = cirq.Circuit.from_ops(simulate_trotter(
             qubits, hamiltonian, time, n_steps, order, algorithm))
         start_state = initial_state.astype(numpy.complex64, copy=False)
-        result = simulator.run(circuit,
-                               qubit_order=qubits,
-                               initial_state=start_state)
-        final_state = result.final_states[0]
+        result = circuit.simulate(qubit_order=qubits,
+                                  initial_state=start_state)
+        final_state = result.final_state
         correct_state = exact_state
         assert fidelity(final_state, correct_state) > result_fidelity
         # Make sure the time wasn't too small
