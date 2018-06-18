@@ -22,7 +22,6 @@ from openfermioncirq.gates import (
         XXYYGate,
         YXXY,
         YXXYGate)
-from openfermioncirq.phase_estimation import iterative_phase_estimation
 from openfermioncirq.planar_qubit import PlanarQubit
 from openfermioncirq.state_preparation import (
         bogoliubov_transform,
