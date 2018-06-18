@@ -34,7 +34,7 @@ class TrotterStepAlgorithm:
            modes.
         3. Perform some finishing operations.
 
-    Attriubutes:
+    Attributes:
         controlled: A bool indicating whether the Trotter step is controlled
             by a control qubit.
     """
