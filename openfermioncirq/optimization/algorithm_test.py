@@ -34,14 +34,21 @@ class ExampleBlackBox(BlackBox):
 class ExampleAlgorithm(OptimizationAlgorithm):
 
     def optimize(self,
-                 black_box: BlackBox,
-                 initial_guess: Optional[numpy.ndarray]=None
+                 black_box: 'BlackBox',
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:
         if initial_guess is None:
-            x0 = numpy.ones(black_box.dimension)
-        val = black_box.evaluate(x0)
-        return OptimizationResult(optimal_value=val,
-                                  optimal_parameters=x0,
+            initial_guess = numpy.ones(black_box.dimension)
+        if initial_guess_array is None:
+            initial_guess_array = numpy.ones(3 * black_box.dimension).reshape(
+                    (3, black_box.dimension))
+        a = black_box.evaluate(initial_guess)
+        b = black_box.evaluate(initial_guess_array[0])
+        c = black_box.evaluate(initial_guess_array[1])
+        d = black_box.evaluate(initial_guess_array[2])
+        return OptimizationResult(optimal_value=min(a, b, c, d),
+                                  optimal_parameters=initial_guess,
                                   num_evaluations=1,
                                   cost_spent=0.0,
                                   status=0,

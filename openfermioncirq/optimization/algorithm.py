@@ -48,13 +48,18 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def optimize(self,
                  black_box: 'BlackBox',
-                 initial_guess: Optional[numpy.ndarray]=None
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> 'OptimizationResult':
         """Perform the optimization and return the result.
 
         Args:
             black_box: A BlackBox encapsulating the objective function.
             initial_guess: An initial point at which to evaluate the objective
-                function
+                function.
+            initial_guess_array: An array of initial points at which to evaluate
+                the objective function, for algorithms that can use multiple
+                initial points. This is a 2d numpy array with each row
+                representing one initial point.
         """
         pass

@@ -43,7 +43,8 @@ class ScipyOptimizationAlgorithm(OptimizationAlgorithm):
 
     def optimize(self,
                  black_box: BlackBox,
-                 initial_guess: Optional[numpy.ndarray]=None
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:
         if initial_guess is None:
             raise ValueError('The chosen optimization algorithm requires an '
