@@ -13,5 +13,8 @@
 from openfermioncirq.variational.ansatz import (
         VariationalAnsatz)
 
-from openfermioncirq.variational.swap_network_trotter import (
+from openfermioncirq.variational.swap_network_trotter_ansatz import (
         SwapNetworkTrotterAnsatz)
+
+from openfermioncirq.variational.study import (
+        VariationalStudy)

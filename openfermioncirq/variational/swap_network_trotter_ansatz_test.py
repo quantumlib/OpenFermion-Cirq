@@ -14,7 +14,7 @@ import numpy
 
 import openfermion
 
-from openfermioncirq.variational.swap_network_trotter import (
+from openfermioncirq.variational.swap_network_trotter_ansatz import (
         SwapNetworkTrotterAnsatz)
 
 

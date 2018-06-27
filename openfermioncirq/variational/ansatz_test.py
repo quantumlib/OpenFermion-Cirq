@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import List
+from typing import Sequence
 
 import numpy
 import pytest
@@ -22,16 +22,14 @@ from openfermioncirq.variational.ansatz import VariationalAnsatz
 
 class ExampleAnsatz(VariationalAnsatz):
 
-    def __init__(self):
-        self.qubits = cirq.LineQubit.range(4)
-        super().__init__()
-
-    def param_names(self) -> List[str]:
+    def param_names(self) -> Sequence[str]:
         return ['theta{}'.format(i) for i in range(8)]
 
-    def generate_circuit(self) -> cirq.Circuit:
+    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+        return cirq.LineQubit.range(4)
 
-        a, b, c, d = self.qubits
+    def _generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
+        a, b, c, d = qubits
         return cirq.Circuit.from_ops(
                 cirq.RotXGate(half_turns=self.params['theta0']).on(a),
                 cirq.RotXGate(half_turns=self.params['theta1']).on(b),
@@ -47,8 +45,10 @@ class ExampleAnsatz(VariationalAnsatz):
                 cirq.MeasurementGate('all').on(a, b, c, d))
 
 
+ansatz = ExampleAnsatz()
+
+
 def test_variational_ansatz_circuit():
-    ansatz = ExampleAnsatz()
     assert ansatz.circuit.to_text_diagram().strip() == """
 0: ───X^theta0───@───Z^theta4──────────────M───
                  │                         │
@@ -61,12 +61,10 @@ def test_variational_ansatz_circuit():
 
 
 def test_variational_ansatz_param_bounds():
-    ansatz = ExampleAnsatz()
     assert ansatz.param_bounds() is None
 
 
 def test_variational_ansatz_param_resolver():
-    ansatz = ExampleAnsatz()
     resolver = ansatz.param_resolver(numpy.arange(8, dtype=float))
     assert resolver['theta0'] == 0
     assert resolver['theta1'] == 1
@@ -79,7 +77,6 @@ def test_variational_ansatz_param_resolver():
 
 
 def test_variational_ansatz_default_initial_params():
-    ansatz = ExampleAnsatz()
     numpy.testing.assert_allclose(ansatz.default_initial_params(),
                                   numpy.zeros(len(ansatz.params)))
 
@@ -93,21 +90,34 @@ def test_variational_ansatz_is_abstract_must_implement():
     class Missing1(VariationalAnsatz):
         def param_names(self):
             return []  # coverage: ignore
-    class Missing2(VariationalAnsatz):
-        def generate_circuit(self):
+        def _generate_qubits(self):
             pass
+    class Missing2(VariationalAnsatz):
+        def _generate_qubits(self):
+            pass
+        def _generate_circuit(self, qubits):
+            pass
+    class Missing3(VariationalAnsatz):
+        def _generate_circuit(self, qubits):
+            pass
+        def param_names(self):
+            return []  # coverage: ignore
 
     with pytest.raises(TypeError):
         _ = Missing1()
     with pytest.raises(TypeError):
         _ = Missing2()
+    with pytest.raises(TypeError):
+        _ = Missing3()
 
 
 def test_variational_ansatz_is_abstract_can_implement():
     class Included(VariationalAnsatz):
         def param_names(self):
             return []  # coverage: ignore
-        def generate_circuit(self):
+        def _generate_qubits(self):
+            pass
+        def _generate_circuit(self, qubits):
             pass
 
     assert isinstance(Included(), VariationalAnsatz)

@@ -10,15 +10,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional
 
 import numpy
 
 from cirq import abc
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from openfermioncirq.optimization import BlackBox, OptimizationResult
+from openfermioncirq.optimization.black_box import BlackBox
+from openfermioncirq.optimization.result import OptimizationResult
 
 
 class OptimizationAlgorithm(metaclass=abc.ABCMeta):
@@ -42,15 +41,15 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
     def default_options(self):
         """Default options for the algorithm."""
         # TODO tailor default options to the particular problem (e.g. number of
-        #   parameters)
+        #      parameters)
         return {}
 
     @abc.abstractmethod
     def optimize(self,
-                 black_box: 'BlackBox',
+                 black_box: BlackBox,
                  initial_guess: Optional[numpy.ndarray]=None,
                  initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> 'OptimizationResult':
+                 ) -> OptimizationResult:
         """Perform the optimization and return the result.
 
         Args:

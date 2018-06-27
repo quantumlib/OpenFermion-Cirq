@@ -17,7 +17,7 @@ import numpy
 
 class OptimizationResult:
     """The results from optimizing a black-box objective function.
-    
+
     Attributes:
         optimal_value: The best value of the objective function found by the
             optimizer.
@@ -31,7 +31,6 @@ class OptimizationResult:
         status: A status flag set by the optimizer.
         message: A message returned by the optimizer.
     """
-    # TODO maybe use pandas to store and analyze results
 
     def __init__(self,
                  optimal_value: float,

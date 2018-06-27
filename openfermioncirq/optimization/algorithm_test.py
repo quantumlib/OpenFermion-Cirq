@@ -34,7 +34,7 @@ class ExampleBlackBox(BlackBox):
 class ExampleAlgorithm(OptimizationAlgorithm):
 
     def optimize(self,
-                 black_box: 'BlackBox',
+                 black_box: BlackBox,
                  initial_guess: Optional[numpy.ndarray]=None,
                  initial_guess_array: Optional[numpy.ndarray]=None
                  ) -> OptimizationResult:

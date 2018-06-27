@@ -29,5 +29,9 @@ from openfermioncirq.state_preparation import (
         prepare_slater_determinant)
 from openfermioncirq.swap_network import swap_network
 from openfermioncirq.trotter import simulate_trotter
+from openfermioncirq.variational import (
+        SwapNetworkTrotterAnsatz,
+        VariationalAnsatz,
+        VariationalStudy)
 
 from ._version import __version__

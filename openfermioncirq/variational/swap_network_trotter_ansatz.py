@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import List, Match, Tuple, cast
+from typing import Match, Optional, Sequence, Tuple, cast
 
 import itertools
 import re
@@ -145,11 +145,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
         self.include_all_yxxy = include_all_yxxy
         self.include_all_cz = include_all_cz
         self.include_all_z = include_all_z
-        self.qubits = cirq.LineQubit.range(
-                openfermion.count_qubits(hamiltonian))
         super().__init__()
 
-    def param_names(self) -> List[str]:
+    def param_names(self) -> Sequence[str]:
         """The names of the parameters of the ansatz."""
         names = []
         for i in range(self.iterations):
@@ -170,7 +168,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                     names.append('V{}_{}'.format(p, q) + suffix)
         return names
 
-    def param_bounds(self) -> List[Tuple[float, float]]:
+    def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Bounds on the parameters."""
         bounds = []
         for param_name in self.param_names():
@@ -180,12 +178,14 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 bounds.append((-2.0, 2.0))
         return bounds
 
-    def generate_circuit(self) -> cirq.Circuit:
+    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+        return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
+
+    def _generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
         """Produce the ansatz circuit."""
         # TODO implement asymmetric ansatzes?
 
-        qubits = self.qubits
-        circuit_ = cirq.Circuit()
+        circuit = cirq.Circuit()
 
         for i in range(self.iterations):
 
@@ -206,14 +206,14 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
 
             # Apply one- and two-body interactions with a swap network that
             # reverses the order of the modes
-            circuit_.append(
+            circuit.append(
                     swap_network(
                         qubits, one_and_two_body_interaction, fermionic=True),
                     strategy=cirq.InsertStrategy.EARLIEST)
             qubits = qubits[::-1]
 
             # Apply one-body potential
-            circuit_.append(
+            circuit.append(
                     (cirq.RotZGate(half_turns=self.params[
                         'U{}'.format(p) + suffix]).on(qubits[p])
                      for p in range(len(qubits))
@@ -221,26 +221,35 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                     strategy=cirq.InsertStrategy.EARLIEST)
 
             # Apply the same one- and two-body interactions again
-            circuit_.append(
+            circuit.append(
                     swap_network(
                         qubits, one_and_two_body_interaction, fermionic=True,
                         offset=True),
                     strategy=cirq.InsertStrategy.EARLIEST)
             qubits = qubits[::-1]
 
-        return circuit_
+        return circuit
 
     def default_initial_params(self) -> numpy.ndarray:
-        """Approximate adiabatic evolution by H(t) = T + (t/100)V.
+        """Approximate evolution by H(t) = T + (t/100)V.
 
         Sets the parameters so that the ansatz circuit consists of a sequence
         of second-order Trotter steps approximating the dynamics of the
         time-dependent Hamiltonian H(t) = T + (t/100)V, where T is the one-body
         term and V is the two-body term of the Hamiltonian used to generate the
         ansatz circuit, and t ranges from 0 to 100. The number of Trotter steps
-        is equal to the number of iterations in the ansatz.
+        is equal to the number of iterations in the ansatz. This choice is
+        motivated by the idea of state preparation via adiabatic evolution.
+
+        The dynamics of H(t) are approximated as follows. First, the total
+        evolution time of 100 is split into segments of length 100 / r, where r
+        is the number of Trotter steps. Then, each Trotter step simulates H(t)
+        for a time length of 100 / r, where t is the midpoint of the
+        corresponding time segment. As an example, suppose the ansatz has two
+        iterations. Then the approximation is achieved with two Trotter steps.
+        The first Trotter step simulates H(25) for a time length of 50, and the
+        second Trotter step simulates H(75) for a time length of 50.
         """
-        # TODO use midpoint for exponential
 
         total_time = 100
         step_time = total_time / self.iterations
@@ -261,7 +270,8 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 letter, p, q, i = cast(
                         Match, TWV_pattern.match(param_name)).groups()
                 p, q, i = int(p), int(q), int(i) if i else 0
-                interpolation_progress = (i + 1) / self.iterations
+                # Use the midpoint of the time segment
+                interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
                 if letter == 'T':
                     params.append(_canonicalize_exponent(
                         hamiltonian.one_body[p, q].real *
