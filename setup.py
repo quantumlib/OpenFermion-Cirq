@@ -16,8 +16,8 @@ from setuptools import find_packages, setup
 __version__ = None
 exec(open('openfermioncirq/_version.py').read())
 
-# Read in requirements.txt
-requirements = open('requirements.txt').readlines()
+# Read in runtime-requirements.txt
+requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 setup(

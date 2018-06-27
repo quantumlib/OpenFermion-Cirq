@@ -1,11 +1,7 @@
-3to2
-absl-py
 mypy
 numpy
 pylint
 pytest
 pytest-cov
-protobuf
-sortedcontainers
 git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
 git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
