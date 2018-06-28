@@ -195,10 +195,10 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 # Apply one- and two-body interactions to modes p and q
                 # represented by qubits a and b
                 if 'T{}_{}'.format(p, q) + suffix in self.params:
-                    yield XXYYGate(quarter_turns=self.params[
+                    yield XXYYGate(half_turns=self.params[
                               'T{}_{}'.format(p, q) + suffix]).on(a, b)
                 if 'W{}_{}'.format(p, q) + suffix in self.params:
-                    yield YXXYGate(quarter_turns=self.params[
+                    yield YXXYGate(half_turns=self.params[
                               'W{}_{}'.format(p, q) + suffix]).on(a, b)
                 if 'V{}_{}'.format(p, q) + suffix in self.params:
                     yield cirq.Rot11Gate(half_turns=self.params[

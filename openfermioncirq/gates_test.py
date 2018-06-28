@@ -10,13 +10,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import pytest
-
 import numpy
+import pytest
 from scipy.linalg import expm, kron
 
 import cirq
-from cirq import LineQubit
 from cirq.testing import EqualsTester
 
 from openfermioncirq.gates import (
@@ -25,7 +23,7 @@ from openfermioncirq.gates import (
 
 
 def test_fswap_interchangeable():
-    a, b = LineQubit(0), LineQubit(1)
+    a, b = cirq.LineQubit(0), cirq.LineQubit(1)
     assert FSWAP(a, b) == FSWAP(b, a)
 
 
@@ -52,37 +50,50 @@ def test_fswap_on_simulator():
 
 
 def test_xxyy_init():
-    assert XXYYGate(quarter_turns=0.5).quarter_turns == 0.5
-    assert XXYYGate(quarter_turns=5).quarter_turns == 1
+    assert XXYYGate(half_turns=0.5).half_turns == 0.5
+    assert XXYYGate(half_turns=1.5).half_turns == 1.5
+    assert XXYYGate(half_turns=5).half_turns == 1
+
+
+def test_xxyy_init_with_multiple_args_fails():
+    with pytest.raises(ValueError):
+        _ = XXYYGate(half_turns=1.0, duration=numpy.pi/2)
 
 
 def test_xxyy_eq():
     eq = EqualsTester()
-    eq.add_equality_group(XXYYGate(quarter_turns=3.5),
-                          XXYYGate(quarter_turns=-0.5))
-    eq.make_equality_pair(lambda: XXYYGate(quarter_turns=0))
-    eq.make_equality_pair(lambda: XXYYGate(quarter_turns=0.5))
+
+    eq.add_equality_group(XXYYGate(half_turns=3.5),
+                          XXYYGate(half_turns=-0.5),
+                          XXYYGate(duration=-numpy.pi / 4))
+
+    eq.add_equality_group(XXYYGate(half_turns=1.5),
+                          XXYYGate(half_turns=-2.5),
+                          XXYYGate(duration=-2.5 * numpy.pi / 2))
+
+    eq.make_equality_pair(lambda: XXYYGate(half_turns=0))
+    eq.make_equality_pair(lambda: XXYYGate(half_turns=0.5))
 
 
 def test_xxyy_interchangeable():
-    a, b = LineQubit(0), LineQubit(1)
+    a, b = cirq.LineQubit(0), cirq.LineQubit(1)
     assert XXYY(a, b) == XXYY(b, a)
 
 
 def test_xxyy_extrapolate():
     assert XXYYGate(
-        quarter_turns=1).extrapolate_effect(0.5) == XXYYGate(quarter_turns=0.5)
+        half_turns=1).extrapolate_effect(0.5) == XXYYGate(half_turns=0.5)
 
 
 def test_xxyy_repr():
-    assert repr(XXYYGate(quarter_turns=1)) == 'XXYY'
-    assert repr(XXYYGate(quarter_turns=0.5)) == 'XXYY**0.5'
+    assert repr(XXYYGate(half_turns=1)) == 'XXYY'
+    assert repr(XXYYGate(half_turns=0.5)) == 'XXYY**0.5'
 
 
-@pytest.mark.parametrize('quarter_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_xxyy_decompose(quarter_turns):
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_xxyy_decompose(half_turns):
 
-    gate = XXYY**quarter_turns
+    gate = XXYY**half_turns
     qubits = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -91,28 +102,28 @@ def test_xxyy_decompose(quarter_turns):
 
 
 def test_xxyy__matrix():
-    numpy.testing.assert_allclose(XXYYGate(quarter_turns=2).matrix(),
+    numpy.testing.assert_allclose(XXYYGate(half_turns=2).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(quarter_turns=1).matrix(),
+    numpy.testing.assert_allclose(XXYYGate(half_turns=1).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, -1j, 0],
                                                [0, -1j, 0, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(quarter_turns=0).matrix(),
+    numpy.testing.assert_allclose(XXYYGate(half_turns=0).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(quarter_turns=-1).matrix(),
+    numpy.testing.assert_allclose(XXYYGate(half_turns=-1).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, 1j, 0],
                                                [0, 1j, 0, 0],
@@ -123,12 +134,12 @@ def test_xxyy__matrix():
     Y = numpy.array([[0, -1j], [1j, 0]])
     XX = kron(X, X)
     YY = kron(Y, Y)
-    numpy.testing.assert_allclose(XXYYGate(quarter_turns=0.25).matrix(),
+    numpy.testing.assert_allclose(XXYYGate(half_turns=0.25).matrix(),
                                   expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
 
 @pytest.mark.parametrize(
-        'quarter_turns, initial_state, correct_state, atol', [
+        'half_turns, initial_state, correct_state, atol', [
             (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2), 1e-7),
             (0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
@@ -136,11 +147,11 @@ def test_xxyy__matrix():
             (-0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
                    numpy.array([1 / numpy.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
 ])
-def test_xxyy_on_simulator(quarter_turns, initial_state, correct_state, atol):
+def test_xxyy_on_simulator(half_turns, initial_state, correct_state, atol):
 
     simulator = cirq.google.XmonSimulator()
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(XXYY(a, b)**quarter_turns)
+    circuit = cirq.Circuit.from_ops(XXYY(a, b)**half_turns)
     initial_state = initial_state.astype(numpy.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -148,32 +159,45 @@ def test_xxyy_on_simulator(quarter_turns, initial_state, correct_state, atol):
 
 
 def test_yxxy_init():
-    assert YXXYGate(quarter_turns=0.5).quarter_turns == 0.5
-    assert YXXYGate(quarter_turns=5).quarter_turns == 1
+    assert YXXYGate(half_turns=0.5).half_turns == 0.5
+    assert YXXYGate(half_turns=1.5).half_turns == 1.5
+    assert YXXYGate(half_turns=5).half_turns == 1
+
+
+def test_yxxy_init_with_multiple_args_fails():
+    with pytest.raises(ValueError):
+        _ = YXXYGate(half_turns=1.0, duration=numpy.pi/2)
 
 
 def test_yxxy_eq():
     eq = EqualsTester()
-    eq.add_equality_group(YXXYGate(quarter_turns=3.5),
-                          YXXYGate(quarter_turns=-0.5))
-    eq.make_equality_pair(lambda: YXXYGate(quarter_turns=0))
-    eq.make_equality_pair(lambda: YXXYGate(quarter_turns=0.5))
+
+    eq.add_equality_group(YXXYGate(half_turns=3.5),
+                          YXXYGate(half_turns=-0.5),
+                          YXXYGate(duration=-numpy.pi / 4))
+
+    eq.add_equality_group(YXXYGate(half_turns=1.5),
+                          YXXYGate(half_turns=-2.5),
+                          YXXYGate(duration=-2.5 * numpy.pi / 2))
+
+    eq.make_equality_pair(lambda: YXXYGate(half_turns=0))
+    eq.make_equality_pair(lambda: YXXYGate(half_turns=0.5))
 
 
 def test_yxxy_extrapolate():
     assert YXXYGate(
-        quarter_turns=1).extrapolate_effect(0.5) == YXXYGate(quarter_turns=0.5)
+        half_turns=1).extrapolate_effect(0.5) == YXXYGate(half_turns=0.5)
 
 
 def test_yxxy_repr():
-    assert repr(YXXYGate(quarter_turns=1)) == 'YXXY'
-    assert repr(YXXYGate(quarter_turns=0.5)) == 'YXXY**0.5'
+    assert repr(YXXYGate(half_turns=1)) == 'YXXY'
+    assert repr(YXXYGate(half_turns=0.5)) == 'YXXY**0.5'
 
 
-@pytest.mark.parametrize('quarter_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_yxxy_decompose(quarter_turns):
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_yxxy_decompose(half_turns):
 
-    gate = YXXY**quarter_turns
+    gate = YXXY**half_turns
     qubits = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -182,28 +206,28 @@ def test_yxxy_decompose(quarter_turns):
 
 
 def test_yxxy__matrix():
-    numpy.testing.assert_allclose(YXXYGate(quarter_turns=2).matrix(),
+    numpy.testing.assert_allclose(YXXYGate(half_turns=2).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(quarter_turns=1).matrix(),
+    numpy.testing.assert_allclose(YXXYGate(half_turns=1).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(quarter_turns=0).matrix(),
+    numpy.testing.assert_allclose(YXXYGate(half_turns=0).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(quarter_turns=-1).matrix(),
+    numpy.testing.assert_allclose(YXXYGate(half_turns=-1).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, -1, 0, 0],
@@ -214,12 +238,12 @@ def test_yxxy__matrix():
     Y = numpy.array([[0, -1j], [1j, 0]])
     YX = kron(Y, X)
     XY = kron(X, Y)
-    numpy.testing.assert_allclose(YXXYGate(quarter_turns=0.25).matrix(),
+    numpy.testing.assert_allclose(YXXYGate(half_turns=0.25).matrix(),
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
 @pytest.mark.parametrize(
-        'quarter_turns, initial_state, correct_state, atol', [
+        'half_turns, initial_state, correct_state, atol', [
             (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-8),
             (0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
@@ -227,11 +251,11 @@ def test_yxxy__matrix():
             (-0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                    numpy.array([0, 1, 0, 0]), 1e-7)
 ])
-def test_yxxy_on_simulator(quarter_turns, initial_state, correct_state, atol):
+def test_yxxy_on_simulator(half_turns, initial_state, correct_state, atol):
 
     simulator = cirq.google.XmonSimulator()
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(YXXY(a, b)**quarter_turns)
+    circuit = cirq.Circuit.from_ops(YXXY(a, b)**half_turns)
     initial_state = initial_state.astype(numpy.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -267,10 +291,10 @@ def test_ccz_on_simulator(half_turns, initial_state, correct_state, atol):
             result.final_state, correct_state, atol=atol)
 
 
-@pytest.mark.parametrize('quarter_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_cxxyy_decompose(quarter_turns):
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cxxyy_decompose(half_turns):
 
-    gate = CXXYY**quarter_turns
+    gate = CXXYY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -279,12 +303,12 @@ def test_cxxyy_decompose(quarter_turns):
 
 
 def test_cxxyy_repr():
-    assert repr(ControlledXXYYGate(quarter_turns=1)) == 'CXXYY'
-    assert repr(ControlledXXYYGate(quarter_turns=0.5)) == 'CXXYY**0.5'
+    assert repr(ControlledXXYYGate(half_turns=1)) == 'CXXYY'
+    assert repr(ControlledXXYYGate(half_turns=0.5)) == 'CXXYY**0.5'
 
 
 @pytest.mark.parametrize(
-        'quarter_turns, initial_state, correct_state, atol', [
+        'half_turns, initial_state, correct_state, atol', [
             (1.0, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, 0, 0, 0, 0, -1j, -1j, 0]) / numpy.sqrt(2),
                   5e-6),
@@ -307,21 +331,21 @@ def test_cxxyy_repr():
                    numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
                    5e-6)
 ])
-def test_cxxyy_on_simulator(quarter_turns, initial_state, correct_state, atol):
+def test_cxxyy_on_simulator(half_turns, initial_state, correct_state, atol):
 
     simulator = cirq.google.XmonSimulator()
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(CXXYY(a, b, c)**quarter_turns)
+    circuit = cirq.Circuit.from_ops(CXXYY(a, b, c)**half_turns)
     initial_state = initial_state.astype(numpy.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
             result.final_state, correct_state, atol=atol)
 
 
-@pytest.mark.parametrize('quarter_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_cyxxy_decompose(quarter_turns):
+@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cyxxy_decompose(half_turns):
 
-    gate = CYXXY**quarter_turns
+    gate = CYXXY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -330,12 +354,12 @@ def test_cyxxy_decompose(quarter_turns):
 
 
 def test_cyxxy_repr():
-    assert repr(ControlledYXXYGate(quarter_turns=1)) == 'CYXXY'
-    assert repr(ControlledYXXYGate(quarter_turns=0.5)) == 'CYXXY**0.5'
+    assert repr(ControlledYXXYGate(half_turns=1)) == 'CYXXY'
+    assert repr(ControlledYXXYGate(half_turns=0.5)) == 'CYXXY**0.5'
 
 
 @pytest.mark.parametrize(
-        'quarter_turns, initial_state, correct_state, atol', [
+        'half_turns, initial_state, correct_state, atol', [
             (1.0, numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, 0, 0, 0, 0, 1, -1, 0]) / numpy.sqrt(2),
                   5e-6),
@@ -358,11 +382,11 @@ def test_cyxxy_repr():
                    numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
                    5e-6)
 ])
-def test_cyxxy_on_simulator(quarter_turns, initial_state, correct_state, atol):
+def test_cyxxy_on_simulator(half_turns, initial_state, correct_state, atol):
 
     simulator = cirq.google.XmonSimulator()
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(CYXXY(a, b, c)**quarter_turns)
+    circuit = cirq.Circuit.from_ops(CYXXY(a, b, c)**half_turns)
     initial_state = initial_state.astype(numpy.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(

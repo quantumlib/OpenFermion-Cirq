@@ -40,23 +40,58 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
         return 'FSWAP'
 
 
-class XXYYGate(cirq.CompositeGate,
-               cirq.EigenGate,
+class XXYYGate(cirq.EigenGate,
+               cirq.CompositeGate,
                cirq.InterchangeableQubitsGate,
                cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
-    """XX + YY interaction.
+    """XX + YY interaction."""
 
-    This gate implements the unitary exp(-i pi quarter_turns (XX + YY) / 4)
-    """
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 duration: Optional[float]=None) -> None:
+        """Initializes the gate.
 
-    def __init__(self, *positional_args,
-                 quarter_turns: float=1.0) -> None:
+        There are two ways to instantiate this gate.
+        
+        The first is to provide an angle in units of half-turns. In this case,
+        the gate implements the unitary exp(-i pi half_turns (XX + YY) / 4).
+        
+        The second way is to provide a duration of time. In this case, the gate
+        implements the unitary exp(-i duration (XX + YY) / 2 ), which
+        corresponds to evolving under the Hamiltonian (XX + YY) / 2 for that
+        duration of time.
+
+        At most one argument can be specified. If both `half_turns` and
+        `duration` are specified, the result is considered ambiguous and an
+        error is thrown. If no argument is given, the default value of one
+        half-turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents unit confusion by forcing
+                "half_turns=" or "duration=".
+            half_turns: The exponent angle, in half-turns.
+            duration: The exponent duration.
+        """
         assert not positional_args
-        super().__init__(exponent=quarter_turns)
+
+        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+            raise ValueError('Redundant exponent specification. '
+                             'Use ONE of half_turns or duration.')
+
+        if duration is not None:
+            exponent = 2 * duration / numpy.pi
+        elif half_turns is not None:
+            exponent = half_turns
+        else:
+            exponent = 1.0
+
+        super().__init__(exponent=exponent)
 
     @property
-    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+    def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
@@ -76,12 +111,12 @@ class XXYYGate(cirq.CompositeGate,
         return 4
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
-        return XXYYGate(quarter_turns=exponent)
+        return XXYYGate(half_turns=exponent)
 
     def default_decompose(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** 0.5
-        yield YXXY(a, b) ** self.quarter_turns
+        yield YXXY(a, b) ** self.half_turns
         yield cirq.Z(a) ** -0.5
 
     def text_diagram_wire_symbols(self,
@@ -91,30 +126,65 @@ class XXYYGate(cirq.CompositeGate,
         return 'XXYY', 'XXYY'
 
     def text_diagram_exponent(self):
-        return self.quarter_turns
+        return self.half_turns
 
     def __repr__(self):
-        if self.quarter_turns == 1:
+        if self.half_turns == 1:
             return 'XXYY'
-        return 'XXYY**{!r}'.format(self.quarter_turns)
+        return 'XXYY**{!r}'.format(self.half_turns)
 
 
-class YXXYGate(cirq.CompositeGate,
-               cirq.EigenGate,
+class YXXYGate(cirq.EigenGate,
+               cirq.CompositeGate,
                cirq.TextDiagrammableGate,
                cirq.TwoQubitGate):
-    """YX - XY interaction.
+    """YX - XY interaction."""
 
-    This gate implements the unitary exp(-i pi quarter_turns (YX - XY) / 4)
-    """
+    def __init__(self,
+                 *positional_args,
+                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 duration: Optional[float]=None) -> None:
+        """Initializes the gate.
 
-    def __init__(self, *positional_args,
-                 quarter_turns: float=1.0) -> None:
+        There are two ways to instantiate this gate.
+        
+        The first is to provide an angle in units of half-turns. In this case,
+        the gate implements the unitary exp(-i pi half_turns (YX - XY) / 4).
+        
+        The second way is to provide a duration of time. In this case, the gate
+        implements the unitary exp(-i duration (YX - XY) / 2 ), which
+        corresponds to evolving under the Hamiltonian (YX - XY) / 2 for that
+        duration of time.
+
+        At most one argument can be specified. If both `half_turns` and
+        `duration` are specified, the result is considered ambiguous and an
+        error is thrown. If no argument is given, the default value of one
+        half-turn is used.
+
+        Args:
+            *positional_args: Not an actual argument. Forces all arguments to
+                be keyword arguments. Prevents unit confusion by forcing
+                "half_turns=" or "duration=".
+            half_turns: The exponent angle, in half-turns.
+            duration: The exponent duration.
+        """
         assert not positional_args
-        super().__init__(exponent=quarter_turns)
+
+        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+            raise ValueError('Redundant exponent specification. '
+                             'Use ONE of half_turns or duration.')
+
+        if duration is not None:
+            exponent = 2 * duration / numpy.pi
+        elif half_turns is not None:
+            exponent = half_turns
+        else:
+            exponent = 1.0
+
+        super().__init__(exponent=exponent)
 
     @property
-    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+    def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
@@ -134,12 +204,12 @@ class YXXYGate(cirq.CompositeGate,
         return 4
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
-        return YXXYGate(quarter_turns=exponent)
+        return YXXYGate(half_turns=exponent)
 
     def default_decompose(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** -0.5
-        yield XXYY(a, b) ** self.quarter_turns
+        yield XXYY(a, b) ** self.half_turns
         yield cirq.Z(a) ** 0.5
 
     def text_diagram_wire_symbols(self,
@@ -149,12 +219,12 @@ class YXXYGate(cirq.CompositeGate,
         return 'YXXY', '#2'
 
     def text_diagram_exponent(self):
-        return self.quarter_turns
+        return self.half_turns
 
     def __repr__(self):
-        if self.quarter_turns == 1:
+        if self.half_turns == 1:
             return 'YXXY'
-        return 'YXXY**{!r}'.format(self.quarter_turns)
+        return 'YXXY**{!r}'.format(self.half_turns)
 
 
 class Rot111Gate(cirq.CompositeGate,
@@ -215,12 +285,12 @@ class ControlledXXYYGate(cirq.CompositeGate,
     """Controlled XX + YY interaction."""
 
     def __init__(self, *positional_args,
-                 quarter_turns: float=1.0) -> None:
+                 half_turns: float=1.0) -> None:
         assert not positional_args
-        super().__init__(exponent=quarter_turns)
+        super().__init__(exponent=half_turns)
 
     @property
-    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+    def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
@@ -250,23 +320,23 @@ class ControlledXXYYGate(cirq.CompositeGate,
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'ControlledXXYYGate':
-        return ControlledXXYYGate(quarter_turns=exponent)
+        return ControlledXXYYGate(half_turns=exponent)
 
     def default_decompose(self, qubits):
         control, a, b = qubits
         yield cirq.Z(a)
         yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.quarter_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
+        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
         yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.quarter_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
+        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
         yield cirq.Z(a)
-        yield cirq.Z(control)**(0.5 * self.quarter_turns)
+        yield cirq.Z(control)**(0.5 * self.half_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -275,12 +345,12 @@ class ControlledXXYYGate(cirq.CompositeGate,
         return '@', 'XXYY', 'XXYY'
 
     def text_diagram_exponent(self):
-        return self.quarter_turns
+        return self.half_turns
 
     def __repr__(self):
-        if self.quarter_turns == 1:
+        if self.half_turns == 1:
             return 'CXXYY'
-        return 'CXXYY**{!r}'.format(self.quarter_turns)
+        return 'CXXYY**{!r}'.format(self.half_turns)
 
 
 class ControlledYXXYGate(cirq.CompositeGate,
@@ -289,12 +359,12 @@ class ControlledYXXYGate(cirq.CompositeGate,
     """Controlled YX - XY interaction."""
 
     def __init__(self, *positional_args,
-                 quarter_turns: float=1.0) -> None:
+                 half_turns: float=1.0) -> None:
         assert not positional_args
-        super().__init__(exponent=quarter_turns)
+        super().__init__(exponent=half_turns)
 
     @property
-    def quarter_turns(self) -> Union[cirq.Symbol, float]:
+    def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
@@ -324,25 +394,25 @@ class ControlledYXXYGate(cirq.CompositeGate,
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'ControlledYXXYGate':
-        return ControlledYXXYGate(quarter_turns=exponent)
+        return ControlledYXXYGate(half_turns=exponent)
 
     def default_decompose(self, qubits):
         control, a, b = qubits
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
         yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.quarter_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
+        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
         yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.quarter_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.quarter_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.quarter_turns)
+        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
+        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Z(control)**(0.5 * self.quarter_turns)
+        yield cirq.Z(control)**(0.5 * self.half_turns)
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,
@@ -351,12 +421,12 @@ class ControlledYXXYGate(cirq.CompositeGate,
         return '@', 'YXXY', '#2'
 
     def text_diagram_exponent(self):
-        return self.quarter_turns
+        return self.half_turns
 
     def __repr__(self):
-        if self.quarter_turns == 1:
+        if self.half_turns == 1:
             return 'CYXXY'
-        return 'CYXXY**{!r}'.format(self.quarter_turns)
+        return 'CYXXY**{!r}'.format(self.half_turns)
 
 
 FSWAP = FermionicSwapGate()
