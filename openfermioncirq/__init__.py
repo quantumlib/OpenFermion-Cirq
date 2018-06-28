@@ -17,6 +17,7 @@ from openfermioncirq.gates import (
         ControlledYXXYGate,
         FSWAP,
         FermionicSwapGate,
+        ISWAP,
         Rot111Gate,
         XXYY,
         XXYYGate,

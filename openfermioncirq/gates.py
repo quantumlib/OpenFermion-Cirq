@@ -435,3 +435,5 @@ YXXY = YXXYGate()
 CCZ = Rot111Gate()
 CXXYY = ControlledXXYYGate()
 CYXXY = ControlledYXXYGate()
+
+ISWAP = XXYY
