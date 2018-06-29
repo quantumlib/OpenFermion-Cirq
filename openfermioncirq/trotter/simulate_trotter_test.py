@@ -144,3 +144,11 @@ def test_simulate_trotter(
         assert fidelity(final_state, correct_state) > result_fidelity
         # Make sure the time wasn't too small
         assert fidelity(final_state, start_state) < result_fidelity
+
+
+def test_simulate_trotter_bad_order_raises_error():
+    qubits = cirq.LineQubit.range(2)
+    hamiltonian = jellium_hamiltonian
+    time = 1.0
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))
