@@ -14,14 +14,7 @@ import pytest
 import scipy.sparse.linalg
 
 import cirq
-from cirq import LineQubit
-from openfermion import (
-        QuadraticHamiltonian,
-        count_qubits,
-        fermi_hubbard,
-        get_diagonal_coulomb_hamiltonian,
-        get_sparse_operator,
-        jw_get_gaussian_state)
+import openfermion
 
 from openfermioncirq.trotter import (
         CONTROLLED_SPLIT_OPERATOR,
@@ -35,82 +28,84 @@ def fidelity(state1, state2):
     return abs(numpy.dot(state1, numpy.conjugate(state2)))
 
 
-# Initialize test parameters for a Hubbard Hamiltonian
-hubbard_hamiltonian = get_diagonal_coulomb_hamiltonian(
-        fermi_hubbard(2, 2, 1., 4.))
-# Use mean-field initial state and energy scale
-quad_ham = QuadraticHamiltonian(hubbard_hamiltonian.one_body)
-hubbard_energy, hubbard_initial_state = jw_get_gaussian_state(quad_ham)
-hubbard_initial_state = hubbard_initial_state.astype(
-        numpy.complex64, copy=False)
-assert numpy.allclose(numpy.linalg.norm(hubbard_initial_state), 1.0)
-hubbard_time = abs(hubbard_energy) / 10
+# Construct a jellium model
+dim = 2
+length = 2
+n_qubits = length**dim
+grid = openfermion.Grid(dim, length, 1.0)
+jellium = openfermion.jellium_model(grid, spinless=True, plane_wave=False) 
+
+
+# Construct a random initial state
+numpy.random.seed(3570)
+initial_state = numpy.random.randn(2**n_qubits)
+initial_state /= numpy.linalg.norm(initial_state)
+initial_state = initial_state.astype(numpy.complex64, copy=False)
+assert numpy.allclose(numpy.linalg.norm(initial_state), 1.0)
+
+
+# Initialize test parameters for a jellium Hamiltonian
+jellium_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
+jellium_time = 0.1
 # Simulate exact evolution
-hubbard_sparse = get_sparse_operator(hubbard_hamiltonian)
-hubbard_exact_state = scipy.sparse.linalg.expm_multiply(
-        -1j * hubbard_time * hubbard_sparse, hubbard_initial_state)
+jellium_sparse = openfermion.get_sparse_operator(jellium_hamiltonian)
+jellium_exact_state = scipy.sparse.linalg.expm_multiply(
+        -1j * jellium_time * jellium_sparse, initial_state)
 # Make sure the time is not too small
-assert fidelity(hubbard_exact_state, hubbard_initial_state) < .91
+assert fidelity(jellium_exact_state, initial_state) < .95
 
 
 # Initialize test parameters for a Hamiltonian with complex entries
-complex_hamiltonian = get_diagonal_coulomb_hamiltonian(
-        fermi_hubbard(2, 2, 1., 4.))
+complex_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
 complex_hamiltonian.one_body += 1j * numpy.triu(complex_hamiltonian.one_body)
 complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
-# Use mean-field initial state and energy scale
-quad_ham = QuadraticHamiltonian(complex_hamiltonian.one_body)
-complex_energy, complex_initial_state = jw_get_gaussian_state(quad_ham)
-complex_initial_state = complex_initial_state.astype(
-        numpy.complex64, copy=False)
-assert numpy.allclose(numpy.linalg.norm(complex_initial_state), 1.0)
-complex_time = abs(complex_energy) / 15
+complex_time = 0.05
 # Simulate exact evolution
-complex_sparse = get_sparse_operator(complex_hamiltonian)
+complex_sparse = openfermion.get_sparse_operator(complex_hamiltonian)
 complex_exact_state = scipy.sparse.linalg.expm_multiply(
-        -1j * complex_time * complex_sparse, complex_initial_state)
+        -1j * complex_time * complex_sparse, initial_state)
 # Make sure the time is not too small
-assert fidelity(complex_exact_state, complex_initial_state) < .94
+assert fidelity(complex_exact_state, initial_state) < .95
 
 
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  1, 3, SWAP_NETWORK, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  2, 1, SWAP_NETWORK, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  1, 3, SPLIT_OPERATOR, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  2, 1, SPLIT_OPERATOR, .99),
-            (complex_hamiltonian, complex_time, complex_initial_state,
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  1, 3, SWAP_NETWORK, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  2, 1, SWAP_NETWORK, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  1, 3, SPLIT_OPERATOR, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  2, 1, SPLIT_OPERATOR, .99),
+            (complex_hamiltonian, complex_time, initial_state,
                 complex_exact_state,  1, 3, SWAP_NETWORK, .99),
-            (complex_hamiltonian, complex_time, complex_initial_state,
+            (complex_hamiltonian, complex_time, initial_state,
                 complex_exact_state,  1, 3, SPLIT_OPERATOR, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  2, 1, CONTROLLED_SWAP_NETWORK, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  1, 3, CONTROLLED_SPLIT_OPERATOR, .99),
-            (hubbard_hamiltonian, hubbard_time, hubbard_initial_state,
-                hubbard_exact_state,  2, 1, CONTROLLED_SPLIT_OPERATOR, .99),
-            (complex_hamiltonian, complex_time, complex_initial_state,
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  2, 1, CONTROLLED_SWAP_NETWORK, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  1, 3, CONTROLLED_SPLIT_OPERATOR, .99),
+            (jellium_hamiltonian, jellium_time, initial_state,
+                jellium_exact_state,  2, 1, CONTROLLED_SPLIT_OPERATOR, .99),
+            (complex_hamiltonian, complex_time, initial_state,
                 complex_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
-            (complex_hamiltonian, complex_time, complex_initial_state,
+            (complex_hamiltonian, complex_time, initial_state,
                 complex_exact_state,  1, 3, CONTROLLED_SPLIT_OPERATOR, .99),
 ])
 def test_simulate_trotter(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
         algorithm, result_fidelity):
 
-    n_qubits = count_qubits(hamiltonian)
-    qubits = LineQubit.range(n_qubits)
+    n_qubits = openfermion.count_qubits(hamiltonian)
+    qubits = cirq.LineQubit.range(n_qubits)
     simulator = cirq.google.XmonSimulator()
 
     if algorithm.controlled:
-        control = LineQubit(-1)
+        control = cirq.LineQubit(-1)
         circuit = cirq.Circuit.from_ops(simulate_trotter(
             qubits, hamiltonian, time, n_steps, order, algorithm, control))
 
