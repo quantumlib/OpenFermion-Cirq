@@ -81,8 +81,7 @@ class ExampleAlgorithm(OptimizationAlgorithm):
             initial_guess = numpy.ones(black_box.dimension)
         if initial_guess_array is None:
             # coverage: ignore
-            initial_guess_array = numpy.ones(3 * black_box.dimension).reshape(
-                    (3, black_box.dimension))
+            initial_guess_array = numpy.ones((3, black_box.dimension))
         a = black_box.evaluate(initial_guess)
         b = black_box.evaluate_with_cost(initial_guess_array[0], 1.0)
         return OptimizationResult(optimal_value=min(a, b),

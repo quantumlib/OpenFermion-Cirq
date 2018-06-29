@@ -38,6 +38,8 @@ class OptimizationResult:
                  num_evaluations: int,
                  cost_spent: float=0.0,
                  initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None,
+                 seed: Optional[int]=None,
                  status: Optional[int]=None,
                  message: Optional[str]=None) -> None:
         self.optimal_value = optimal_value
@@ -45,5 +47,7 @@ class OptimizationResult:
         self.num_evaluations = num_evaluations
         self.cost_spent = cost_spent
         self.initial_guess = initial_guess
+        self.initial_guess_array = initial_guess_array
+        self.seed = seed
         self.status = status
         self.message = message

@@ -24,14 +24,24 @@ from openfermioncirq.gates import (
         XXYYGate,
         YXXY,
         YXXYGate)
+
 from openfermioncirq.planar_qubit import PlanarQubit
+
 from openfermioncirq.state_preparation import (
         bogoliubov_transform,
         prepare_gaussian_state,
         prepare_slater_determinant)
+
 from openfermioncirq.swap_network import swap_network
+
 from openfermioncirq.trotter import simulate_trotter
 from openfermioncirq.variational import (
+        SwapNetworkTrotterAnsatz,
+        VariationalAnsatz,
+        VariationalStudy)
+
+from openfermioncirq.variational import (
+        HamiltonianVariationalStudy,
         SwapNetworkTrotterAnsatz,
         VariationalAnsatz,
         VariationalStudy)

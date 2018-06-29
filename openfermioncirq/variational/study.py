@@ -282,6 +282,9 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                                     initial_guess_array)
         result.num_evaluations = black_box.num_evaluations
         result.cost_spent = black_box.cost_spent
+        result.initial_guess = initial_guess
+        result.initial_guess_array = initial_guess_array
+        result.seed = seed
         return result
 
     @property
@@ -307,7 +310,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return self._ansatz.default_initial_params()
 
     def _init_kwargs(self) -> Dict[str, Any]:
-        """Arguments to pass to __init__ to reproduce the study.
+        """Arguments to pass to __init__ when re-loading the study.
 
         Subclasses that override __init__ may need to override this method for
         saving and loading to work properly.

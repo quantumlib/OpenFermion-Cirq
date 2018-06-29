@@ -13,6 +13,9 @@
 from openfermioncirq.variational.ansatz import (
         VariationalAnsatz)
 
+from openfermioncirq.variational.hamiltonian_variational_study import (
+        HamiltonianVariationalStudy)
+
 from openfermioncirq.variational.swap_network_trotter_ansatz import (
         SwapNetworkTrotterAnsatz)
 

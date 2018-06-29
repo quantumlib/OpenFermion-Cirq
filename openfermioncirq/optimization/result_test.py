@@ -22,6 +22,9 @@ def test_optimization_result_init():
             num_evaluations=121,
             cost_spent=1.426,
             initial_guess=numpy.array([0.398, -1.271]),
+            initial_guess_array=numpy.array([[-1.134, -0.119],
+                                             [-0.309, 0.309]]),
+            seed=77,
             status=195,
             message='fdjmolGSHM')
     assert result.optimal_value == 0.339
@@ -31,5 +34,9 @@ def test_optimization_result_init():
     assert result.cost_spent == 1.426
     numpy.testing.assert_allclose(result.initial_guess,
                                   numpy.array([0.398, -1.271]))
+    numpy.testing.assert_allclose(result.initial_guess_array,
+                                  numpy.array([[-1.134, -0.119],
+                                               [-0.309, 0.309]]))
+    assert result.seed == 77
     assert result.status == 195
     assert result.message == 'fdjmolGSHM'
