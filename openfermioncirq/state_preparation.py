@@ -14,7 +14,6 @@ from typing import Sequence, Set, Tuple, Union, Iterable, cast
 import numpy
 
 import cirq
-from cirq import LineQubit
 from openfermion import (
         QuadraticHamiltonian,
         gaussian_state_preparation_circuit,
@@ -26,7 +25,7 @@ from openfermion.ops._givens_rotations import (
 from openfermioncirq import YXXY
 
 
-def bogoliubov_transform(qubits: Sequence[LineQubit],
+def bogoliubov_transform(qubits: Sequence[cirq.QubitId],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
     r"""Perform a Bogoliubov transformation.
@@ -100,7 +99,7 @@ def _occupied_orbitals(computational_basis_state: int, n_qubits) -> Set[int]:
     return {j for j in range(len(bitstring)) if bitstring[j] == '1'}
 
 
-def _slater_basis_change(qubits: Sequence[LineQubit],
+def _slater_basis_change(qubits: Sequence[cirq.QubitId],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
     n_qubits = transformation_matrix.shape[0]
@@ -123,7 +122,7 @@ def _slater_basis_change(qubits: Sequence[LineQubit],
             qubits, circuit_description)
 
 
-def _gaussian_basis_change(qubits: Sequence[LineQubit],
+def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
                            transformation_matrix: numpy.ndarray,
                            initial_state: int=None) -> cirq.OP_TREE:
     n_qubits = transformation_matrix.shape[0]
@@ -150,7 +149,7 @@ def _gaussian_basis_change(qubits: Sequence[LineQubit],
 
 
 def _ops_from_givens_rotations_circuit_description(
-        qubits: Sequence[LineQubit],
+        qubits: Sequence[cirq.QubitId],
         circuit_description: Iterable[Iterable[
             Union[str, Tuple[int, int, float, float]]]]
 ) -> cirq.OP_TREE:
@@ -167,7 +166,7 @@ def _ops_from_givens_rotations_circuit_description(
                 yield cirq.Z(qubits[j]) ** (phi / numpy.pi)
 
 
-def prepare_gaussian_state(qubits: Sequence[LineQubit],
+def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
                            quadratic_hamiltonian: QuadraticHamiltonian,
                            occupied_orbitals: Sequence[int]=None
                            ) -> cirq.OP_TREE:
@@ -195,7 +194,7 @@ def prepare_gaussian_state(qubits: Sequence[LineQubit],
             qubits, circuit_description)
 
 
-def prepare_slater_determinant(qubits: Sequence[LineQubit],
+def prepare_slater_determinant(qubits: Sequence[cirq.QubitId],
                                slater_determinant_matrix: numpy.ndarray
                                ) -> cirq.OP_TREE:
     r"""Prepare a Slater determinant.

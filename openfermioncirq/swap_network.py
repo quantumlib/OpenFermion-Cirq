@@ -12,14 +12,13 @@
 from typing import Callable, Sequence
 
 import cirq
-from cirq import LineQubit, SWAP
 
-from openfermioncirq.gates import FSWAP
+from openfermioncirq import FSWAP
 
 
-def swap_network(qubits: Sequence[LineQubit],
+def swap_network(qubits: Sequence[cirq.QubitId],
                  operation: Callable[
-                     [int, int, LineQubit, LineQubit], cirq.OP_TREE]=
+                     [int, int, cirq.QubitId, cirq.QubitId], cirq.OP_TREE]=
                      lambda p, q, p_qubit, q_qubit: (),
                  fermionic: bool=False,
                  offset: bool=False):
@@ -48,13 +47,12 @@ def swap_network(qubits: Sequence[LineQubit],
     """
     n_qubits = len(qubits)
     order = list(range(n_qubits))
-    swap_gate = FSWAP if fermionic else SWAP
+    swap_gate = FSWAP if fermionic else cirq.SWAP
 
     for layer_num in range(n_qubits):
         lowest_active_qubit = (layer_num + offset) % 2
         active_pairs = ((i, i + 1)
                         for i in range(lowest_active_qubit, n_qubits - 1, 2))
-
         for i, j in active_pairs:
             p, q = order[i], order[j]
             yield operation(p, q, qubits[i], qubits[j])
