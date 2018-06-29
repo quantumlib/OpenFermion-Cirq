@@ -23,7 +23,9 @@ from openfermioncirq.gates import (
         XXYY,
         XXYYGate,
         YXXY,
-        YXXYGate)
+        YXXYGate,
+        ZZ,
+        ZZGate)
 
 from openfermioncirq.planar_qubit import PlanarQubit
 

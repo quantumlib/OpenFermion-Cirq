@@ -19,7 +19,7 @@ from cirq.testing import EqualsTester
 
 from openfermioncirq.gates import (
         CCZ, CXXYY, CYXXY, ControlledXXYYGate, ControlledYXXYGate, Rot111Gate,
-        FSWAP, XXYY, XXYYGate, YXXY, YXXYGate)
+        FSWAP, XXYY, XXYYGate, YXXY, YXXYGate, ZZ, ZZGate)
 
 
 def test_fswap_interchangeable():
@@ -80,11 +80,6 @@ def test_xxyy_interchangeable():
     assert XXYY(a, b) == XXYY(b, a)
 
 
-def test_xxyy_extrapolate():
-    assert XXYYGate(
-        half_turns=1).extrapolate_effect(0.5) == XXYYGate(half_turns=0.5)
-
-
 def test_xxyy_repr():
     assert repr(XXYYGate(half_turns=1)) == 'XXYY'
     assert repr(XXYYGate(half_turns=0.5)) == 'XXYY**0.5'
@@ -101,7 +96,7 @@ def test_xxyy_decompose(half_turns):
             matrix, gate.matrix(), atol=1e-8)
 
 
-def test_xxyy__matrix():
+def test_xxyy_matrix():
     numpy.testing.assert_allclose(XXYYGate(half_turns=2).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
@@ -138,26 +133,6 @@ def test_xxyy__matrix():
                                   expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
 
-@pytest.mark.parametrize(
-        'half_turns, initial_state, correct_state, atol', [
-            (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2), 1e-7),
-            (0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
-                  numpy.array([1 / numpy.sqrt(2), 0.5, -0.5j, 0]), 1e-7),
-            (-0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
-                   numpy.array([1 / numpy.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
-])
-def test_xxyy_on_simulator(half_turns, initial_state, correct_state, atol):
-
-    simulator = cirq.google.XmonSimulator()
-    a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(XXYY(a, b)**half_turns)
-    initial_state = initial_state.astype(numpy.complex64)
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state, correct_state, atol=atol)
-
-
 def test_yxxy_init():
     assert YXXYGate(half_turns=0.5).half_turns == 0.5
     assert YXXYGate(half_turns=1.5).half_turns == 1.5
@@ -184,11 +159,6 @@ def test_yxxy_eq():
     eq.make_equality_pair(lambda: YXXYGate(half_turns=0.5))
 
 
-def test_yxxy_extrapolate():
-    assert YXXYGate(
-        half_turns=1).extrapolate_effect(0.5) == YXXYGate(half_turns=0.5)
-
-
 def test_yxxy_repr():
     assert repr(YXXYGate(half_turns=1)) == 'YXXY'
     assert repr(YXXYGate(half_turns=0.5)) == 'YXXY**0.5'
@@ -205,7 +175,7 @@ def test_yxxy_decompose(half_turns):
             matrix, gate.matrix(), atol=1e-8)
 
 
-def test_yxxy__matrix():
+def test_yxxy_matrix():
     numpy.testing.assert_allclose(YXXYGate(half_turns=2).matrix(),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
@@ -242,20 +212,106 @@ def test_yxxy__matrix():
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
-@pytest.mark.parametrize(
-        'half_turns, initial_state, correct_state, atol', [
-            (1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-8),
-            (0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, 0, 1, 0]), 1e-7),
-            (-0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                   numpy.array([0, 1, 0, 0]), 1e-7)
-])
-def test_yxxy_on_simulator(half_turns, initial_state, correct_state, atol):
+def test_zz_init():
+    assert ZZGate(half_turns=0.5).half_turns == 0.5
+    assert ZZGate(half_turns=1.5).half_turns == -0.5
+    assert ZZGate(half_turns=5).half_turns == 1
 
+
+def test_zz_init_with_multiple_args_fails():
+    with pytest.raises(ValueError):
+        _ = ZZGate(half_turns=1.0, duration=numpy.pi/2)
+
+
+def test_zz_eq():
+    eq = EqualsTester()
+
+    eq.add_equality_group(ZZGate(half_turns=3.5),
+                          ZZGate(half_turns=-0.5),
+                          ZZGate(duration=-numpy.pi / 4))
+
+    eq.add_equality_group(ZZGate(half_turns=2.5),
+                          ZZGate(half_turns=0.5),
+                          ZZGate(duration=0.5 * numpy.pi / 2))
+
+    eq.make_equality_pair(lambda: ZZGate(half_turns=0))
+    eq.make_equality_pair(lambda: ZZGate(half_turns=0.1))
+
+
+def test_zz_repr():
+    assert repr(ZZGate(half_turns=1)) == 'ZZ'
+    assert repr(ZZGate(half_turns=0.5)) == 'ZZ**0.5'
+
+
+def test_zz_matrix():
+    numpy.testing.assert_allclose(ZZGate(half_turns=0).matrix(),
+                                  numpy.array([[1, 0, 0, 0],
+                                               [0, 1, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 0, 0, 1]]),
+                                  atol=1e-8)
+
+    numpy.testing.assert_allclose(ZZGate(half_turns=0.5).matrix(),
+                                  numpy.array([[(-1j)**0.5, 0, 0, 0],
+                                               [0, 1j**0.5, 0, 0],
+                                               [0, 0, 1j**0.5, 0],
+                                               [0, 0, 0, (-1j)**0.5]]),
+                                  atol=1e-8)
+
+    numpy.testing.assert_allclose(ZZGate(half_turns=1).matrix(),
+                                  numpy.array([[-1j, 0, 0, 0],
+                                               [0, 1j, 0, 0],
+                                               [0, 0, 1j, 0],
+                                               [0, 0, 0, -1j]]),
+                                  atol=1e-8)
+
+    numpy.testing.assert_allclose(ZZGate(half_turns=-0.5).matrix(),
+                                  numpy.array([[(1j)**0.5, 0, 0, 0],
+                                               [0, (-1j)**0.5, 0, 0],
+                                               [0, 0, (-1j)**0.5, 0],
+                                               [0, 0, 0, (1j)**0.5]]),
+                                  atol=1e-8)
+
+    Z = numpy.array([[1, 0], [0, -1]])
+    ZZ = kron(Z, Z)
+    numpy.testing.assert_allclose(ZZGate(half_turns=0.25).matrix(),
+                                  expm(-1j * numpy.pi * 0.25 * ZZ / 2))
+
+
+@pytest.mark.parametrize(
+        'gate, half_turns, initial_state, correct_state, atol', [
+            (XXYY, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, -1j, -1j, 0]) / numpy.sqrt(2), 1e-7),
+
+            (XXYY, 0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
+                  numpy.array([1 / numpy.sqrt(2), 0.5, -0.5j, 0]), 1e-7),
+
+            (XXYY, -0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([1 / numpy.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
+
+            (YXXY, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-8),
+
+            (YXXY, 0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 0, 1, 0]), 1e-7),
+
+            (YXXY, -0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                   numpy.array([0, 1, 0, 0]), 1e-7),
+
+            (ZZ, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, -1, -1, 0]) / numpy.sqrt(2), 1e-8),
+
+            (ZZ, 0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
+                  numpy.array([0, 1, 1, 0]) / numpy.sqrt(2), 1e-7),
+
+            (ZZ, -0.5, numpy.array([1, 1, 0, 0]) / numpy.sqrt(2),
+                   numpy.array([1, -1j, 0, 0]) / numpy.sqrt(2), 1e-7)
+])
+def test_two_qubit_rotation_gates_on_simulator(
+        gate, half_turns, initial_state, correct_state, atol):
     simulator = cirq.google.XmonSimulator()
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(YXXY(a, b)**half_turns)
+    circuit = cirq.Circuit.from_ops(gate(a, b)**half_turns)
     initial_state = initial_state.astype(numpy.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -402,27 +458,29 @@ def test_text_diagrams():
         FSWAP(a, b),
         XXYY(a, b),
         YXXY(a, b),
+        ZZ(a, b),
         CCZ(a, b, c),
         CXXYY(a, b, c),
         CYXXY(a, b, c))
     assert circuit.to_text_diagram().strip() == """
-a: ───×ᶠ───XXYY───YXXY───@───@──────@──────
-      │    │      │      │   │      │
-b: ───×ᶠ───XXYY───#2─────@───XXYY───YXXY───
-                         │   │      │
-c: ──────────────────────Z───XXYY───#2─────
+a: ───×ᶠ───XXYY───YXXY───Z───@───@──────@──────
+      │    │      │      │   │   │      │
+b: ───×ᶠ───XXYY───#2─────Z───@───XXYY───YXXY───
+                             │   │      │
+c: ──────────────────────────@───XXYY───#2─────
     """.strip()
 
     circuit = cirq.Circuit.from_ops(
         XXYY(a, b)**0.5,
         YXXY(a, b)**0.5,
+        ZZ(a, b)**0.5,
         CCZ(a, b, c)**-0.5,
         CXXYY(a, b, c)**-0.5,
         CYXXY(a, b, c)**-0.5)
     assert circuit.to_text_diagram().strip() == """
-a: ───XXYY^0.5───YXXY^0.5───@^-0.5───@^-0.5───@^-0.5───
-      │          │          │        │        │
-b: ───XXYY───────#2─────────@────────XXYY─────YXXY─────
-                            │        │        │
-c: ─────────────────────────Z────────XXYY─────#2───────
+a: ───XXYY^0.5───YXXY^0.5───Z^0.5───@^-0.5───@^-0.5───@^-0.5───
+      │          │          │       │        │        │
+b: ───XXYY───────#2─────────Z───────@────────XXYY─────YXXY─────
+                                    │        │        │
+c: ─────────────────────────────────@────────XXYY─────#2───────
     """.strip()
