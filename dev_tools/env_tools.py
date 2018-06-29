@@ -115,13 +115,13 @@ def prepare_temporary_test_environment(
     # Create virtual environment.
     base_path = cast(str, env.destination_directory)
     env_path = os.path.join(base_path, env_name)
-    req_path = os.path.join(base_path, 'requirements.txt')
+    req_path = os.path.join(base_path, 'dev-requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path,
                        verbose=verbose)
 
-    return PreparedEnv(repository=env.repository,
+    return PreparedEnv(github_repo=env.repository,
                        actual_commit_id=env.actual_commit_id,
                        compare_commit_id=env.compare_commit_id,
                        destination_directory=env.destination_directory,
@@ -162,13 +162,14 @@ def derive_temporary_python2_environment(
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    req_path = os.path.join(destination_directory, 'requirements.txt')
+    req_path = os.path.join(destination_directory,
+                            'python2.7-dev-requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path,
                        verbose=verbose)
 
-    return PreparedEnv(repository=python3_environment.repository,
+    return PreparedEnv(github_repo=python3_environment.repository,
                        actual_commit_id=python3_environment.actual_commit_id,
                        compare_commit_id=python3_environment.compare_commit_id,
                        destination_directory=destination_directory,
