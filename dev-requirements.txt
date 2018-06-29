@@ -1,0 +1,7 @@
+mypy
+numpy
+pylint
+pytest
+pytest-cov
+git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
+git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq

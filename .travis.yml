@@ -15,8 +15,6 @@ before_install:
   - pip install --upgrade pip setuptools wheel
 
 install:
-  - pip install git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
-  - pip install git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
-  - pip install -r requirements.txt
+  - pip install -r dev-requirements.txt
 
 script: continuous-integration/travis.sh

@@ -20,8 +20,8 @@ exec(open('openfermioncirq/_version.py').read())
 # Readme file as long_description:
 long_description = io.open('README.rst', encoding='utf-8').read()
 
-# Read in requirements.txt
-requirements = open('requirements.txt').readlines()
+# Read in runtime-requirements.txt
+requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 setup(
