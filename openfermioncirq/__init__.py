@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermioncirq.gates import (
+from openfermioncirq.ops import (
         CCZ,
         CXXYY,
         CYXXY,
@@ -19,6 +19,7 @@ from openfermioncirq.gates import (
         FSWAP,
         FermionicSwapGate,
         ISWAP,
+        PlanarQubit,
         Rot111Gate,
         XXYY,
         XXYYGate,
@@ -26,8 +27,6 @@ from openfermioncirq.gates import (
         YXXYGate,
         ZZ,
         ZZGate)
-
-from openfermioncirq.planar_qubit import PlanarQubit
 
 from openfermioncirq.state_preparation import (
         bogoliubov_transform,

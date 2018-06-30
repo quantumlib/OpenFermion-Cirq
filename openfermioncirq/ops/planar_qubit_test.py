@@ -12,7 +12,7 @@
 
 from cirq.testing import EqualsTester
 
-from openfermioncirq.planar_qubit import PlanarQubit
+from openfermioncirq import PlanarQubit
 
 
 def test_planar_qubit_init():
@@ -44,3 +44,11 @@ def test_planar_qubit_is_adjacent():
 
     assert PlanarQubit(500, 999).is_adjacent(PlanarQubit(501, 999))
     assert not PlanarQubit(500, 999).is_adjacent(PlanarQubit(5034, 999))
+
+
+def test_planar_qubit_repr():
+    assert repr(PlanarQubit(3, 4)) == 'PlanarQubit(3, 4)'
+
+
+def test_planar_qubit_str():
+    assert str(PlanarQubit(3, 4)) == '(3, 4)'
