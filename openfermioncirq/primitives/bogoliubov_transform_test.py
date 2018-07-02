@@ -9,6 +9,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 import numpy
 import pytest
 
@@ -17,10 +18,7 @@ from cirq import LineQubit
 from openfermion import get_sparse_operator
 from openfermion.utils._testing_utils import random_quadratic_hamiltonian
 
-from openfermioncirq.state_preparation import (
-        bogoliubov_transform,
-        prepare_gaussian_state,
-        prepare_slater_determinant)
+from openfermioncirq import bogoliubov_transform
 
 
 def fourier_transform_matrix(n_modes):
@@ -81,6 +79,8 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                                    numpy.random.randint(1, n_qubits + 1),
                                    False)
                for _ in range(n_eigenstates)]
+    # Also test empty subset
+    subsets += [()]
 
     for occupied_orbitals in subsets:
         # Compute the energy of this eigenstate
@@ -114,67 +114,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                 quad_ham_sparse.dot(state2), energy * state2, atol=atol)
 
 
-@pytest.mark.parametrize(
-        'n_qubits, conserves_particle_number, occupied_orbitals',
-        [(4, True, None),
-         (4, False, None),
-         (5, True, None),
-         (5, False, None),
-         (5, True, range(4)),
-         (5, False, (0, 2, 3))])
-def test_prepare_gaussian_state(n_qubits,
-                                conserves_particle_number,
-                                occupied_orbitals,
-                                atol=1e-5):
-    simulator = cirq.google.XmonSimulator()
-    qubits = LineQubit.range(n_qubits)
-
-    # Initialize a random quadratic Hamiltonian
-    quad_ham = random_quadratic_hamiltonian(
-            n_qubits, conserves_particle_number, real=False)
-    quad_ham_sparse = get_sparse_operator(quad_ham)
-
-    # Compute the energy of the desired state
-    if occupied_orbitals is None:
-        energy = quad_ham.ground_energy()
-    else:
-        orbital_energies, constant = quad_ham.orbital_energies()
-        energy = sum(orbital_energies[i] for i in occupied_orbitals) + constant
-
-    # Get the state using a circuit simulation
-    circuit = cirq.Circuit.from_ops(
-            prepare_gaussian_state(qubits, quad_ham, occupied_orbitals))
-    result = simulator.simulate(circuit, qubit_order=qubits)
-    state = result.final_state
-
-    # Check that the result is an eigenstate with the correct eigenvalue
-    numpy.testing.assert_allclose(
-            quad_ham_sparse.dot(state), energy * state, atol=atol)
-
-
-@pytest.mark.parametrize(
-        'slater_determinant_matrix, correct_state',
-        [(numpy.array([[1, 1]]) / numpy.sqrt(2),
-          numpy.array([0, 1, 1, 0]) / numpy.sqrt(2)),
-
-         (numpy.array([[1, 1j]]) / numpy.sqrt(2),
-          numpy.array([0, 1j, 1, 0]) / numpy.sqrt(2)),
-
-         (numpy.array([[1, 1, 1], [1, numpy.exp(2j * numpy.pi / 3),
-             numpy.exp(4j * numpy.pi / 3)]]) / numpy.sqrt(3),
-          numpy.array([0, 0, 0, numpy.exp(2j * numpy.pi / 3), 0,
-             1 + numpy.exp(2j * numpy.pi / 3), 1, 0]) / numpy.sqrt(3))
-        ])
-def test_prepare_slater_determinant(slater_determinant_matrix,
-                                    correct_state,
-                                    atol=1e-7):
-    simulator = cirq.google.XmonSimulator()
-    n_qubits = slater_determinant_matrix.shape[1]
-    qubits = LineQubit.range(n_qubits)
-
-    circuit = cirq.Circuit.from_ops(
-            prepare_slater_determinant(qubits, slater_determinant_matrix))
-    result = simulator.simulate(circuit, qubit_order=qubits)
-    state = result.final_state
-
-    assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)
+def test_bogoliubov_transform_bad_shape_raises_error():
+    with pytest.raises(ValueError):
+        _ = next(bogoliubov_transform(cirq.LineQubit.range(4),
+                                      numpy.zeros((4, 7))))

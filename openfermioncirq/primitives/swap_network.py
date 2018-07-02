@@ -9,6 +9,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 from typing import Callable, Sequence
 
 import cirq
@@ -21,7 +22,7 @@ def swap_network(qubits: Sequence[cirq.QubitId],
                      [int, int, cirq.QubitId, cirq.QubitId], cirq.OP_TREE]=
                      lambda p, q, p_qubit, q_qubit: (),
                  fermionic: bool=False,
-                 offset: bool=False):
+                 offset: bool=False) -> cirq.OP_TREE:
     """Apply operations to pairs of qubits or modes using a swap network.
 
     This is used for applying operations between arbitrary pairs of qubits or

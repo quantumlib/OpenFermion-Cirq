@@ -9,39 +9,27 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 import cirq
-from cirq import LineQubit
 
-from openfermioncirq import XXYY
+from openfermioncirq import XXYY, swap_network
 
-from openfermioncirq.swap_network import swap_network
 
 def test_swap_network():
     n_qubits = 4
-    qubits = LineQubit.range(n_qubits)
+    qubits = cirq.LineQubit.range(n_qubits)
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
-0    1    2    3
-│    │    │    │
-XXYY─XXYY XXYY─XXYY
-│    │    │    │
-×────×    ×────×
-│    │    │    │
-│    XXYY─XXYY │
-│    │    │    │
-│    ×────×    │
-│    │    │    │
-XXYY─XXYY XXYY─XXYY
-│    │    │    │
-×────×    ×────×
-│    │    │    │
-│    XXYY─XXYY │
-│    │    │    │
-│    ×────×    │
-│    │    │    │
+    assert (circuit.to_text_diagram(transpose=False).strip() == """
+0: ───XXYY───×──────────────XXYY───×──────────────
+      │      │              │      │
+1: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
+                 │      │              │      │
+2: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
+      │      │              │      │
+3: ───XXYY───×──────────────XXYY───×──────────────
 """.strip())
 
     circuit = cirq.Circuit.from_ops(
@@ -70,25 +58,22 @@ XXYY─XXYY XXYY─XXYY
 """.strip())
 
     n_qubits = 5
-    qubits = LineQubit.range(n_qubits)
+    qubits = cirq.LineQubit.range(n_qubits)
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: (),
                          fermionic=True),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
-0  1  2  3  4
-│  │  │  │  │
-×ᶠ─×ᶠ ×ᶠ─×ᶠ │
-│  │  │  │  │
-│  ×ᶠ─×ᶠ ×ᶠ─×ᶠ
-│  │  │  │  │
-×ᶠ─×ᶠ ×ᶠ─×ᶠ │
-│  │  │  │  │
-│  ×ᶠ─×ᶠ ×ᶠ─×ᶠ
-│  │  │  │  │
-×ᶠ─×ᶠ ×ᶠ─×ᶠ │
-│  │  │  │  │
+    assert (circuit.to_text_diagram(transpose=False).strip() == """
+0: ───×ᶠ────────×ᶠ────────×ᶠ───
+      │         │         │
+1: ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───
+           │         │
+2: ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───
+      │         │         │
+3: ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───
+           │         │
+4: ────────×ᶠ────────×ᶠ────────
 """.strip())
 
     circuit = cirq.Circuit.from_ops(

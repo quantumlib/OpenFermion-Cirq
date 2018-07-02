@@ -107,7 +107,7 @@ def test_cyxxy_repr():
                 numpy.array([0, 1, 0, 0, 0, 0, 0, -1]) / numpy.sqrt(2), 5e-7),
             (CCZ, 0.5,
                 numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2), 1e-7),
+                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2), 5e-7),
             (CCZ, 0.25,
                 numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2),
                 numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2), 1e-7),

@@ -28,14 +28,16 @@ from openfermioncirq.ops import (
         ZZ,
         ZZGate)
 
-from openfermioncirq.state_preparation import (
-        bogoliubov_transform,
+from openfermioncirq.primitives import (
         prepare_gaussian_state,
         prepare_slater_determinant)
 
-from openfermioncirq.swap_network import swap_network
+from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
+
+from openfermioncirq.primitives.swap_network import swap_network
 
 from openfermioncirq.trotter import simulate_trotter
+
 from openfermioncirq.variational import (
         SwapNetworkTrotterAnsatz,
         VariationalAnsatz,
