@@ -15,6 +15,7 @@ import scipy.sparse.linalg
 
 import cirq
 import openfermion
+from openfermion.utils._testing_utils import random_diagonal_coulomb_hamiltonian
 
 from openfermioncirq.trotter import (
         CONTROLLED_SPLIT_OPERATOR,
@@ -28,13 +29,11 @@ def fidelity(state1, state2):
     return abs(numpy.dot(state1, numpy.conjugate(state2)))
 
 
-# Construct a jellium model
-dim = 2
-length = 2
-n_qubits = length**dim
-grid = openfermion.Grid(dim, length, 1.0)
-jellium = openfermion.jellium_model(grid, spinless=True, plane_wave=False) 
-
+# Initialize test parameters for a random Hamiltonian
+n_qubits = 5
+random_hamiltonian = random_diagonal_coulomb_hamiltonian(
+        n_qubits, real=False, seed=8440)
+random_time = 0.1
 
 # Construct a random initial state
 numpy.random.seed(3570)
@@ -43,58 +42,30 @@ initial_state /= numpy.linalg.norm(initial_state)
 initial_state = initial_state.astype(numpy.complex64, copy=False)
 assert numpy.allclose(numpy.linalg.norm(initial_state), 1.0)
 
-
-# Initialize test parameters for a jellium Hamiltonian
-jellium_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
-jellium_time = 0.1
 # Simulate exact evolution
-jellium_sparse = openfermion.get_sparse_operator(jellium_hamiltonian)
-jellium_exact_state = scipy.sparse.linalg.expm_multiply(
-        -1j * jellium_time * jellium_sparse, initial_state)
-# Make sure the time is not too small
-assert fidelity(jellium_exact_state, initial_state) < .95
+random_sparse = openfermion.get_sparse_operator(random_hamiltonian)
+random_exact_state = scipy.sparse.linalg.expm_multiply(
+        -1j * random_time * random_sparse, initial_state)
 
-
-# Initialize test parameters for a Hamiltonian with complex entries
-complex_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
-complex_hamiltonian.one_body += 1j * numpy.triu(complex_hamiltonian.one_body)
-complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
-complex_time = 0.05
-# Simulate exact evolution
-complex_sparse = openfermion.get_sparse_operator(complex_hamiltonian)
-complex_exact_state = scipy.sparse.linalg.expm_multiply(
-        -1j * complex_time * complex_sparse, initial_state)
 # Make sure the time is not too small
-assert fidelity(complex_exact_state, initial_state) < .95
+assert fidelity(random_exact_state, initial_state) < .95
 
 
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  1, 3, SWAP_NETWORK, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  2, 1, SWAP_NETWORK, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  1, 3, SPLIT_OPERATOR, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  2, 1, SPLIT_OPERATOR, .99),
-            (complex_hamiltonian, complex_time, initial_state,
-                complex_exact_state,  1, 3, SWAP_NETWORK, .99),
-            (complex_hamiltonian, complex_time, initial_state,
-                complex_exact_state,  1, 3, SPLIT_OPERATOR, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  2, 1, CONTROLLED_SWAP_NETWORK, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  1, 3, CONTROLLED_SPLIT_OPERATOR, .99),
-            (jellium_hamiltonian, jellium_time, initial_state,
-                jellium_exact_state,  2, 1, CONTROLLED_SPLIT_OPERATOR, .99),
-            (complex_hamiltonian, complex_time, initial_state,
-                complex_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
-            (complex_hamiltonian, complex_time, initial_state,
-                complex_exact_state,  1, 3, CONTROLLED_SPLIT_OPERATOR, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  1, 3, SWAP_NETWORK, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  2, 1, SWAP_NETWORK, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  1, 3, SPLIT_OPERATOR, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  2, 1, SPLIT_OPERATOR, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  1, 3, CONTROLLED_SWAP_NETWORK, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  2, 1, CONTROLLED_SPLIT_OPERATOR, .99),
 ])
 def test_simulate_trotter(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
@@ -148,7 +119,7 @@ def test_simulate_trotter(
 
 def test_simulate_trotter_bad_order_raises_error():
     qubits = cirq.LineQubit.range(2)
-    hamiltonian = jellium_hamiltonian
+    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
     time = 1.0
     with pytest.raises(ValueError):
         _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))

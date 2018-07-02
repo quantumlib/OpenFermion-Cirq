@@ -36,7 +36,6 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         circuit: The ansatz circuit.
         qubits: A list containing the qubits used by the ansatz circuit.
     """
-    # TODO use metaclass to enforce existence of attributes
 
     def __init__(self, qubits: Optional[Sequence[cirq.QubitId]]=None) -> None:
         """
