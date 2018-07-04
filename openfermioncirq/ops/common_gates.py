@@ -17,10 +17,10 @@ import numpy
 import cirq
 
 
-class FermionicSwapGate(cirq.TextDiagrammableGate,
-                        cirq.InterchangeableQubitsGate,
+class FermionicSwapGate(cirq.InterchangeableQubitsGate,
                         cirq.KnownMatrixGate,
-                        cirq.SelfInverseGate,
+                        cirq.ReversibleEffect,
+                        cirq.TextDiagrammableGate,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
@@ -29,6 +29,9 @@ class FermionicSwapGate(cirq.TextDiagrammableGate,
                             [0, 0, 1, 0],
                             [0, 1, 0, 0],
                             [0, 0, 0, -1]])
+
+    def inverse(self):
+        return self
 
     def text_diagram_wire_symbols(self,
                                   qubit_count=None,

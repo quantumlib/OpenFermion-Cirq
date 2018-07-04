@@ -25,6 +25,10 @@ def test_fswap_interchangeable():
     assert FSWAP(a, b) == FSWAP(b, a)
 
 
+def test_fswap_inverse():
+    assert FSWAP.inverse() == FSWAP
+
+
 def test_fswap_repr():
     assert repr(FSWAP) == 'FSWAP'
 
