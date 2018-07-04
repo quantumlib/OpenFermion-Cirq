@@ -297,4 +297,4 @@ XXYY = XXYYGate()
 YXXY = YXXYGate()
 ZZ = ZZGate()
 
-ISWAP = XXYY
+ISWAP = XXYY**-1
