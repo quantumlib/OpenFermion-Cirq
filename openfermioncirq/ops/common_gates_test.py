@@ -354,7 +354,7 @@ b: ───×ᶠ───XXYY───#2─────Z───
         YXXY(a, b)**0.5,
         ZZ(a, b)**0.5)
     assert circuit.to_text_diagram().strip() == """
-a: ───XXYY^0.5───YXXY^0.5───Z^0.5───
-      │          │          │
-b: ───XXYY───────#2─────────Z───────
+a: ───XXYY───────YXXY─────Z───────
+      │          │        │
+b: ───XXYY^0.5───#2^0.5───Z^0.5───
 """.strip()
