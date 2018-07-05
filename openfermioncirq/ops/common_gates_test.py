@@ -17,8 +17,7 @@ from scipy.linalg import expm, kron
 import cirq
 from cirq.testing import EqualsTester
 
-from openfermioncirq import (
-        FSWAP, ISWAP, XXYY, XXYYGate, YXXY, YXXYGate, ZZ, ZZGate)
+from openfermioncirq import FSWAP, XXYY, XXYYGate, YXXY, YXXYGate, ZZ, ZZGate
 
 
 def test_fswap_interchangeable():
@@ -54,15 +53,6 @@ def test_fswap_on_simulator():
             result.final_state,
             numpy.array([0, 0, 1, -1]) / numpy.sqrt(2),
             atol=1e-7)
-
-
-def test_iswap_matrix():
-    numpy.testing.assert_allclose(ISWAP.matrix(),
-                                  numpy.array([[1, 0, 0, 0],
-                                               [0, 0, 1j, 0],
-                                               [0, 1j, 0, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
 
 
 def test_xxyy_init():

@@ -13,7 +13,6 @@
 from openfermioncirq.ops.common_gates import (
         FSWAP,
         FermionicSwapGate,
-        ISWAP,
         XXYY,
         XXYYGate,
         YXXY,

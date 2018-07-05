@@ -56,10 +56,10 @@ class XXYYGate(cirq.EigenGate,
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
-        
+
         The first is to provide an angle in units of half-turns. In this case,
         the gate implements the unitary exp(-i pi half_turns (XX + YY) / 4).
-        
+
         The second way is to provide a duration of time. In this case, the gate
         implements the unitary exp(-i duration (XX + YY) / 2 ), which
         corresponds to evolving under the Hamiltonian (XX + YY) / 2 for that
@@ -143,10 +143,10 @@ class YXXYGate(cirq.EigenGate,
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
-        
+
         The first is to provide an angle in units of half-turns. In this case,
         the gate implements the unitary exp(-i pi half_turns (YX - XY) / 4).
-        
+
         The second way is to provide a duration of time. In this case, the gate
         implements the unitary exp(-i duration (YX - XY) / 2 ), which
         corresponds to evolving under the Hamiltonian (YX - XY) / 2 for that
@@ -230,10 +230,10 @@ class ZZGate(cirq.EigenGate,
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
-        
+
         The first is to provide an angle in units of half-turns. In this case,
         the gate implements the unitary exp(-i pi half_turns ZZ / 2).
-        
+
         The second way is to provide a duration of time. In this case, the gate
         implements the unitary exp(-i duration ZZ), which corresponds to
         evolving under the Hamiltonian ZZ for that duration of time.
@@ -296,5 +296,3 @@ FSWAP = FermionicSwapGate()
 XXYY = XXYYGate()
 YXXY = YXXYGate()
 ZZ = ZZGate()
-
-ISWAP = XXYY**-1
