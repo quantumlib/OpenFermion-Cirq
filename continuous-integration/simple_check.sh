@@ -23,7 +23,7 @@
 # 2. Run tests against multiple versions of python.
 #
 # What this script DOES do is run pylint, mypy, pytest, and incremental code
-# coverage against your local python 3 dev copy of cirq.
+# coverage against your local python 3 dev copy of OpenFermion-Cirq.
 
 
 # Get the working directory to the repo root.
@@ -38,6 +38,6 @@ python3 ${repo_dir}/dev_tools/run_simple_checks.py $@
 result=$?
 
 # Delete coverage files created by pytest during the checks.
-find | grep "\.py,cover$" | xargs rm
+find . | grep "\.py,cover$" | xargs rm
 
 exit ${result}
