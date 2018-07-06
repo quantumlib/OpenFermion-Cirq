@@ -30,8 +30,7 @@ def test_trotter_step_algorithm_is_abstract_must_implement():
 
 def test_trotter_step_algorithm_is_abstract_can_implement():
     class Included(TrotterStepAlgorithm):
-        def second_order_trotter_step(
-                self, qubits, hamiltonian, time, control_qubit):
+        def trotter_step(self, qubits, hamiltonian, time, control_qubit):
             pass
 
     assert isinstance(Included(), TrotterStepAlgorithm)

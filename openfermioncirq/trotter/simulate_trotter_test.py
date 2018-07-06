@@ -22,11 +22,12 @@ from openfermioncirq.trotter import (
         CONTROLLED_SWAP_NETWORK,
         SPLIT_OPERATOR,
         SWAP_NETWORK,
+        SWAP_NETWORK_ZEROTH_ORDER,
         simulate_trotter)
 
 
 def fidelity(state1, state2):
-    return abs(numpy.dot(state1, numpy.conjugate(state2)))
+    return abs(numpy.dot(state1, numpy.conjugate(state2)))**2
 
 
 # Initialize test parameters for a random Hamiltonian
@@ -58,6 +59,8 @@ assert fidelity(random_exact_state, initial_state) < .95
                 random_exact_state,  1, 3, SWAP_NETWORK, .99),
             (random_hamiltonian, random_time, initial_state,
                 random_exact_state,  2, 1, SWAP_NETWORK, .99),
+            (random_hamiltonian, random_time, initial_state,
+                random_exact_state,  1, 4, SWAP_NETWORK_ZEROTH_ORDER, .99),
             (random_hamiltonian, random_time, initial_state,
                 random_exact_state,  1, 3, SPLIT_OPERATOR, .99),
             (random_hamiltonian, random_time, initial_state,
@@ -123,3 +126,73 @@ def test_simulate_trotter_bad_order_raises_error():
     time = 1.0
     with pytest.raises(ValueError):
         _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))
+
+
+def test_simulate_trotter_omit_final_swaps():
+    qubits = cirq.LineQubit.range(5)
+    hamiltonian = random_diagonal_coulomb_hamiltonian(5, seed=0)
+    time = 1.0
+
+    circuit_with_swaps = cirq.Circuit.from_ops(
+            simulate_trotter(
+                qubits, hamiltonian, time, algorithm=SWAP_NETWORK_ZEROTH_ORDER))
+    circuit_without_swaps = cirq.Circuit.from_ops(
+            simulate_trotter(
+                qubits, hamiltonian, time, algorithm=SWAP_NETWORK_ZEROTH_ORDER,
+                omit_final_swaps=True))
+
+    assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
+            (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
+│       ×───────────×          ×────────────×
+│       │           │          │            │
+×───────×           ×──────────×            │
+│       │           │          │            │
+│       ×───────────×          ×────────────×
+│       │           │          │            │
+×───────×           ×──────────×            │
+│       │           │          │            │
+│       ×───────────×          ×────────────×
+│       │           │          │            │
+""").strip())
+
+    circuit_with_swaps = cirq.Circuit.from_ops(
+            simulate_trotter(
+                qubits,
+                hamiltonian,
+                time,
+                n_steps=3,
+                algorithm=SPLIT_OPERATOR),
+            strategy=cirq.InsertStrategy.NEW)
+    circuit_without_swaps = cirq.Circuit.from_ops(
+            simulate_trotter(
+                qubits,
+                hamiltonian,
+                time,
+                n_steps=3,
+                algorithm=SPLIT_OPERATOR,
+                omit_final_swaps=True),
+            strategy=cirq.InsertStrategy.NEW)
+
+    assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
+            (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
+│         │            │           ×───────────×
+│         │            │           │           │
+│         ×────────────×           │           │
+│         │            │           │           │
+│         │            ×───────────×           │
+│         │            │           │           │
+×─────────×            │           │           │
+│         │            │           │           │
+│         │            │           ×───────────×
+│         │            │           │           │
+│         ×────────────×           │           │
+│         │            │           │           │
+│         │            ×───────────×           │
+│         │            │           │           │
+×─────────×            │           │           │
+│         │            │           │           │
+│         │            │           ×───────────×
+│         │            │           │           │
+│         ×────────────×           │           │
+│         │            │           │           │
+""").strip())

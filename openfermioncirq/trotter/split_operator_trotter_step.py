@@ -40,7 +40,7 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
                     qubits, quad_ham.diagonalizing_bogoliubov_transform()))
         # TODO Maybe use FFFT instead
 
-    def second_order_trotter_step(
+    def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],
             hamiltonian: DiagonalCoulombHamiltonian,
@@ -65,7 +65,7 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
         yield bogoliubov_transform(qubits, transformation_matrix)
 
         # Simulate the two-body terms for the full time
-        def two_body_interaction(p, q, a, b):
+        def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield cirq.CZ(a, b)**(
                     -2 * hamiltonian.two_body[p, q] * time / numpy.pi)
         yield swap_network(qubits, two_body_interaction)
@@ -82,25 +82,25 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.QubitId],
-                               hamiltonian: DiagonalCoulombHamiltonian,
                                control_qubit: Optional[cirq.QubitId]=None
                                ) -> Tuple[Sequence[cirq.QubitId],
                                           Optional[cirq.QubitId]]:
-        # A second-order Trotter step reverses the qubit ordering
+        # A Trotter step reverses the qubit ordering
         return qubits[::-1], None
 
     def finish(self,
                qubits: Sequence[cirq.QubitId],
                hamiltonian: DiagonalCoulombHamiltonian,
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None
+               control_qubit: Optional[cirq.QubitId]=None,
+               omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # Rotate back to the computational basis
         quad_ham = QuadraticHamiltonian(hamiltonian.one_body)
         yield bogoliubov_transform(
                 qubits, quad_ham.diagonalizing_bogoliubov_transform())
-        # If the number of Trotter steps is odd, swap qubits back
-        if n_steps & 1:
+        # If the number of Trotter steps is odd, possibly swap qubits back
+        if n_steps & 1 and not omit_final_swaps:
             yield swap_network(qubits)
 
 
@@ -111,7 +111,7 @@ class ControlledSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     controlled = True
 
-    def second_order_trotter_step(
+    def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],
             hamiltonian: DiagonalCoulombHamiltonian,
@@ -137,7 +137,7 @@ class ControlledSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         yield bogoliubov_transform(qubits, transformation_matrix)
 
         # Simulate the two-body terms for the full time
-        def two_body_interaction(p, q, a, b):
+        def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield CCZ(control_qubit, a, b)**(
                     -2 * hamiltonian.two_body[p, q] * time / numpy.pi)
         yield swap_network(qubits, two_body_interaction)
@@ -155,11 +155,10 @@ class ControlledSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.QubitId],
-                               hamiltonian: DiagonalCoulombHamiltonian,
                                control_qubit: Optional[cirq.QubitId]=None
                                ) -> Tuple[Sequence[cirq.QubitId],
                                           Optional[cirq.QubitId]]:
-        # A second-order Trotter step reverses the qubit ordering
+        # A Trotter step reverses the qubit ordering
         return qubits[::-1], control_qubit
 
 

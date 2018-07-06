@@ -36,74 +36,74 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
     has the circuit
 
     ```
-    0         1         2         3
-    │         │         │         │
-    XXYY^T0_1─XXYY      XXYY^T2_3─XXYY
-    │         │         │         │
-    YXXY^W0_1─#2        YXXY^W2_3─#2
-    │         │         │         │
-    @^V0_1────Z         @^V2_3────Z
-    │         │         │         │
-    ×ᶠ────────×ᶠ        ×ᶠ────────×ᶠ
-    │         │         │         │
-    │         XXYY^T0_3─XXYY      │
-    │         │         │         │
-    │         YXXY^W0_3─#2        │
-    │         │         │         │
-    │         @^V0_3────Z         │
-    │         │         │         │
-    │         ×ᶠ────────×ᶠ        │
-    │         │         │         │
-    XXYY^T1_3─XXYY      XXYY^T0_2─XXYY
-    │         │         │         │
-    YXXY^W1_3─#2        YXXY^W0_2─#2
-    │         │         │         │
-    @^V1_3────Z         @^V0_2────Z
-    │         │         │         │
-    ×ᶠ────────×ᶠ        ×ᶠ────────×ᶠ
-    │         │         │         │
-    Z^U3      XXYY^T1_2─XXYY      Z^U0
-    │         │         │         │
-    │         YXXY^W1_2─#2        │
-    │         │         │         │
-    │         @^V1_2────Z         │
-    │         │         │         │
-    │         ×ᶠ────────×ᶠ        │
-    │         │         │         │
-    │         Z^U2      Z^U1      │
-    │         │         │         │
-    │         XXYY^T1_2─XXYY      │
-    │         │         │         │
-    │         #2^W1_2───YXXY      │
-    │         │         │         │
-    │         Z^V1_2────@         │
-    │         │         │         │
-    │         ×ᶠ────────×ᶠ        │
-    │         │         │         │
-    XXYY^T1_3─XXYY      XXYY^T0_2─XXYY
-    │         │         │         │
-    #2^W1_3───YXXY      #2^W0_2───YXXY
-    │         │         │         │
-    Z^V1_3────@         Z^V0_2────@
-    │         │         │         │
-    ×ᶠ────────×ᶠ        ×ᶠ────────×ᶠ
-    │         │         │         │
-    │         XXYY^T0_3─XXYY      │
-    │         │         │         │
-    │         #2^W0_3───YXXY      │
-    │         │         │         │
-    │         Z^V0_3────@         │
-    │         │         │         │
-    │         ×ᶠ────────×ᶠ        │
-    │         │         │         │
-    XXYY^T0_1─XXYY      XXYY^T2_3─XXYY
-    │         │         │         │
-    #2^W0_1───YXXY      #2^W2_3───YXXY
-    │         │         │         │
-    Z^V0_1────@         Z^V2_3────@
-    │         │         │         │
-    ×ᶠ────────×ᶠ        ×ᶠ────────×ᶠ
-    │         │         │         │
+    0    1         2         3
+    │    │         │         │
+    XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3
+    │    │         │         │
+    YXXY─#2^W0_1   YXXY──────#2^W2_3
+    │    │         │         │
+    @────@^V0_1    @─────────@^V2_3
+    │    │         │         │
+    ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
+    │    │         │         │
+    │    XXYY──────XXYY^T0_3 │
+    │    │         │         │
+    │    YXXY──────#2^W0_3   │
+    │    │         │         │
+    │    @─────────@^V0_3    │
+    │    │         │         │
+    │    ×ᶠ────────×ᶠ        │
+    │    │         │         │
+    XXYY─XXYY^T1_3 XXYY──────XXYY^T0_2
+    │    │         │         │
+    YXXY─#2^W1_3   YXXY──────#2^W0_2
+    │    │         │         │
+    @────@^V1_3    @─────────@^V0_2
+    │    │         │         │
+    ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
+    │    │         │         │
+    Z^U3 XXYY──────XXYY^T1_2 Z^U0
+    │    │         │         │
+    │    YXXY──────#2^W1_2   │
+    │    │         │         │
+    │    @─────────@^V1_2    │
+    │    │         │         │
+    │    ×ᶠ────────×ᶠ        │
+    │    │         │         │
+    │    Z^U2      Z^U1      │
+    │    │         │         │
+    │    @─────────@^V1_2    │
+    │    │         │         │
+    │    #2────────YXXY^W1_2 │
+    │    │         │         │
+    │    XXYY──────XXYY^T1_2 │
+    │    │         │         │
+    │    ×ᶠ────────×ᶠ        │
+    │    │         │         │
+    @────@^V1_3    @─────────@^V0_2
+    │    │         │         │
+    #2───YXXY^W1_3 #2────────YXXY^W0_2
+    │    │         │         │
+    XXYY─XXYY^T1_3 XXYY──────XXYY^T0_2
+    │    │         │         │
+    ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
+    │    │         │         │
+    │    @─────────@^V0_3    │
+    │    │         │         │
+    │    #2────────YXXY^W0_3 │
+    │    │         │         │
+    │    XXYY──────XXYY^T0_3 │
+    │    │         │         │
+    │    ×ᶠ────────×ᶠ        │
+    │    │         │         │
+    @────@^V0_1    @─────────@^V2_3
+    │    │         │         │
+    #2───YXXY^W0_1 #2────────YXXY^W2_3
+    │    │         │         │
+    XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3
+    │    │         │         │
+    ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
+    │    │         │         │
     ```
 
     The Hamiltonian associated with the ansatz determines which XXYY, YXXY, CZ,
@@ -191,9 +191,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
 
             suffix = '-{}'.format(i) if self.iterations > 1 else ''
 
-            def one_and_two_body_interaction(p, q, a, b):
-                # Apply one- and two-body interactions to modes p and q
-                # represented by qubits a and b
+            # Apply one- and two-body interactions with a swap network that
+            # reverses the order of the modes
+            def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
                 if 'T{}_{}'.format(p, q) + suffix in self.params:
                     yield XXYYGate(half_turns=self.params[
                               'T{}_{}'.format(p, q) + suffix]).on(a, b)
@@ -203,9 +203,6 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if 'V{}_{}'.format(p, q) + suffix in self.params:
                     yield cirq.Rot11Gate(half_turns=self.params[
                               'V{}_{}'.format(p, q) + suffix]).on(a, b)
-
-            # Apply one- and two-body interactions with a swap network that
-            # reverses the order of the modes
             circuit.append(
                     swap_network(
                         qubits, one_and_two_body_interaction, fermionic=True),
@@ -220,11 +217,23 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                      if 'U{}'.format(p) + suffix in self.params),
                     strategy=cirq.InsertStrategy.EARLIEST)
 
-            # Apply the same one- and two-body interactions again
+            # Apply one- and two-body interactions again. This time, reorder
+            # them so that the entire iteration is symmetric
+            def one_and_two_body_interaction_reversed_order(p, q, a, b
+                    ) -> cirq.OP_TREE:
+                if 'V{}_{}'.format(p, q) + suffix in self.params:
+                    yield cirq.Rot11Gate(half_turns=self.params[
+                              'V{}_{}'.format(p, q) + suffix]).on(a, b)
+                if 'W{}_{}'.format(p, q) + suffix in self.params:
+                    yield YXXYGate(half_turns=self.params[
+                              'W{}_{}'.format(p, q) + suffix]).on(a, b)
+                if 'T{}_{}'.format(p, q) + suffix in self.params:
+                    yield XXYYGate(half_turns=self.params[
+                              'T{}_{}'.format(p, q) + suffix]).on(a, b)
             circuit.append(
                     swap_network(
-                        qubits, one_and_two_body_interaction, fermionic=True,
-                        offset=True),
+                        qubits, one_and_two_body_interaction_reversed_order,
+                        fermionic=True, offset=True),
                     strategy=cirq.InsertStrategy.EARLIEST)
             qubits = qubits[::-1]
 

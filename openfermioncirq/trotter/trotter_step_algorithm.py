@@ -18,11 +18,10 @@ from openfermion import DiagonalCoulombHamiltonian
 
 
 class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
-    """An algorithm for a second-order (first-order symmetric) Trotter step.
+    """A method for performing a Trotter step.
 
-    This class encapsulates a method for performing a second-order Trotter step.
-    It assumes that Hamiltonian evolution using a Trotter-Suzuki product formula
-    is performed in the following steps:
+    This class assumes that Hamiltonian evolution using a Trotter-Suzuki product
+    formula is performed in the following steps:
         1. Perform some preparatory operations (for instance, a basis change).
         2. Perform a number of Trotter steps. Each Trotter step may induce a
            permutation on the ordering in which qubits represent fermionic
@@ -54,14 +53,14 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
         return ()
 
     @abc.abstractmethod
-    def second_order_trotter_step(
+    def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],
             hamiltonian: DiagonalCoulombHamiltonian,
             time: float,
             control_qubit: Optional[cirq.QubitId]=None
             ) -> cirq.OP_TREE:
-        """Yield operations to perform a second-order Trotter step.
+        """Yield operations to perform a Trotter step.
 
         Args:
             qubits: The qubits on which to apply the Trotter step.
@@ -73,11 +72,10 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.QubitId],
-                               hamiltonian: DiagonalCoulombHamiltonian,
                                control_qubit: Optional[cirq.QubitId]=None
                                ) -> Tuple[Sequence[cirq.QubitId],
                                           Optional[cirq.QubitId]]:
-        """The qubit permutation induced by a single second-order Trotter step.
+        """The qubit permutation induced by a single Trotter step.
 
         Returns:
             A tuple whose first element is the new list of system qubits and
@@ -90,8 +88,18 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
                qubits: Sequence[cirq.QubitId],
                hamiltonian: DiagonalCoulombHamiltonian,
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None
+               control_qubit: Optional[cirq.QubitId]=None,
+               omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
-        """Operations to perform after all Trotter steps are done."""
+        """Operations to perform after all Trotter steps are done.
+
+        Args:
+            qubits: The qubits on which to perform operations.
+            hamiltonian: The Hamiltonian to simulate.
+            n_steps: The total number of Trotter steps that have been performed.
+            control_qubit: The control qubit, if the algorithm is controlled.
+            omit_final_swaps: Whether or not to omit swap gates at the end of
+                the circuit.
+        """
         # Default: do nothing
         return ()

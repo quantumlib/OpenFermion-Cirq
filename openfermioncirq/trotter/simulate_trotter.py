@@ -26,7 +26,8 @@ def simulate_trotter(qubits: Sequence[QubitId],
                      n_steps: int=1,
                      order: int=1,
                      algorithm: TrotterStepAlgorithm=SWAP_NETWORK,
-                     control_qubit: Optional[QubitId]=None
+                     control_qubit: Optional[QubitId]=None,
+                     omit_final_swaps: bool=False
                      ) -> cirq.OP_TREE:
     r"""Simulate Hamiltonian evolution using a Trotter-Suzuki product formula.
 
@@ -51,19 +52,31 @@ def simulate_trotter(qubits: Sequence[QubitId],
         time: The evolution time.
         n_steps: The number of Trotter steps to use.
         order: The order of the product formula. The value indexes symmetric
-            formulae, i.e., a value of 1 indicates the first-order symmetric,
-            commonly known as the second-order, Trotter step.
+            formulae, e.g., a value of 2 indicates a second-order symmetric,
+            sometimes known as a fourth-order, Trotter formula.
         algorithm: A string indicating the algorithm to use to simulate a single
             Trotter step.
             Available options:
                 SWAP_NETWORK: The algorithm from arXiv:1711.04789.
+                SWAP_NETWORK_ZEROTH_ORDER: Asymmetric version of SWAP_NETWORK
                 SPLIT_OPERATOR: The algorithm from arXiv:1706.00023.
                 CONTROLLED_SWAP_NETWORK: Controlled version of SWAP_NETWORK
                 CONTROLLED_SPLIT_OPERATOR: Controlled version of SPLIT_OPERATOR
+        control_qubit: A qubit on which to control the Trotter step. Only used
+            if the selected algorithm is a controlled Trotter step.
+        omit_final_swaps: If this is set to True, then swap gates at the end of
+            the circuit may be omitted. This option exists because certain
+            Trotter step algorithms, such as those based on swap networks,
+            induce a permutation on the ordering in which qubits represent
+            fermionic modes. For instance, algorithms based on swap networks
+            may reverse the qubits depending on the number of Trotter steps used
+            and the order of the Trotter formula selected. Setting this option
+            to True will sometimes result in a circuit with fewer gates, but
+            with the ordering of qubits reversed in the final wavefunction.
     """
     # TODO Document gate complexities of algorithm options
-    if order < 0:
-        raise ValueError('The order of the Trotter formula must be at least 0.')
+    if order < 1:
+        raise ValueError('The order of the Trotter formula must be at least 1.')
 
     # Get ready to perform Trotter steps
     yield algorithm.prepare(qubits, hamiltonian, control_qubit)
@@ -74,10 +87,11 @@ def simulate_trotter(qubits: Sequence[QubitId],
         yield _trotter_step(qubits, hamiltonian, step_time, order, algorithm,
                             control_qubit)
         qubits, control_qubit = algorithm.step_qubit_permutation(
-                qubits, hamiltonian, control_qubit)
+                qubits, control_qubit)
 
     # Finish
-    yield algorithm.finish(qubits, hamiltonian, n_steps, control_qubit)
+    yield algorithm.finish(
+            qubits, hamiltonian, n_steps, control_qubit, omit_final_swaps)
 
 
 def _trotter_step(qubits: Sequence[QubitId],
@@ -87,13 +101,9 @@ def _trotter_step(qubits: Sequence[QubitId],
                   algorithm: TrotterStepAlgorithm,
                   control_qubit: Optional[QubitId]) -> cirq.OP_TREE:
     """Apply a Trotter step."""
-    if order == 0:
-        # TODO Yield first-order (asymmetric) formula
-        pass
 
-    elif order == 1:
-        yield algorithm.second_order_trotter_step(qubits, hamiltonian, time,
-                                                  control_qubit)
+    if order == 1:
+        yield algorithm.trotter_step(qubits, hamiltonian, time, control_qubit)
 
     else:
         split_time = time / (4 - 4**(1 / (2 * order - 1)))
@@ -102,16 +112,16 @@ def _trotter_step(qubits: Sequence[QubitId],
             yield _trotter_step(qubits, hamiltonian, split_time, order - 1,
                                 algorithm, control_qubit)
             qubits, control_qubit = algorithm.step_qubit_permutation(
-                    qubits, hamiltonian, control_qubit)
+                    qubits, control_qubit)
 
         yield _trotter_step(
                 qubits, hamiltonian, time - 4 * split_time, order - 1,
                 algorithm, control_qubit)
         qubits, control_qubit = algorithm.step_qubit_permutation(
-                qubits, hamiltonian, control_qubit)
+                qubits, control_qubit)
 
         for _ in range(2):
             yield _trotter_step(qubits, hamiltonian, split_time, order - 1,
                                 algorithm, control_qubit)
             qubits, control_qubit = algorithm.step_qubit_permutation(
-                    qubits, hamiltonian, control_qubit)
+                    qubits, control_qubit)

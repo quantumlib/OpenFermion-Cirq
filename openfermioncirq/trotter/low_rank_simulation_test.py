@@ -23,7 +23,7 @@ from openfermion.transforms import get_fermion_operator, get_sparse_operator
 from openfermion.utils import count_qubits, random_interaction_operator
 
 from openfermioncirq.primitives import swap_network
-from openfermioncirq.trotter import low_rank_trotter_step
+from openfermioncirq.trotter.low_rank_simulation import low_rank_trotter_step
 
 
 def fidelity(state1, state2):
