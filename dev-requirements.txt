@@ -3,5 +3,6 @@ numpy
 pylint
 pytest
 pytest-cov
+scipy
 git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
 git+ssh://git@github.com/quantumlib/cirq.git#egg=cirq
