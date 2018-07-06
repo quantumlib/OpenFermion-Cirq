@@ -35,7 +35,8 @@ from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
 
 from openfermioncirq.primitives.swap_network import swap_network
 
-from openfermioncirq.trotter import simulate_trotter
+from openfermioncirq.trotter import (simulate_trotter,
+                                     low_rank_trotter_step)
 
 from openfermioncirq.variational import (
         SwapNetworkTrotterAnsatz,
