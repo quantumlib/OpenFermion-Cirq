@@ -1,11 +1,9 @@
 OpenFermion-Cirq
 ================
 
-.. image:: https://travis-ci.org/quantumlib/OpenFermion-Cirq.svg?branch=master
-    :target: https://travis-ci.org/quantumlib/OpenFermion-Cirq
-
-.. image:: https://coveralls.io/repos/github/quantumlib/OpenFermion-Cirq/badge.svg?branch=master
-    :target: https://coveralls.io/github/quantumlib/OpenFermion-Cirq
+.. image:: https://travis-ci.com/quantumlib/OpenFermion-Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
+  :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
+  :alt: Build Status
 
 .. image:: https://img.shields.io/badge/python-2.7%2C%203.5-brightgreen.svg
 
@@ -51,7 +49,7 @@ How to contribute
 =================
 
 We'd love to accept your contributions and patches to OpenFermion-Cirq.
-There are a few small guidelines to follow which you can read more about
+There are a few small guidelines to follow which you can read about
 `here <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/CONTRIBUTING.md>`_.
 
 Authors
