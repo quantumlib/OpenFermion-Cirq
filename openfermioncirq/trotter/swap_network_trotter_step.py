@@ -168,7 +168,7 @@ class SwapNetworkZerothOrderTrotterStep(TrotterStepAlgorithm):
                ) -> cirq.OP_TREE:
         # If the number of Trotter steps is odd, possibly swap qubits back
         if n_steps & 1 and not omit_final_swaps:
-            yield swap_network(qubits)
+            yield swap_network(qubits, fermionic=True)
 
 SWAP_NETWORK_ZEROTH_ORDER = SwapNetworkZerothOrderTrotterStep()
 

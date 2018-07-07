@@ -13,20 +13,19 @@
 from typing import Optional, Sequence
 
 import cirq
-from cirq import QubitId
 from openfermion import DiagonalCoulombHamiltonian
 
 from openfermioncirq.trotter.trotter_step_algorithm import TrotterStepAlgorithm
 from openfermioncirq.trotter.swap_network_trotter_step import SWAP_NETWORK
 
 
-def simulate_trotter(qubits: Sequence[QubitId],
+def simulate_trotter(qubits: Sequence[cirq.QubitId],
                      hamiltonian: DiagonalCoulombHamiltonian,
                      time: float,
                      n_steps: int=1,
                      order: int=1,
                      algorithm: TrotterStepAlgorithm=SWAP_NETWORK,
-                     control_qubit: Optional[QubitId]=None,
+                     control_qubit: Optional[cirq.QubitId]=None,
                      omit_final_swaps: bool=False
                      ) -> cirq.OP_TREE:
     r"""Simulate Hamiltonian evolution using a Trotter-Suzuki product formula.
@@ -64,15 +63,16 @@ def simulate_trotter(qubits: Sequence[QubitId],
                 CONTROLLED_SPLIT_OPERATOR: Controlled version of SPLIT_OPERATOR
         control_qubit: A qubit on which to control the Trotter step. Only used
             if the selected algorithm is a controlled Trotter step.
-        omit_final_swaps: If this is set to True, then swap gates at the end of
-            the circuit may be omitted. This option exists because certain
-            Trotter step algorithms, such as those based on swap networks,
-            induce a permutation on the ordering in which qubits represent
-            fermionic modes. For instance, algorithms based on swap networks
-            may reverse the qubits depending on the number of Trotter steps used
-            and the order of the Trotter formula selected. Setting this option
-            to True will sometimes result in a circuit with fewer gates, but
-            with the ordering of qubits reversed in the final wavefunction.
+        omit_final_swaps: If this is set to True, then SWAP or FSWAP gates at
+            the end of the circuit may be omitted. This option exists because
+            certain Trotter step algorithms, such as those based on swap
+            networks, induce a permutation on the qubits or on the ordering in
+            which qubits represent fermionic modes. For instance, algorithms
+            based on swap networks may reverse the qubits depending on the
+            number of Trotter steps used and the order of the Trotter formula
+            selected. Setting this option to True will sometimes result in a
+            circuit with fewer gates, but with the ordering of qubits or modes
+            reversed in the final wavefunction.
     """
     # TODO Document gate complexities of algorithm options
     if order < 1:
@@ -94,12 +94,12 @@ def simulate_trotter(qubits: Sequence[QubitId],
             qubits, hamiltonian, n_steps, control_qubit, omit_final_swaps)
 
 
-def _trotter_step(qubits: Sequence[QubitId],
+def _trotter_step(qubits: Sequence[cirq.QubitId],
                   hamiltonian: DiagonalCoulombHamiltonian,
                   time: float,
                   order: int,
                   algorithm: TrotterStepAlgorithm,
-                  control_qubit: Optional[QubitId]) -> cirq.OP_TREE:
+                  control_qubit: Optional[cirq.QubitId]) -> cirq.OP_TREE:
     """Apply a Trotter step."""
 
     if order == 1:
