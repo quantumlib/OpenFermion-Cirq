@@ -118,6 +118,10 @@ def test_variational_study_circuit():
 """.strip())
 
 
+def test_variational_study_num_params():
+    assert test_study.num_params == 8
+
+
 def test_variational_study_ansatz_properties():
     assert test_study.qubits == test_ansatz.qubits
     assert test_study.param_names() == test_ansatz.param_names()

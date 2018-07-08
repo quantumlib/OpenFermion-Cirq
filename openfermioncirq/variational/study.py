@@ -62,6 +62,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         circuit: The circuit of the study, which is the preparation circuit, if
             any, followed by the ansatz circuit.
         qubits: A list containing the qubits used by the circuit.
+        num_params: The number of parameters in the circuit.
         results: A dictionary of lists of OptimizationResults associated with
             the study. Key is an arbitrary identifier used to label the
             optimization run that produced the corresponding list of results.
@@ -87,6 +88,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         self._ansatz = ansatz
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
         self._circuit = self._preparation_circuit + self._ansatz.circuit
+        self._num_params = len(self.param_names())
         self.datadir = datadir
 
     @abc.abstractmethod
@@ -296,6 +298,11 @@ class VariationalStudy(metaclass=abc.ABCMeta):
     def qubits(self) -> cirq.Circuit:
         """The qubits used by the study circuit."""
         return self._ansatz.qubits
+
+    @property
+    def num_params(self) -> int:
+        """The number of parameters of the ansatz."""
+        return self._num_params
 
     def param_names(self) -> Sequence[str]:
         """The names of the parameters of the ansatz."""
