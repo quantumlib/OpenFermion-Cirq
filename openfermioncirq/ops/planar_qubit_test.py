@@ -23,10 +23,10 @@ def test_planar_qubit_init():
 
 def test_planar_qubit_eq():
     eq = EqualsTester()
-    eq.make_equality_pair(lambda: PlanarQubit(0, 0))
-    eq.make_equality_pair(lambda: PlanarQubit(1, 0))
-    eq.make_equality_pair(lambda: PlanarQubit(0, 1))
-    eq.make_equality_pair(lambda: PlanarQubit(50, 25))
+    eq.make_equality_group(lambda: PlanarQubit(0, 0))
+    eq.make_equality_group(lambda: PlanarQubit(1, 0))
+    eq.make_equality_group(lambda: PlanarQubit(0, 1))
+    eq.make_equality_group(lambda: PlanarQubit(50, 25))
 
 
 def test_planar_qubit_is_adjacent():

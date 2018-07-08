@@ -71,14 +71,18 @@ def test_xxyy_eq():
 
     eq.add_equality_group(XXYYGate(half_turns=3.5),
                           XXYYGate(half_turns=-0.5),
-                          XXYYGate(duration=-numpy.pi / 4))
+                          XXYYGate(rads=-0.5 * numpy.pi),
+                          XXYYGate(degs=-90),
+                          XXYYGate(duration=-0.5 * numpy.pi / 2))
 
     eq.add_equality_group(XXYYGate(half_turns=1.5),
                           XXYYGate(half_turns=-2.5),
+                          XXYYGate(rads=1.5 * numpy.pi),
+                          XXYYGate(degs=-450),
                           XXYYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_pair(lambda: XXYYGate(half_turns=0))
-    eq.make_equality_pair(lambda: XXYYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: XXYYGate(half_turns=0))
+    eq.make_equality_group(lambda: XXYYGate(half_turns=0.5))
 
 
 def test_xxyy_interchangeable():
@@ -155,14 +159,18 @@ def test_yxxy_eq():
 
     eq.add_equality_group(YXXYGate(half_turns=3.5),
                           YXXYGate(half_turns=-0.5),
-                          YXXYGate(duration=-numpy.pi / 4))
+                          YXXYGate(rads=-0.5 * numpy.pi),
+                          YXXYGate(degs=-90),
+                          YXXYGate(duration=-0.5 * numpy.pi / 2))
 
     eq.add_equality_group(YXXYGate(half_turns=1.5),
                           YXXYGate(half_turns=-2.5),
+                          YXXYGate(rads=1.5 * numpy.pi),
+                          YXXYGate(degs=-450),
                           YXXYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_pair(lambda: YXXYGate(half_turns=0))
-    eq.make_equality_pair(lambda: YXXYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: YXXYGate(half_turns=0))
+    eq.make_equality_group(lambda: YXXYGate(half_turns=0.5))
 
 
 def test_yxxy_repr():
@@ -234,14 +242,18 @@ def test_zz_eq():
 
     eq.add_equality_group(ZZGate(half_turns=3.5),
                           ZZGate(half_turns=-0.5),
+                          ZZGate(rads=-0.5 * numpy.pi),
+                          ZZGate(degs=-90),
                           ZZGate(duration=-numpy.pi / 4))
 
     eq.add_equality_group(ZZGate(half_turns=2.5),
                           ZZGate(half_turns=0.5),
+                          ZZGate(rads=0.5 * numpy.pi),
+                          ZZGate(degs=90),
                           ZZGate(duration=0.5 * numpy.pi / 2))
 
-    eq.make_equality_pair(lambda: ZZGate(half_turns=0))
-    eq.make_equality_pair(lambda: ZZGate(half_turns=0.1))
+    eq.make_equality_group(lambda: ZZGate(half_turns=0))
+    eq.make_equality_group(lambda: ZZGate(half_turns=0.1))
 
 
 def test_zz_repr():

@@ -35,14 +35,18 @@ def test_cxxyy_eq():
 
     eq.add_equality_group(ControlledXXYYGate(half_turns=3.5),
                           ControlledXXYYGate(half_turns=-0.5),
-                          ControlledXXYYGate(duration=-numpy.pi / 4))
+                          ControlledXXYYGate(rads=-0.5 * numpy.pi),
+                          ControlledXXYYGate(degs=-90),
+                          ControlledXXYYGate(duration=-0.5 * numpy.pi / 2))
 
     eq.add_equality_group(ControlledXXYYGate(half_turns=1.5),
                           ControlledXXYYGate(half_turns=-2.5),
+                          ControlledXXYYGate(rads=1.5 * numpy.pi),
+                          ControlledXXYYGate(degs=-450),
                           ControlledXXYYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_pair(lambda: ControlledXXYYGate(half_turns=0))
-    eq.make_equality_pair(lambda: ControlledXXYYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ControlledXXYYGate(half_turns=0))
+    eq.make_equality_group(lambda: ControlledXXYYGate(half_turns=0.5))
 
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
@@ -71,14 +75,18 @@ def test_cyxxy_eq():
 
     eq.add_equality_group(ControlledYXXYGate(half_turns=3.5),
                           ControlledYXXYGate(half_turns=-0.5),
-                          ControlledYXXYGate(duration=-numpy.pi / 4))
+                          ControlledYXXYGate(rads=-0.5 * numpy.pi),
+                          ControlledYXXYGate(degs=-90),
+                          ControlledYXXYGate(duration=-0.5 * numpy.pi / 2))
 
     eq.add_equality_group(ControlledYXXYGate(half_turns=1.5),
                           ControlledYXXYGate(half_turns=-2.5),
+                          ControlledYXXYGate(rads=1.5 * numpy.pi),
+                          ControlledYXXYGate(degs=-450),
                           ControlledYXXYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_pair(lambda: ControlledYXXYGate(half_turns=0))
-    eq.make_equality_pair(lambda: ControlledYXXYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ControlledYXXYGate(half_turns=0))
+    eq.make_equality_group(lambda: ControlledYXXYGate(half_turns=0.5))
 
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])

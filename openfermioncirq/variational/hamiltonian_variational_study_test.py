@@ -201,7 +201,7 @@ def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
 
 
 @pytest.mark.parametrize('hamiltonian, include_all_xxyy, atol',
-                         [(hubbard_hamiltonian, False, 1e-6),
+                         [(hubbard_hamiltonian, False, 5e-5),
                           (complex_hamiltonian, True, 5e-5)])
 def test_swap_network_trotter_ansatz_evaluate_order_2(hamiltonian,
                                                       include_all_xxyy,

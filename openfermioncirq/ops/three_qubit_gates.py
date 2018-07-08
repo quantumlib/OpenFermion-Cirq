@@ -89,18 +89,22 @@ class ControlledXXYYGate(cirq.EigenGate,
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
 
-        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+        if len([1 for e in [half_turns, rads, degs, duration]
+                if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns or duration.')
+                             'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / numpy.pi
-        elif half_turns is not None:
-            exponent = half_turns
         else:
-            exponent = 1.0
+            exponent = cirq.value.chosen_angle_to_half_turns(
+                    half_turns=half_turns,
+                    rads=rads,
+                    degs=degs)
 
         super().__init__(exponent=exponent)
 
@@ -175,18 +179,22 @@ class ControlledYXXYGate(cirq.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
 
-        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+        if len([1 for e in [half_turns, rads, degs, duration]
+                if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns or duration.')
+                             'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / numpy.pi
-        elif half_turns is not None:
-            exponent = half_turns
         else:
-            exponent = 1.0
+            exponent = cirq.value.chosen_angle_to_half_turns(
+                    half_turns=half_turns,
+                    rads=rads,
+                    degs=degs)
 
         super().__init__(exponent=exponent)
 

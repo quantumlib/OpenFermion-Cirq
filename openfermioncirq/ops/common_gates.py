@@ -52,38 +52,61 @@ class XXYYGate(cirq.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
 
-        The first is to provide an angle in units of half-turns. In this case,
-        the gate implements the unitary exp(-i pi half_turns (XX + YY) / 4).
+        The first is to provide an angle in units of either half-turns,
+        radians, or degrees. In this case, the gate's matrix is defined
+        as follows:
+
+            XXYY**h ≡ exp(-i π h (X⊗X + Y⊗Y) / 4)
+                    ≡ exp(-i rads (X⊗X + Y⊗Y) / 4)
+                    ≡ exp(-i π (degs / 180) (X⊗X + Y⊗Y) / 4)
+                    ≡ [1 0             0             0]
+                      [0 cos(π·h/2)    -i·sin(π·h/2) 0]
+                      [0 -i·sin(π·h/2) cos(π·h/2)    0]
+                      [0 0             0             1]
+
+        where h is the angle in half-turns.
 
         The second way is to provide a duration of time. In this case, the gate
-        implements the unitary exp(-i duration (XX + YY) / 2 ), which
-        corresponds to evolving under the Hamiltonian (XX + YY) / 2 for that
-        duration of time.
+        implements the unitary
 
-        At most one argument can be specified. If both `half_turns` and
-        `duration` are specified, the result is considered ambiguous and an
+            exp(-i t (X⊗X + Y⊗Y) / 2) ≡ [1 0         0         0]
+                                        [0 cos(t)    -i·sin(t) 0]
+                                        [0 -i·sin(t) cos(t)    0]
+                                        [0 0         0         1]
+
+        where t is the duration. This corresponds to evolving under the
+        Hamiltonian (X⊗X + Y⊗Y) / 2 for that duration of time.
+
+        At most one of half_turns, rads, degs, or duration may be specified.
+        If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
             half_turns: The exponent angle, in half-turns.
-            duration: The exponent duration.
+            rads: The exponent angle, in radians.
+            degs: The exponent angle, in degrees.
+            duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+        if len([1 for e in [half_turns, rads, degs, duration]
+                if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns or duration.')
+                             'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / numpy.pi
-        elif half_turns is not None:
-            exponent = half_turns
         else:
-            exponent = 1.0
+            exponent = cirq.value.chosen_angle_to_half_turns(
+                    half_turns=half_turns,
+                    rads=rads,
+                    degs=degs)
 
         super().__init__(exponent=exponent)
 
@@ -98,10 +121,10 @@ class XXYYGate(cirq.EigenGate,
                                 [0, 0.5, 0.5, 0],
                                 [0, 0.5, 0.5, 0],
                                 [0, 0, 0, 0]])),
-            (0.5, numpy.array([[0, 0, 0, 0],
-                               [0, 0.5, -0.5, 0],
-                               [0, -0.5, 0.5, 0],
-                               [0, 0, 0, 0]]))
+            (+0.5, numpy.array([[0, 0, 0, 0],
+                                [0, 0.5, -0.5, 0],
+                                [0, -0.5, 0.5, 0],
+                                [0, 0, 0, 0]]))
         ]
 
     def _canonical_exponent_period(self) -> Optional[float]:
@@ -139,38 +162,61 @@ class YXXYGate(cirq.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
 
-        The first is to provide an angle in units of half-turns. In this case,
-        the gate implements the unitary exp(-i pi half_turns (YX - XY) / 4).
+        The first is to provide an angle in units of either half-turns,
+        radians, or degrees. In this case, the gate's matrix is defined
+        as follows:
+
+            YXXY**h ≡ exp(-i π h (Y⊗X - X⊗Y) / 4)
+                    ≡ exp(-i rads (Y⊗X - X⊗Y) / 4)
+                    ≡ exp(-i π (degs / 180) (Y⊗X - X⊗Y) / 4)
+                    ≡ [1 0          0           0]
+                      [0 cos(π·h/2) -sin(π·h/2) 0]
+                      [0 sin(π·h/2) cos(π·h/2)  0]
+                      [0 0          0           1]
+
+        where h is the angle in half-turns.
 
         The second way is to provide a duration of time. In this case, the gate
-        implements the unitary exp(-i duration (YX - XY) / 2 ), which
-        corresponds to evolving under the Hamiltonian (YX - XY) / 2 for that
-        duration of time.
+        implements the unitary
 
-        At most one argument can be specified. If both `half_turns` and
-        `duration` are specified, the result is considered ambiguous and an
+            exp(-i t (Y⊗X - X⊗Y) / 2) ≡ [1 0      0       0]
+                                        [0 cos(t) -sin(t) 0]
+                                        [0 sin(t) cos(t)  0]
+                                        [0 0      0       1]
+
+        where t is the duration. This corresponds to evolving under the
+        Hamiltonian (Y⊗X - X⊗Y) / 2 for that duration of time.
+
+        At most one of half_turns, rads, degs, or duration may be specified.
+        If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
             half_turns: The exponent angle, in half-turns.
-            duration: The exponent duration.
+            rads: The exponent angle, in radians.
+            degs: The exponent angle, in degrees.
+            duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+        if len([1 for e in [half_turns, rads, degs, duration]
+                if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns or duration.')
+                             'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / numpy.pi
-        elif half_turns is not None:
-            exponent = half_turns
         else:
-            exponent = 1.0
+            exponent = cirq.value.chosen_angle_to_half_turns(
+                    half_turns=half_turns,
+                    rads=rads,
+                    degs=degs)
 
         super().__init__(exponent=exponent)
 
@@ -226,37 +272,64 @@ class ZZGate(cirq.EigenGate,
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
         There are two ways to instantiate this gate.
 
-        The first is to provide an angle in units of half-turns. In this case,
-        the gate implements the unitary exp(-i pi half_turns ZZ / 2).
+        The first is to provide an angle in units of either half-turns,
+        radians, or degrees. In this case, the gate's matrix is defined
+        as follows:
 
-        The second way is to provide a duration of time. In this case, the gate
-        implements the unitary exp(-i duration ZZ), which corresponds to
-        evolving under the Hamiltonian ZZ for that duration of time.
+            ZZ**h ≡ exp(-i π h (Z⊗Z) / 2)
+                  ≡ exp(-i rads (Z⊗Z) / 2)
+                  ≡ exp(-i π (degs / 180) (Z⊗Z) / 2)
+                  ≡ [exp(-i·π·h/2) 0             0                         0]
+                    [0             exp(+i·π·h/2) 0                         0]
+                    [0             0             exp(+i·π·h/2)             0]
+                    [0             0             0             exp(-i·π·h/2)]
 
-        At most one argument can be specified. If both `half_turns` and
-        `duration` are specified, the result is considered ambiguous and an
+        where h is the angle in half-turns. At a value of one half-turn, this
+        gate is equivalent to Z⊗Z = diag(1, -1, -1, 1) up to a global phase.
+        More generally, ZZ**h is equivalent to diag(1, (-1)**h, (-1)**h, 1)
+        up to a global phase.
+
+        The second way to instantiate this gate is to provide a duration
+        of time. In this case, the gate implements the unitary
+
+            exp(-i t Z⊗Z) ≡ [exp(-it) 0          0               0]
+                            [0          exp(+it) 0               0]
+                            [0          0        exp(+it)        0]
+                            [0          0        0        exp(-it)]
+
+        where t is the duration. This corresponds to evolving under the
+        Hamiltonian Z⊗Z for that duration of time.
+
+        At most one of half_turns, rads, degs, or duration may be specified.
+        If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
             half_turns: The exponent angle, in half-turns.
-            duration: The exponent duration.
+            rads: The exponent angle, in radians.
+            degs: The exponent angle, in degrees.
+            duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, duration] if e is not None]) > 1:
+        if len([1 for e in [half_turns, rads, degs, duration]
+                if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns or duration.')
+                             'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / numpy.pi
-        elif half_turns is not None:
-            exponent = half_turns
         else:
-            exponent = 1.0
+            exponent = cirq.value.chosen_angle_to_half_turns(
+                    half_turns=half_turns,
+                    rads=rads,
+                    degs=degs)
 
         super().__init__(exponent=exponent)
 
