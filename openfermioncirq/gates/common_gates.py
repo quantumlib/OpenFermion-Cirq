@@ -20,7 +20,7 @@ import cirq
 class FermionicSwapGate(cirq.InterchangeableQubitsGate,
                         cirq.KnownMatrixGate,
                         cirq.ReversibleEffect,
-                        cirq.TextDiagrammableGate,
+                        cirq.TextDiagrammable,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
@@ -33,11 +33,9 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate,
     def inverse(self):
         return self
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return '×ᶠ', '×ᶠ'
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(wire_symbols=('×ᶠ', '×ᶠ'))
 
     def __repr__(self):
         return 'FSWAP'
@@ -46,7 +44,7 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate,
 class XXYYGate(cirq.EigenGate,
                cirq.CompositeGate,
                cirq.InterchangeableQubitsGate,
-               cirq.TextDiagrammableGate,
+               cirq.TextDiagrammable,
                cirq.TwoQubitGate):
     """XX + YY interaction."""
 
@@ -139,14 +137,11 @@ class XXYYGate(cirq.EigenGate,
         yield YXXY(a, b) ** self.half_turns
         yield cirq.Z(a) ** -0.5
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return 'XXYY', 'XXYY'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('XXYY', 'XXYY'),
+            exponent=self.half_turns)
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -156,7 +151,7 @@ class XXYYGate(cirq.EigenGate,
 
 class YXXYGate(cirq.EigenGate,
                cirq.CompositeGate,
-               cirq.TextDiagrammableGate,
+               cirq.TextDiagrammable,
                cirq.TwoQubitGate):
     """YX - XY interaction."""
 
@@ -249,14 +244,11 @@ class YXXYGate(cirq.EigenGate,
         yield XXYY(a, b) ** self.half_turns
         yield cirq.Z(a) ** 0.5
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return 'YXXY', '#2'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('YXXY', '#2'),
+            exponent=self.half_turns)
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -266,7 +258,7 @@ class YXXYGate(cirq.EigenGate,
 
 class ZZGate(cirq.EigenGate,
              cirq.TwoQubitGate,
-             cirq.TextDiagrammableGate,
+             cirq.TextDiagrammable,
              cirq.InterchangeableQubitsGate):
     """ZZ interaction."""
 
@@ -350,14 +342,11 @@ class ZZGate(cirq.EigenGate,
                        exponent: Union[cirq.Symbol, float]) -> 'ZZGate':
         return ZZGate(half_turns=exponent)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return 'Z', 'Z'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('Z', 'Z'),
+            exponent=self.half_turns)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:

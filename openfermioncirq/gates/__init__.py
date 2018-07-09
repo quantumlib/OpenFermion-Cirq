@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermioncirq.ops.common_gates import (
+from openfermioncirq.gates.common_gates import (
         FSWAP,
         FermionicSwapGate,
         XXYY,
@@ -20,7 +20,7 @@ from openfermioncirq.ops.common_gates import (
         ZZ,
         ZZGate)
 
-from openfermioncirq.ops.three_qubit_gates import (
+from openfermioncirq.gates.three_qubit_gates import (
         CCZ,
         CXXYY,
         CYXXY,

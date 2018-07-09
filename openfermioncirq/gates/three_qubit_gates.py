@@ -20,7 +20,7 @@ import cirq
 class Rot111Gate(cirq.EigenGate,
                  cirq.CompositeGate,
                  cirq.InterchangeableQubitsGate,
-                 cirq.TextDiagrammableGate):
+                 cirq.TextDiagrammable):
     """Phases the |111> state of three qubits by a fixed amount."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -68,14 +68,11 @@ class Rot111Gate(cirq.EigenGate,
         yield cirq.CNOT(a, b)
         yield cirq.CZ(a, c)**(0.5 * self.half_turns)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return '@', '@', '@'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('@', '@', '@'),
+            exponent=self.half_turns)
 
     def __repr__(self) -> str:
         if self.half_turns == 1:
@@ -85,7 +82,7 @@ class Rot111Gate(cirq.EigenGate,
 
 class ControlledXXYYGate(cirq.EigenGate,
                          cirq.CompositeGate,
-                         cirq.TextDiagrammableGate):
+                         cirq.TextDiagrammable):
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -157,14 +154,11 @@ class ControlledXXYYGate(cirq.EigenGate,
         yield cirq.Z(a)
         yield cirq.Z(control)**(0.5 * self.half_turns)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return '@', 'XXYY', 'XXYY'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('@', 'XXYY', 'XXYY'),
+            exponent=self.half_turns)
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -174,7 +168,7 @@ class ControlledXXYYGate(cirq.EigenGate,
 
 class ControlledYXXYGate(cirq.EigenGate,
                          cirq.CompositeGate,
-                         cirq.TextDiagrammableGate):
+                         cirq.TextDiagrammable):
     """Controlled YX - XY interaction."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -249,14 +243,11 @@ class ControlledYXXYGate(cirq.EigenGate,
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
         yield cirq.Z(control)**(0.5 * self.half_turns)
 
-    def text_diagram_wire_symbols(self,
-                                  qubit_count=None,
-                                  use_unicode_characters=True,
-                                  precision=3):
-        return '@', 'YXXY', '#2'
-
-    def text_diagram_exponent(self):
-        return self.half_turns
+    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
+                          ) -> cirq.TextDiagramInfo:
+        return cirq.TextDiagramInfo(
+            wire_symbols=('@', 'YXXY', '#2'),
+            exponent=self.half_turns)
 
     def __repr__(self):
         if self.half_turns == 1:
