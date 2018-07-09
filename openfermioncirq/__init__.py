@@ -18,7 +18,6 @@ from openfermioncirq.ops import (
         ControlledYXXYGate,
         FSWAP,
         FermionicSwapGate,
-        PlanarQubit,
         Rot111Gate,
         XXYY,
         XXYYGate,

@@ -80,7 +80,7 @@ def test_swap_network_trotter_ansatz_circuit():
             include_all_cz=True,
             include_all_z=True)
     circuit = complete_ansatz.circuit
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0    1         2         3         4
 │    │         │         │         │
 XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3 │
@@ -165,12 +165,12 @@ XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3 │
 │    │         │         │         │
 ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ        │
 │    │         │         │         │
-""".strip())
+""".strip()
 
     xxyy_ansatz = SwapNetworkTrotterAnsatz(zero_hamiltonian,
                                            include_all_xxyy=True)
     circuit = xxyy_ansatz.circuit
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0    1         2         3         4
 │    │         │         │         │
 XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3 │
@@ -213,11 +213,11 @@ XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3 │
 │    │         │         │         │
 ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ        │
 │    │         │         │         │
-""".strip())
+""".strip()
 
     hubbard_ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
     circuit = hubbard_ansatz.circuit
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0    1         2         3      4  5      6         7
 │    │         │         │      │  │      │         │
 @────@^V0_1    @─────────@^V2_3 @──@^V4_5 @─────────@^V6_7
@@ -272,12 +272,12 @@ XXYY─XXYY^T1_3 ×ᶠ────────×ᶠ     ×ᶠ─×ᶠ     XXYY�
 │    │         │         │      │  │      │         │
 ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ     ×ᶠ─×ᶠ     ×ᶠ────────×ᶠ
 │    │         │         │      │  │      │         │
-""".strip())
+""".strip()
 
     hubbard_ansatz_with_z = SwapNetworkTrotterAnsatz(hubbard_hamiltonian,
                                                      include_all_z=True)
     circuit = hubbard_ansatz_with_z.circuit
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0    1         2         3      4    5      6         7
 │    │         │         │      │    │      │         │
 @────@^V0_1    @─────────@^V2_3 @────@^V4_5 @─────────@^V6_7
@@ -334,7 +334,7 @@ XXYY─XXYY^T1_3 ×ᶠ────────×ᶠ     ×ᶠ───×ᶠ     
 │    │         │         │      │    │      │         │
 ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ     ×ᶠ───×ᶠ     ×ᶠ────────×ᶠ
 │    │         │         │      │    │      │         │
-""".strip())
+""".strip()
 
 
 def test_swap_network_trotter_ansatz_default_initial_params_length():

@@ -22,7 +22,7 @@ def test_swap_network():
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=False).strip() == """
+    assert circuit.to_text_diagram(transpose=False).strip() == """
 0: ───XXYY───×──────────────XXYY───×──────────────
       │      │              │      │
 1: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
@@ -30,13 +30,13 @@ def test_swap_network():
 2: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
       │      │              │      │
 3: ───XXYY───×──────────────XXYY───×──────────────
-""".strip())
+""".strip()
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1),
                          fermionic=True, offset=True),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0    1    2    3
 │    │    │    │
 │    XXYY─XXYY │
@@ -55,7 +55,7 @@ XXYY─XXYY XXYY─XXYY
 │    │    │    │
 ×ᶠ───×ᶠ   ×ᶠ───×ᶠ
 │    │    │    │
-""".strip())
+""".strip()
 
     n_qubits = 5
     qubits = cirq.LineQubit.range(n_qubits)
@@ -64,7 +64,7 @@ XXYY─XXYY XXYY─XXYY
             swap_network(qubits, lambda i, j, q0, q1: (),
                          fermionic=True),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=False).strip() == """
+    assert circuit.to_text_diagram(transpose=False).strip() == """
 0: ───×ᶠ────────×ᶠ────────×ᶠ───
       │         │         │
 1: ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───
@@ -74,13 +74,13 @@ XXYY─XXYY XXYY─XXYY
 3: ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───×ᶠ───
            │         │
 4: ────────×ᶠ────────×ᶠ────────
-""".strip())
+""".strip()
 
     circuit = cirq.Circuit.from_ops(
             swap_network(qubits, lambda i, j, q0, q1: (),
                          offset=True),
             strategy=cirq.InsertStrategy.EARLIEST)
-    assert (circuit.to_text_diagram(transpose=True).strip() == """
+    assert circuit.to_text_diagram(transpose=True).strip() == """
 0 1 2 3 4
 │ │ │ │ │
 │ ×─× ×─×
@@ -93,4 +93,4 @@ XXYY─XXYY XXYY─XXYY
 │ │ │ │ │
 │ ×─× ×─×
 │ │ │ │ │
-""".strip())
+""".strip()

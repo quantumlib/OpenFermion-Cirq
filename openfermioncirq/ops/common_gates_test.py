@@ -35,7 +35,7 @@ def test_fswap_repr():
 
 def test_fswap_on_simulator():
     simulator = cirq.google.XmonSimulator()
-    a, b = cirq.google.XmonQubit(0, 0), cirq.google.XmonQubit(1, 0)
+    a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(FSWAP(a, b))
 
     initial_state = (numpy.array([1, 1, 0, 0], dtype=numpy.complex64) /

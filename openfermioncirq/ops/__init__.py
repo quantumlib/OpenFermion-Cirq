@@ -20,8 +20,6 @@ from openfermioncirq.ops.common_gates import (
         ZZ,
         ZZGate)
 
-from openfermioncirq.ops.planar_qubit import PlanarQubit
-
 from openfermioncirq.ops.three_qubit_gates import (
         CCZ,
         CXXYY,
