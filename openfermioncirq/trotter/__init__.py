@@ -12,13 +12,10 @@
 
 from openfermioncirq.trotter.simulate_trotter import simulate_trotter
 
-from openfermioncirq.trotter.split_operator_trotter_step import (
-        CONTROLLED_SPLIT_OPERATOR,
-        SPLIT_OPERATOR)
+from openfermioncirq.trotter.split_operator_trotter_step import SPLIT_OPERATOR
 
-from openfermioncirq.trotter.swap_network_trotter_step import (
-        CONTROLLED_SWAP_NETWORK,
-        SWAP_NETWORK,
-        SWAP_NETWORK_ZEROTH_ORDER)
+from openfermioncirq.trotter.swap_network_trotter_step import SWAP_NETWORK
 
-from openfermioncirq.trotter.trotter_step_algorithm import TrotterStepAlgorithm
+from openfermioncirq.trotter.trotter_step_algorithm import (
+        TrotterStep,
+        TrotterStepAlgorithm)

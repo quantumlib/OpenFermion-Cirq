@@ -10,14 +10,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Set, Tuple, Type, Union
 
 import cirq
 from cirq import abc
-from openfermion import DiagonalCoulombHamiltonian
+import openfermion
 
 
-class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
+Hamiltonian = Union[
+        openfermion.FermionOperator,
+        openfermion.QubitOperator,
+        openfermion.InteractionOperator,
+        openfermion.DiagonalCoulombHamiltonian]
+
+
+class TrotterStep(metaclass=abc.ABCMeta):
     """A method for performing a Trotter step.
 
     This class assumes that Hamiltonian evolution using a Trotter-Suzuki product
@@ -27,17 +34,11 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
            permutation on the ordering in which qubits represent fermionic
            modes.
         3. Perform some finishing operations.
-
-    Attributes:
-        controlled: A bool indicating whether the Trotter step is controlled
-            by a control qubit.
     """
-
-    controlled = False
 
     def prepare(self,
                 qubits: Sequence[cirq.QubitId],
-                hamiltonian: DiagonalCoulombHamiltonian,
+                hamiltonian: Hamiltonian,
                 control_qubit: Optional[cirq.QubitId]=None
                 ) -> cirq.OP_TREE:
         """Operations to perform before doing the Trotter steps.
@@ -56,7 +57,7 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
     def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],
-            hamiltonian: DiagonalCoulombHamiltonian,
+            hamiltonian: Hamiltonian,
             time: float,
             control_qubit: Optional[cirq.QubitId]=None
             ) -> cirq.OP_TREE:
@@ -86,7 +87,7 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
 
     def finish(self,
                qubits: Sequence[cirq.QubitId],
-               hamiltonian: DiagonalCoulombHamiltonian,
+               hamiltonian: Hamiltonian,
                n_steps: int,
                control_qubit: Optional[cirq.QubitId]=None,
                omit_final_swaps: bool=False
@@ -103,3 +104,36 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
         """
         # Default: do nothing
         return ()
+
+
+class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
+    """An algorithm for performing a Trotter step.
+
+    A Trotter step algorithm contains methods for performing a symmetric or
+    asymmetric Trotter step and their controlled versions. It does not need
+    to support all the possibilities; for instance, it may support only
+    symmetric Trotter steps with no control qubit.
+
+    Attributes:
+        supported_types: A set containing types of Hamiltonian representations
+            that can be simulated using this Trotter step algorithm.
+            For example, {DiagonalCoulombHamiltonian, InteractionOperator}.
+        symmetric: A symmetric Trotter step using this algorithm.
+        asymmetric: An asymmetric Trotter step using this algorithm.
+        controlled_symmetric: Controlled version of the symmetric Trotter step.
+        controlled_asymmetric: Controlled version of the asymmetric
+            Trotter step.
+    """
+
+    def __init__(self,
+                 supported_types: Set[Type[Hamiltonian]],
+                 symmetric: Optional[TrotterStep]=None,
+                 asymmetric: Optional[TrotterStep]=None,
+                 controlled_symmetric: Optional[TrotterStep]=None,
+                 controlled_asymmetric: Optional[TrotterStep]=None
+                 ) -> None:
+        self.supported_types = supported_types
+        self.symmetric = symmetric
+        self.asymmetric = asymmetric
+        self.controlled_symmetric = controlled_symmetric
+        self.controlled_asymmetric = controlled_asymmetric

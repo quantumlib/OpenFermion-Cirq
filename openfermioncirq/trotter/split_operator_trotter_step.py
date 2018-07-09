@@ -19,10 +19,12 @@ from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
 
 from openfermioncirq import CCZ, bogoliubov_transform, swap_network
 
-from openfermioncirq.trotter.trotter_step_algorithm import TrotterStepAlgorithm
+from openfermioncirq.trotter.trotter_step_algorithm import (
+        TrotterStep,
+        TrotterStepAlgorithm)
 
 
-class SplitOperatorTrotterStep(TrotterStepAlgorithm):
+class SymmetricSplitOperatorTrotterStep(TrotterStep):
     """A Trotter step using a split-operator approach.
 
     This algorithm is described in arXiv:1706.00023.
@@ -104,12 +106,8 @@ class SplitOperatorTrotterStep(TrotterStepAlgorithm):
             yield swap_network(qubits)
 
 
-SPLIT_OPERATOR = SplitOperatorTrotterStep()
-
-
-class ControlledSplitOperatorTrotterStep(SplitOperatorTrotterStep):
-
-    controlled = True
+class ControlledSymmetricSplitOperatorTrotterStep(
+        SymmetricSplitOperatorTrotterStep):
 
     def trotter_step(
             self,
@@ -162,4 +160,9 @@ class ControlledSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         return qubits[::-1], control_qubit
 
 
-CONTROLLED_SPLIT_OPERATOR = ControlledSplitOperatorTrotterStep()
+SPLIT_OPERATOR = TrotterStepAlgorithm(
+        supported_types={DiagonalCoulombHamiltonian},
+        symmetric=SymmetricSplitOperatorTrotterStep(),
+        asymmetric=None,
+        controlled_symmetric=ControlledSymmetricSplitOperatorTrotterStep(),
+        controlled_asymmetric=None)

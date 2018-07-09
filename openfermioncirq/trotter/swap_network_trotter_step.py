@@ -19,10 +19,12 @@ from openfermion import DiagonalCoulombHamiltonian
 
 from openfermioncirq import CCZ, CXXYY, CYXXY, XXYY, YXXY, swap_network
 
-from openfermioncirq.trotter.trotter_step_algorithm import TrotterStepAlgorithm
+from openfermioncirq.trotter.trotter_step_algorithm import (
+        TrotterStep,
+        TrotterStepAlgorithm)
 
 
-class SwapNetworkTrotterStep(TrotterStepAlgorithm):
+class SymmetricSwapNetworkTrotterStep(TrotterStep):
     """A Trotter step using two consecutive fermionic swap networks.
 
     This algorithm is described in arXiv:1711.04789.
@@ -67,12 +69,7 @@ class SwapNetworkTrotterStep(TrotterStepAlgorithm):
                 fermionic=True, offset=True)
 
 
-SWAP_NETWORK = SwapNetworkTrotterStep()
-
-
-class ControlledSwapNetworkTrotterStep(TrotterStepAlgorithm):
-
-    controlled = True
+class ControlledSymmetricSwapNetworkTrotterStep(TrotterStep):
 
     def trotter_step(
             self,
@@ -116,10 +113,7 @@ class ControlledSwapNetworkTrotterStep(TrotterStepAlgorithm):
                 fermionic=True, offset=True)
 
 
-CONTROLLED_SWAP_NETWORK = ControlledSwapNetworkTrotterStep()
-
-
-class SwapNetworkZerothOrderTrotterStep(TrotterStepAlgorithm):
+class AsymmetricSwapNetworkTrotterStep(TrotterStep):
     """A Trotter step using one fermionic swap network.
 
     This algorithm is described in arXiv:1711.04789.
@@ -170,6 +164,10 @@ class SwapNetworkZerothOrderTrotterStep(TrotterStepAlgorithm):
         if n_steps & 1 and not omit_final_swaps:
             yield swap_network(qubits, fermionic=True)
 
-SWAP_NETWORK_ZEROTH_ORDER = SwapNetworkZerothOrderTrotterStep()
 
-# TODO add controlled version of zeroth order
+SWAP_NETWORK = TrotterStepAlgorithm(
+        supported_types={DiagonalCoulombHamiltonian},
+        symmetric=SymmetricSwapNetworkTrotterStep(),
+        asymmetric=AsymmetricSwapNetworkTrotterStep(),
+        controlled_symmetric=ControlledSymmetricSwapNetworkTrotterStep(),
+        controlled_asymmetric=None)

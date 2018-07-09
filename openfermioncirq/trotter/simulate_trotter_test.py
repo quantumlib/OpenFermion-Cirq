@@ -17,13 +17,11 @@ import cirq
 import openfermion
 from openfermion.utils._testing_utils import random_diagonal_coulomb_hamiltonian
 
+from openfermioncirq import simulate_trotter
 from openfermioncirq.trotter import (
-        CONTROLLED_SPLIT_OPERATOR,
-        CONTROLLED_SWAP_NETWORK,
         SPLIT_OPERATOR,
         SWAP_NETWORK,
-        SWAP_NETWORK_ZEROTH_ORDER,
-        simulate_trotter)
+        TrotterStepAlgorithm)
 
 
 def fidelity(state1, state2):
@@ -54,31 +52,31 @@ assert fidelity(random_exact_state, initial_state) < .95
 
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
-        'algorithm, result_fidelity', [
+        'algorithm, controlled, result_fidelity', [
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  1, 3, SWAP_NETWORK_ZEROTH_ORDER, .99),
+                random_exact_state, 0, 3, SWAP_NETWORK, False, .99),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  1, 1, SWAP_NETWORK, .999),
+                random_exact_state, 1, 1, SWAP_NETWORK, False, .999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  2, 1, SWAP_NETWORK, .999999),
+                random_exact_state, 2, 1, SWAP_NETWORK, False, .999999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  1, 1, SPLIT_OPERATOR, .9999),
+                random_exact_state, 1, 1, SWAP_NETWORK, True, .999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  2, 1, SPLIT_OPERATOR, .9999999),
+                random_exact_state, 1, 1, SPLIT_OPERATOR, False, .9999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  1, 1, CONTROLLED_SWAP_NETWORK, .999),
+                random_exact_state, 2, 1, SPLIT_OPERATOR, False, .9999999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state,  1, 1, CONTROLLED_SPLIT_OPERATOR, .9999),
+                random_exact_state, 1, 1, SPLIT_OPERATOR, True, .9999),
 ])
-def test_simulate_trotter(
+def test_simulate_trotter_simulate(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
-        algorithm, result_fidelity):
+        algorithm, controlled, result_fidelity):
 
     n_qubits = openfermion.count_qubits(hamiltonian)
     qubits = cirq.LineQubit.range(n_qubits)
     simulator = cirq.google.XmonSimulator()
 
-    if algorithm.controlled:
+    if controlled:
         control = cirq.LineQubit(-1)
         circuit = cirq.Circuit.from_ops(simulate_trotter(
             qubits, hamiltonian, time, n_steps, order, algorithm, control))
@@ -120,14 +118,6 @@ def test_simulate_trotter(
         assert fidelity(final_state, start_state) < result_fidelity
 
 
-def test_simulate_trotter_bad_order_raises_error():
-    qubits = cirq.LineQubit.range(2)
-    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
-    time = 1.0
-    with pytest.raises(ValueError):
-        _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))
-
-
 def test_simulate_trotter_omit_final_swaps():
     qubits = cirq.LineQubit.range(5)
     hamiltonian = random_diagonal_coulomb_hamiltonian(5, seed=0)
@@ -135,10 +125,10 @@ def test_simulate_trotter_omit_final_swaps():
 
     circuit_with_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
-                qubits, hamiltonian, time, algorithm=SWAP_NETWORK_ZEROTH_ORDER))
+                qubits, hamiltonian, time, order=0, algorithm=SWAP_NETWORK))
     circuit_without_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
-                qubits, hamiltonian, time, algorithm=SWAP_NETWORK_ZEROTH_ORDER,
+                qubits, hamiltonian, time, order=0, algorithm=SWAP_NETWORK,
                 omit_final_swaps=True))
 
     assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
@@ -160,6 +150,7 @@ def test_simulate_trotter_omit_final_swaps():
                 qubits,
                 hamiltonian,
                 time,
+                order=1,
                 n_steps=3,
                 algorithm=SPLIT_OPERATOR),
             strategy=cirq.InsertStrategy.NEW)
@@ -168,6 +159,7 @@ def test_simulate_trotter_omit_final_swaps():
                 qubits,
                 hamiltonian,
                 time,
+                order=1,
                 n_steps=3,
                 algorithm=SPLIT_OPERATOR,
                 omit_final_swaps=True),
@@ -196,3 +188,41 @@ def test_simulate_trotter_omit_final_swaps():
 │         ×────────────×           │           │
 │         │            │           │           │
 """).strip())
+
+
+def test_simulate_trotter_bad_order_raises_error():
+    qubits = cirq.LineQubit.range(2)
+    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
+    time = 1.0
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))
+
+
+def test_simulate_trotter_bad_hamiltonian_type_raises_error():
+    qubits = cirq.LineQubit.range(2)
+    hamiltonian = openfermion.FermionOperator()
+    time = 1.0
+    with pytest.raises(TypeError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time,
+                                  algorithm=SWAP_NETWORK))
+
+
+def test_simulate_trotter_unsupported_trotter_step_raises_error():
+    qubits = cirq.LineQubit.range(2)
+    control = cirq.LineQubit(-1)
+    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
+    time = 1.0
+    algorithm = TrotterStepAlgorithm(
+            supported_types={openfermion.DiagonalCoulombHamiltonian})
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=0,
+                                  algorithm=algorithm))
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=1,
+                                  algorithm=algorithm))
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=0,
+                                  algorithm=algorithm, control_qubit=control))
+    with pytest.raises(ValueError):
+        _ = next(simulate_trotter(qubits, hamiltonian, time, order=1,
+                                  algorithm=algorithm, control_qubit=control))
