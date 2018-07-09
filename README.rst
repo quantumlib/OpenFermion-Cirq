@@ -57,42 +57,12 @@ There are a few small guidelines to follow which you can read about
 Authors
 =======
 
-`Ryan Babbush <http://ryanbabbush.com>`__ (Google),
+`Kevin J. Sung <https://github.com/kevinsung>`__ (Google),
 `Jarrod McClean <http://jarrodmcclean.com>`__ (Google),
-`Ian Kivlichan <http://aspuru.chem.harvard.edu/ian-kivlichan/>`__ (Harvard),
-`Kevin J. Sung <https://github.com/kevinsung>`__ (University of Michigan),
-`Damian Steiger <https://github.com/damiansteiger>`__ (ETH Zurich),
-`Dave Bacon <https://github.com/dabacon>`__ (Google),
-`Yudong Cao <https://github.com/yudongcao>`__ (Harvard),
-`Chengyu Dai <https://github.com/jdaaph>`__ (University of Michigan),
-`E. Schuyler Fried <https://github.com/schuylerfried>`__ (Harvard),
-`Craig Gidney <https://github.com/Strilanc>`__ (Google),
-`Brendan Gimby <https://github.com/bgimby>`__ (University of Michigan),
-`Pranav Gokhale <https://github.com/singular-value>`__ (University of Chicago),
-`Thomas Häner <https://github.com/thomashaener>`__ (ETH Zurich),
-`Tarini Hardikar <https://github.com/TariniHardikar>`__ (Dartmouth),
-`Vojtĕch Havlíček <https://github.com/VojtaHavlicek>`__ (Oxford),
-`Cupjin Huang <https://github.com/pertoX4726>`__ (University of Michigan),
-`Josh Izaac <https://github.com/josh146>`__ (Xanadu),
-`Zhang Jiang <https://ti.arc.nasa.gov/profile/zjiang3>`__ (NASA),
-`Xinle Liu <https://github.com/sheilaliuxl>`__ (Google),
-`Sam McArdle <https://github.com/sammcardle30>`__ (Oxford),
-`Matthew Neeley <https://github.com/maffoo>`__ (Google),
-`Thomas O'Brien <https://github.com/obriente>`__ (Leiden University),
-`Isil Ozfidan <https://github.com/conta877>`__ (D-Wave Systems),
-`Max Radin <https://github.com/max-radin>`__ (UC Santa Barbara),
-`Jhonathan Romero <https://github.com/jromerofontalvo>`__ (Harvard),
-`Nicholas Rubin <https://github.com/ncrubin>`__ (Rigetti),
-`Daniel Sank <https://github.com/DanielSank>`__ (Google),
-`Nicolas Sawaya <https://github.com/nicolassawaya>`__ (Harvard),
-`Kanav Setia <https://github.com/kanavsetia>`__ (Dartmouth),
-`Hannah Sim <https://github.com/hsim13372>`__ (Harvard),
-`Mark Steudtner <https://github.com/msteudtner>`__  (Leiden University),
-`Qiming Sun <https://github.com/sunqm>`__ (Caltech),
-`Wei Sun <https://github.com/Spaceenter>`__ (Google),
-`Daochen Wang <https://github.com/daochenw>`__ (River Lane Research),
-`Chris Winkler <https://github.com/quid256>`__ (University of Chicago) and
-`Fang Zhang <https://github.com/fangzh-umich>`__ (University of Michigan).
+`Ian Kivlichan <http://github.com/idk3>`__ (Google),
+`Casey Duckering <http://github.com/cduck>`__ (Google),
+`Craig Gidney <https://github.com/strilanc>`__ (Google),
+and `Ryan Babbush <http://ryanbabbush.com>`__ (Google).
 
 How to cite
 ===========
