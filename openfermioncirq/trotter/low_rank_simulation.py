@@ -20,7 +20,7 @@ from openfermion.utils import (get_chemist_two_body_coefficients,
                                low_rank_two_body_decomposition,
                                prepare_one_body_squared_evolution)
 
-from openfermioncirq.gates import XXYYGate
+from openfermioncirq import XXYYGate
 from openfermioncirq.primitives import bogoliubov_transform, swap_network
 
 

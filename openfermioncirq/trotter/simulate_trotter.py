@@ -149,7 +149,7 @@ def _select_trotter_step(algorithm: TrotterStepAlgorithm,
                 raise ValueError('The chosen Trotter step algorithm does not '
                                  'support the order 0 (asymmetric) formula '
                                  'with a control qubit.')
-            return algorithm.controlled_asymmetric  # coverage: ignore
+            return algorithm.controlled_asymmetric
         else:
             if algorithm.controlled_symmetric is None:
                 raise ValueError('The chosen Trotter step algorithm does not '
