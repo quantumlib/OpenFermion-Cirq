@@ -12,12 +12,14 @@
 
 import pytest
 
+from openfermion import FermionOperator
+
 from openfermioncirq.trotter import TrotterStep
 
 
 def test_trotter_step_algorithm_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
-        _ = TrotterStep()
+        _ = TrotterStep(FermionOperator())
 
 
 def test_trotter_step_algorithm_is_abstract_must_implement():
@@ -25,12 +27,12 @@ def test_trotter_step_algorithm_is_abstract_must_implement():
         pass
 
     with pytest.raises(TypeError):
-        _ = Missing()
+        _ = Missing(FermionOperator())
 
 
 def test_trotter_step_algorithm_is_abstract_can_implement():
     class Included(TrotterStep):
-        def trotter_step(self, qubits, hamiltonian, time, control_qubit):
+        def trotter_step(self, qubits, time, control_qubit):
             pass
 
-    assert isinstance(Included(), TrotterStep)
+    assert isinstance(Included(FermionOperator()), TrotterStep)

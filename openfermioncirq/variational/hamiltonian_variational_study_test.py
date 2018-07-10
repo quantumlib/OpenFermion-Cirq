@@ -25,7 +25,7 @@ from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
         OptimizationResult)
-from openfermioncirq.trotter import SWAP_NETWORK
+from openfermioncirq.trotter import LINEAR_SWAP_NETWORK
 
 from openfermioncirq.variational.swap_network_trotter_ansatz import (
         SwapNetworkTrotterAnsatz)
@@ -189,7 +189,7 @@ def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
                 time=100.,
                 n_steps=1,
                 order=1,
-                algorithm=SWAP_NETWORK)
+                algorithm=LINEAR_SWAP_NETWORK)
     )
     circuit = preparation_circuit + simulation_circuit
     result = simulator.simulate(circuit)
@@ -248,14 +248,14 @@ def test_swap_network_trotter_ansatz_evaluate_order_2(hamiltonian,
                 time=50.,
                 n_steps=1,
                 order=1,
-                algorithm=SWAP_NETWORK),
+                algorithm=LINEAR_SWAP_NETWORK),
             simulate_trotter(
                 qubits,
                 three_quarters_way_hamiltonian,
                 time=50.,
                 n_steps=1,
                 order=1,
-                algorithm=SWAP_NETWORK)
+                algorithm=LINEAR_SWAP_NETWORK)
     )
     circuit = preparation_circuit + simulation_circuit
     result = simulator.simulate(circuit)

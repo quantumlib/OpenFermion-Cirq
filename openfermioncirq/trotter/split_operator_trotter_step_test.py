@@ -28,8 +28,8 @@ ones_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
 
 def test_split_operator_trotter_step_symmetric():
     circuit = cirq.Circuit.from_ops(
-            SPLIT_OPERATOR.symmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0),
+            SPLIT_OPERATOR.symmetric(ones_hamiltonian).trotter_step(
+                qubits, 1.0),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 0        1          2           3
@@ -89,8 +89,8 @@ Z^-0.796 Z^-0.159   │           │
 
 def test_split_operator_trotter_step_controlled_symmetric():
     circuit = cirq.Circuit.from_ops(
-            SPLIT_OPERATOR.controlled_symmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0, control),
+            SPLIT_OPERATOR.controlled_symmetric(ones_hamiltonian).trotter_step(
+                qubits, 1.0, control),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 -1 0        1          2           3
@@ -166,8 +166,8 @@ def test_split_operator_trotter_step_controlled_symmetric():
 
 def test_split_operator_trotter_step_asymmetric():
     circuit = cirq.Circuit.from_ops(
-            SPLIT_OPERATOR.asymmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0),
+            SPLIT_OPERATOR.asymmetric(ones_hamiltonian).trotter_step(
+                qubits, 1.0),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 0       1           2           3
@@ -225,8 +225,8 @@ Z^0.0   │           │           │
 
 def test_split_operator_trotter_step_controlled_asymmetric():
     circuit = cirq.Circuit.from_ops(
-            SPLIT_OPERATOR.controlled_asymmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0, control),
+            SPLIT_OPERATOR.controlled_asymmetric(ones_hamiltonian).trotter_step(
+                qubits, 1.0, control),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 -1 0       1           2           3

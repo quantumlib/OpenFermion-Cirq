@@ -15,7 +15,7 @@ import numpy
 import cirq
 import openfermion
 
-from openfermioncirq.trotter import SWAP_NETWORK
+from openfermioncirq.trotter import LINEAR_SWAP_NETWORK
 
 
 n_qubits = 4
@@ -28,8 +28,8 @@ ones_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
 
 def test_swap_network_trotter_step_symmetric():
     circuit = cirq.Circuit.from_ops(
-            SWAP_NETWORK.symmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0),
+            LINEAR_SWAP_NETWORK.symmetric(
+                ones_hamiltonian).trotter_step(qubits, 1.0),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 0        1          2          3
@@ -105,8 +105,9 @@ XXYY─────XXYY^0.318 XXYY───────XXYY^0.318
 
 def test_swap_network_trotter_step_controlled_symmetric():
     circuit = cirq.Circuit.from_ops(
-            SWAP_NETWORK.controlled_symmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0, control),
+            LINEAR_SWAP_NETWORK.controlled_symmetric(
+                ones_hamiltonian).trotter_step(
+                qubits, 1.0, control),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 -1 0        1          2          3
@@ -216,8 +217,8 @@ def test_swap_network_trotter_step_controlled_symmetric():
 
 def test_swap_network_trotter_step_asymmetric():
     circuit = cirq.Circuit.from_ops(
-            SWAP_NETWORK.asymmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0),
+            LINEAR_SWAP_NETWORK.asymmetric(
+                ones_hamiltonian).trotter_step(qubits, 1.0),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 0        1          2          3
@@ -261,8 +262,9 @@ Z^-0.637 XXYY───────XXYY^0.637 Z^-0.637
 
 def test_swap_network_trotter_step_controlled_asymmetric():
     circuit = cirq.Circuit.from_ops(
-            SWAP_NETWORK.controlled_asymmetric.trotter_step(
-                qubits, ones_hamiltonian, 1.0, control),
+            LINEAR_SWAP_NETWORK.controlled_asymmetric(
+                ones_hamiltonian).trotter_step(
+                qubits, 1.0, control),
             strategy=cirq.InsertStrategy.EARLIEST)
     assert circuit.to_text_diagram(transpose=True).strip() == """
 -1 0        1          2          3

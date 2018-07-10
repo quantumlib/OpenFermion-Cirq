@@ -10,11 +10,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional, Sequence, Set, Tuple, Type, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
 import cirq
 from cirq import abc
 import openfermion
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Set, Type
 
 
 Hamiltonian = Union[
@@ -34,11 +38,16 @@ class TrotterStep(metaclass=abc.ABCMeta):
            permutation on the ordering in which qubits represent fermionic
            modes.
         3. Perform some finishing operations.
+
+    Attributes:
+        hamiltonian: The Hamiltonian being simulated.
     """
+
+    def __init__(self, hamiltonian: Hamiltonian) -> None:
+        self.hamiltonian = hamiltonian
 
     def prepare(self,
                 qubits: Sequence[cirq.QubitId],
-                hamiltonian: Hamiltonian,
                 control_qubit: Optional[cirq.QubitId]=None
                 ) -> cirq.OP_TREE:
         """Operations to perform before doing the Trotter steps.
@@ -57,7 +66,6 @@ class TrotterStep(metaclass=abc.ABCMeta):
     def trotter_step(
             self,
             qubits: Sequence[cirq.QubitId],
-            hamiltonian: Hamiltonian,
             time: float,
             control_qubit: Optional[cirq.QubitId]=None
             ) -> cirq.OP_TREE:
@@ -87,7 +95,6 @@ class TrotterStep(metaclass=abc.ABCMeta):
 
     def finish(self,
                qubits: Sequence[cirq.QubitId],
-               hamiltonian: Hamiltonian,
                n_steps: int,
                control_qubit: Optional[cirq.QubitId]=None,
                omit_final_swaps: bool=False
@@ -112,28 +119,26 @@ class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
     A Trotter step algorithm contains methods for performing a symmetric or
     asymmetric Trotter step and their controlled versions. It does not need
     to support all the possibilities; for instance, it may support only
-    symmetric Trotter steps with no control qubit.
+    symmetric Trotter steps with no control qubit. Support for a kind of
+    Trotter step is implemented by overriding the methods of this class.
 
     Attributes:
         supported_types: A set containing types of Hamiltonian representations
             that can be simulated using this Trotter step algorithm.
             For example, {DiagonalCoulombHamiltonian, InteractionOperator}.
-        symmetric: A symmetric Trotter step using this algorithm.
-        asymmetric: An asymmetric Trotter step using this algorithm.
-        controlled_symmetric: Controlled version of the symmetric Trotter step.
-        controlled_asymmetric: Controlled version of the asymmetric
-            Trotter step.
     """
+    supported_types = set()  # type: Set[Type[Hamiltonian]]
 
-    def __init__(self,
-                 supported_types: Set[Type[Hamiltonian]],
-                 symmetric: Optional[TrotterStep]=None,
-                 asymmetric: Optional[TrotterStep]=None,
-                 controlled_symmetric: Optional[TrotterStep]=None,
-                 controlled_asymmetric: Optional[TrotterStep]=None
-                 ) -> None:
-        self.supported_types = supported_types
-        self.symmetric = symmetric
-        self.asymmetric = asymmetric
-        self.controlled_symmetric = controlled_symmetric
-        self.controlled_asymmetric = controlled_asymmetric
+    def symmetric(self, hamiltonian: Hamiltonian) -> Optional[TrotterStep]:
+        return None
+
+    def asymmetric(self, hamiltonian: Hamiltonian) -> Optional[TrotterStep]:
+        return None
+
+    def controlled_symmetric(self, hamiltonian: Hamiltonian
+                             ) -> Optional[TrotterStep]:
+        return None
+
+    def controlled_asymmetric(self, hamiltonian: Hamiltonian
+                              ) -> Optional[TrotterStep]:
+        return None

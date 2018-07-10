@@ -13,13 +13,13 @@
 from typing import Optional, Sequence
 
 import cirq
-from openfermion import DiagonalCoulombHamiltonian
 
 from openfermioncirq.trotter.trotter_step_algorithm import (
         Hamiltonian,
         TrotterStep,
         TrotterStepAlgorithm)
-from openfermioncirq.trotter.swap_network_trotter_step import SWAP_NETWORK
+from openfermioncirq.trotter.linear_swap_network_trotter_step import (
+        LINEAR_SWAP_NETWORK)
 
 
 def simulate_trotter(qubits: Sequence[cirq.QubitId],
@@ -27,7 +27,7 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
                      time: float,
                      n_steps: int=1,
                      order: int=0,
-                     algorithm: TrotterStepAlgorithm=SWAP_NETWORK,
+                     algorithm: TrotterStepAlgorithm=LINEAR_SWAP_NETWORK,
                      control_qubit: Optional[cirq.QubitId]=None,
                      omit_final_swaps: bool=False
                      ) -> cirq.OP_TREE:
@@ -36,7 +36,7 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
     The input is a Hamiltonian represented as a FermionOperator, QubitOperator,
     InteractionOperator, or DiagonalCoulombHamiltonian. Not all types are
     supported by all algorithm options. The default algorithm option,
-    SWAP_NETWORK, only supports DiagonalCoulombHamiltonians.
+    LINEAR_SWAP_NETWORK, only supports DiagonalCoulombHamiltonians.
 
     The product formula used is from "General theory of fractal path integrals
     with applications to many-body theories and statistical physics" by
@@ -56,7 +56,7 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
         algorithm: The algorithm to use to simulate a single Trotter step.
             This is a constant exposed in the openfermioncirq.trotter module.
             Available options:
-                SWAP_NETWORK: The algorithm from arXiv:1711.04789.
+                LINEAR_SWAP_NETWORK: The algorithm from arXiv:1711.04789.
                 SPLIT_OPERATOR: The algorithm from arXiv:1706.00023.
         control_qubit: A qubit on which to control the Trotter step.
         omit_final_swaps: If this is set to True, then SWAP or FSWAP gates at
@@ -83,27 +83,25 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
 
     # Select the Trotter step to use
     trotter_step = _select_trotter_step(
-            algorithm, order, controlled = control_qubit is not None)
+            hamiltonian, order, algorithm,
+            controlled = control_qubit is not None)
 
     # Get ready to perform Trotter steps
-    yield trotter_step.prepare(qubits, hamiltonian, control_qubit)
+    yield trotter_step.prepare(qubits, control_qubit)
 
     # Perform Trotter steps
     step_time = time / n_steps
     for _ in range(n_steps):
         yield _perform_trotter_step(
-                qubits, hamiltonian, step_time, order, trotter_step,
-                control_qubit)
+                qubits, step_time, order, trotter_step, control_qubit)
         qubits, control_qubit = trotter_step.step_qubit_permutation(
                 qubits, control_qubit)
 
     # Finish
-    yield trotter_step.finish(
-            qubits, hamiltonian, n_steps, control_qubit, omit_final_swaps)
+    yield trotter_step.finish(qubits, n_steps, control_qubit, omit_final_swaps)
 
 
 def _perform_trotter_step(qubits: Sequence[cirq.QubitId],
-                          hamiltonian: DiagonalCoulombHamiltonian,
                           time: float,
                           order: int,
                           trotter_step: TrotterStep,
@@ -111,59 +109,58 @@ def _perform_trotter_step(qubits: Sequence[cirq.QubitId],
                           ) -> cirq.OP_TREE:
     """Perform a Trotter step."""
     if order <= 1:
-        yield trotter_step.trotter_step(
-                qubits, hamiltonian, time, control_qubit)
+        yield trotter_step.trotter_step(qubits, time, control_qubit)
     else:
-        # Split this step into five smaller steps
+        # Recursively split this Trotter step into five smaller steps.
         # The first two and last two steps use this amount of time
         split_time = time / (4 - 4**(1 / (2 * order - 1)))
 
         for _ in range(2):
             yield _perform_trotter_step(
-                    qubits, hamiltonian, split_time, order - 1,
-                    trotter_step, control_qubit)
+                    qubits, split_time, order - 1, trotter_step, control_qubit)
             qubits, control_qubit = trotter_step.step_qubit_permutation(
                     qubits, control_qubit)
 
         yield _perform_trotter_step(
-                qubits, hamiltonian, time - 4 * split_time, order - 1,
+                qubits, time - 4 * split_time, order - 1,
                 trotter_step, control_qubit)
         qubits, control_qubit = trotter_step.step_qubit_permutation(
                 qubits, control_qubit)
 
         for _ in range(2):
             yield _perform_trotter_step(
-                    qubits, hamiltonian, split_time, order - 1,
-                    trotter_step, control_qubit)
+                    qubits, split_time, order - 1, trotter_step, control_qubit)
             qubits, control_qubit = trotter_step.step_qubit_permutation(
                     qubits, control_qubit)
 
 
-def _select_trotter_step(algorithm: TrotterStepAlgorithm,
+def _select_trotter_step(hamiltonian,
                          order: int,
+                         algorithm: TrotterStepAlgorithm,
                          controlled: bool) -> TrotterStep:
     """Select a particular Trotter step from a Trotter step algorithm."""
     if controlled:
         if order == 0:
-            if algorithm.controlled_asymmetric is None:
+            trotter_step = algorithm.controlled_asymmetric(hamiltonian)
+            if trotter_step is None:
                 raise ValueError('The chosen Trotter step algorithm does not '
                                  'support the order 0 (asymmetric) formula '
                                  'with a control qubit.')
-            return algorithm.controlled_asymmetric
         else:
-            if algorithm.controlled_symmetric is None:
+            trotter_step = algorithm.controlled_symmetric(hamiltonian)
+            if trotter_step is None:
                 raise ValueError('The chosen Trotter step algorithm does not '
                                  'support higher (> 0) order formulas '
                                  'with a control qubit.')
-            return algorithm.controlled_symmetric
     else:
         if order == 0:
-            if algorithm.asymmetric is None:
+            trotter_step = algorithm.asymmetric(hamiltonian)
+            if trotter_step is None:
                 raise ValueError('The chosen Trotter step algorithm does not '
                                  'support the order 0 (asymmetric) formula.')
-            return algorithm.asymmetric
         else:
-            if algorithm.symmetric is None:
+            trotter_step = algorithm.symmetric(hamiltonian)
+            if trotter_step is None:
                 raise ValueError('The chosen Trotter step algorithm does not '
                                  'support higher (> 0) order formulas.')
-            return algorithm.symmetric
+    return trotter_step

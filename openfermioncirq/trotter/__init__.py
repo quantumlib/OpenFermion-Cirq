@@ -14,7 +14,8 @@ from openfermioncirq.trotter.simulate_trotter import simulate_trotter
 
 from openfermioncirq.trotter.split_operator_trotter_step import SPLIT_OPERATOR
 
-from openfermioncirq.trotter.swap_network_trotter_step import SWAP_NETWORK
+from openfermioncirq.trotter.linear_swap_network_trotter_step import (
+        LINEAR_SWAP_NETWORK)
 
 from openfermioncirq.trotter.trotter_step_algorithm import (
         TrotterStep,

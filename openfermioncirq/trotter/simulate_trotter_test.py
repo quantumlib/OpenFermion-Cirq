@@ -20,7 +20,7 @@ from openfermion.utils._testing_utils import random_diagonal_coulomb_hamiltonian
 from openfermioncirq import simulate_trotter
 from openfermioncirq.trotter import (
         SPLIT_OPERATOR,
-        SWAP_NETWORK,
+        LINEAR_SWAP_NETWORK,
         TrotterStepAlgorithm)
 
 
@@ -54,15 +54,15 @@ assert fidelity(random_exact_state, initial_state) < .95
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, controlled, result_fidelity', [
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 3, SWAP_NETWORK, False, .99),
+                random_exact_state, 0, 3, LINEAR_SWAP_NETWORK, False, .99),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, SWAP_NETWORK, False, .999),
+                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, False, .999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 2, 1, SWAP_NETWORK, False, .999999),
+                random_exact_state, 2, 1, LINEAR_SWAP_NETWORK, False, .999999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 1, SWAP_NETWORK, True, .97),
+                random_exact_state, 0, 1, LINEAR_SWAP_NETWORK, True, .97),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, SWAP_NETWORK, True, .999),
+                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, True, .999),
             (random_hamiltonian, random_time, initial_state,
                 random_exact_state, 0, 1, SPLIT_OPERATOR, False, .99),
             (random_hamiltonian, random_time, initial_state,
@@ -131,10 +131,12 @@ def test_simulate_trotter_omit_final_swaps():
 
     circuit_with_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
-                qubits, hamiltonian, time, order=0, algorithm=SWAP_NETWORK))
+                qubits, hamiltonian, time, order=0,
+                algorithm=LINEAR_SWAP_NETWORK))
     circuit_without_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
-                qubits, hamiltonian, time, order=0, algorithm=SWAP_NETWORK,
+                qubits, hamiltonian, time, order=0,
+                algorithm=LINEAR_SWAP_NETWORK,
                 omit_final_swaps=True))
 
     assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
@@ -210,7 +212,7 @@ def test_simulate_trotter_bad_hamiltonian_type_raises_error():
     time = 1.0
     with pytest.raises(TypeError):
         _ = next(simulate_trotter(qubits, hamiltonian, time,
-                                  algorithm=SWAP_NETWORK))
+                                  algorithm=LINEAR_SWAP_NETWORK))
 
 
 def test_simulate_trotter_unsupported_trotter_step_raises_error():
@@ -218,8 +220,9 @@ def test_simulate_trotter_unsupported_trotter_step_raises_error():
     control = cirq.LineQubit(-1)
     hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
     time = 1.0
-    algorithm = TrotterStepAlgorithm(
-            supported_types={openfermion.DiagonalCoulombHamiltonian})
+    class EmptyTrotterStepAlgorithm(TrotterStepAlgorithm):
+        supported_types = {openfermion.DiagonalCoulombHamiltonian}
+    algorithm = EmptyTrotterStepAlgorithm()
     with pytest.raises(ValueError):
         _ = next(simulate_trotter(qubits, hamiltonian, time, order=0,
                                   algorithm=algorithm))
