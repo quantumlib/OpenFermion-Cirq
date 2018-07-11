@@ -18,7 +18,7 @@ import cirq
 
 
 class FermionicSwapGate(cirq.InterchangeableQubitsGate,
-                        cirq.KnownMatrixGate,
+                        cirq.KnownMatrix,
                         cirq.ReversibleEffect,
                         cirq.TextDiagrammable,
                         cirq.TwoQubitGate):
@@ -35,7 +35,11 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate,
 
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
                           ) -> cirq.TextDiagramInfo:
-        return cirq.TextDiagramInfo(wire_symbols=('×ᶠ', '×ᶠ'))
+        if args.use_unicode_characters:
+            wire_symbols = ('×ᶠ', '×ᶠ')
+        else:
+            wire_symbols = ('fswap', 'fswap')
+        return cirq.TextDiagramInfo(wire_symbols=wire_symbols)
 
     def __repr__(self):
         return 'FSWAP'

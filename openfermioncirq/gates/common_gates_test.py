@@ -351,6 +351,12 @@ a: ───×ᶠ───XXYY───YXXY───Z───
 b: ───×ᶠ───XXYY───#2─────Z───
 """.strip()
 
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+a: ---fswap---XXYY---YXXY---Z---
+      |       |      |      |
+b: ---fswap---XXYY---#2-----Z---
+""".strip()
+
     circuit = cirq.Circuit.from_ops(
         XXYY(a, b)**0.5,
         YXXY(a, b)**0.5,

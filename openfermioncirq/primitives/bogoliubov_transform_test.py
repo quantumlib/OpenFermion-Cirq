@@ -39,7 +39,7 @@ def fourier_transform_matrix(n_modes):
 def test_bogoliubov_transform_fourier_transform(transformation_matrix,
                                                 initial_state,
                                                 correct_state,
-                                                atol=1e-7):
+                                                atol=5e-6):
     simulator = cirq.google.XmonSimulator()
     n_qubits = transformation_matrix.shape[0]
     qubits = LineQubit.range(n_qubits)
@@ -49,7 +49,8 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
     result = simulator.simulate(circuit, initial_state=initial_state)
     state = result.final_state
 
-    assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)
+    cirq.testing.assert_allclose_up_to_global_phase(
+            state, correct_state, atol=atol)
 
 
 @pytest.mark.parametrize(
@@ -57,7 +58,7 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
         [(4, True), (4, False), (5, True), (5, False)])
 def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                                                     conserves_particle_number,
-                                                    atol=1e-5):
+                                                    atol=5e-5):
     simulator = cirq.google.XmonSimulator()
     qubits = LineQubit.range(n_qubits)
 

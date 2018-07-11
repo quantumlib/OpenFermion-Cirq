@@ -54,25 +54,25 @@ assert fidelity(random_exact_state, initial_state) < .95
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, controlled, result_fidelity', [
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 3, LINEAR_SWAP_NETWORK, False, .99),
+                random_exact_state, 0, 3, LINEAR_SWAP_NETWORK, False, .98),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, False, .999),
+                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, False, .99),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 2, 1, LINEAR_SWAP_NETWORK, False, .999999),
+                random_exact_state, 2, 1, LINEAR_SWAP_NETWORK, False, .99999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 1, LINEAR_SWAP_NETWORK, True, .97),
+                random_exact_state, 0, 1, LINEAR_SWAP_NETWORK, True, .95),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, True, .999),
+                random_exact_state, 1, 1, LINEAR_SWAP_NETWORK, True, .998),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 1, SPLIT_OPERATOR, False, .99),
+                random_exact_state, 0, 1, SPLIT_OPERATOR, False, .95),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, SPLIT_OPERATOR, False, .9999),
+                random_exact_state, 1, 1, SPLIT_OPERATOR, False, .998),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 2, 1, SPLIT_OPERATOR, False, .9999999),
+                random_exact_state, 2, 1, SPLIT_OPERATOR, False, .999999),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 0, 1, SPLIT_OPERATOR, True, .99),
+                random_exact_state, 0, 1, SPLIT_OPERATOR, True, .98),
             (random_hamiltonian, random_time, initial_state,
-                random_exact_state, 1, 1, SPLIT_OPERATOR, True, .9999),
+                random_exact_state, 1, 1, SPLIT_OPERATOR, True, .998),
 ])
 def test_simulate_trotter_simulate(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
@@ -125,8 +125,11 @@ def test_simulate_trotter_simulate(
 
 
 def test_simulate_trotter_omit_final_swaps():
-    qubits = cirq.LineQubit.range(5)
-    hamiltonian = random_diagonal_coulomb_hamiltonian(5, seed=0)
+    n_qubits = 5
+    qubits = cirq.LineQubit.range(n_qubits)
+    hamiltonian = openfermion.DiagonalCoulombHamiltonian(
+            one_body=numpy.ones((n_qubits, n_qubits)),
+            two_body=numpy.ones((n_qubits, n_qubits)))
     time = 1.0
 
     circuit_with_swaps = cirq.Circuit.from_ops(
@@ -141,16 +144,16 @@ def test_simulate_trotter_omit_final_swaps():
 
     assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
             (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
-│       ×ᶠ──────────×ᶠ         ×ᶠ───────────×ᶠ
-│       │           │          │            │
-×ᶠ──────×ᶠ          ×ᶠ─────────×ᶠ           │
-│       │           │          │            │
-│       ×ᶠ──────────×ᶠ         ×ᶠ───────────×ᶠ
-│       │           │          │            │
-×ᶠ──────×ᶠ          ×ᶠ─────────×ᶠ           │
-│       │           │          │            │
-│       ×ᶠ──────────×ᶠ         ×ᶠ───────────×ᶠ
-│       │           │          │            │
+│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
+│        │          │          │          │
+×ᶠ───────×ᶠ         ×ᶠ─────────×ᶠ         │
+│        │          │          │          │
+│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
+│        │          │          │          │
+×ᶠ───────×ᶠ         ×ᶠ─────────×ᶠ         │
+│        │          │          │          │
+│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
+│        │          │          │          │
 """).strip())
 
     circuit_with_swaps = cirq.Circuit.from_ops(
@@ -175,26 +178,26 @@ def test_simulate_trotter_omit_final_swaps():
 
     assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
             (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
-│         │            │           ×───────────×
-│         │            │           │           │
-│         ×────────────×           │           │
-│         │            │           │           │
-│         │            ×───────────×           │
-│         │            │           │           │
-×─────────×            │           │           │
-│         │            │           │           │
-│         │            │           ×───────────×
-│         │            │           │           │
-│         ×────────────×           │           │
-│         │            │           │           │
-│         │            ×───────────×           │
-│         │            │           │           │
-×─────────×            │           │           │
-│         │            │           │           │
-│         │            │           ×───────────×
-│         │            │           │           │
-│         ×────────────×           │           │
-│         │            │           │           │
+│         │           │           ×────────────×
+│         │           │           │            │
+│         ×───────────×           │            │
+│         │           │           │            │
+│         │           ×───────────×            │
+│         │           │           │            │
+×─────────×           │           │            │
+│         │           │           │            │
+│         │           │           ×────────────×
+│         │           │           │            │
+│         ×───────────×           │            │
+│         │           │           │            │
+│         │           ×───────────×            │
+│         │           │           │            │
+×─────────×           │           │            │
+│         │           │           │            │
+│         │           │           ×────────────×
+│         │           │           │            │
+│         ×───────────×           │            │
+│         │           │           │            │
 """).strip())
 
 

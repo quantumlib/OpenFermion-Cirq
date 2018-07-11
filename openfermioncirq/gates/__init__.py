@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gates useful for simulating fermions."""
+
 from openfermioncirq.gates.common_gates import (
         FSWAP,
         FermionicSwapGate,

@@ -37,7 +37,7 @@ class SymmetricSplitOperatorTrotterStep(TrotterStep):
                 ) -> cirq.OP_TREE:
         #Change to the basis in which the one-body term is diagonal
         quad_ham = QuadraticHamiltonian(self.hamiltonian.one_body)
-        yield cirq.inverse_of_invertible_op_tree(
+        yield cirq.inverse(
                 bogoliubov_transform(
                     qubits, quad_ham.diagonalizing_bogoliubov_transform()))
         # TODO Maybe use FFFT instead
@@ -74,8 +74,7 @@ class SymmetricSplitOperatorTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Rotate back to the basis in which the one-body term is diagonal
-        yield cirq.inverse_of_invertible_op_tree(
-                bogoliubov_transform(qubits, transformation_matrix))
+        yield cirq.inverse(bogoliubov_transform(qubits, transformation_matrix))
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.Z(qubits[i])**(-orbital_energies[i] * 0.5 * time / numpy.pi)
@@ -112,7 +111,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(TrotterStep):
                 ) -> cirq.OP_TREE:
         #Change to the basis in which the one-body term is diagonal
         quad_ham = QuadraticHamiltonian(self.hamiltonian.one_body)
-        yield cirq.inverse_of_invertible_op_tree(
+        yield cirq.inverse(
                 bogoliubov_transform(
                     qubits, quad_ham.diagonalizing_bogoliubov_transform()))
         # TODO Maybe use FFFT instead
@@ -150,8 +149,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Rotate back to the basis in which the one-body term is diagonal
-        yield cirq.inverse_of_invertible_op_tree(
-                bogoliubov_transform(qubits, transformation_matrix))
+        yield cirq.inverse(bogoliubov_transform(qubits, transformation_matrix))
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.CZ(control_qubit, qubits[i])**(
@@ -208,8 +206,7 @@ class AsymmetricSplitOperatorTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Rotate to the basis in which the one-body term is diagonal
-        yield cirq.inverse_of_invertible_op_tree(
-                bogoliubov_transform(qubits, transformation_matrix))
+        yield cirq.inverse(bogoliubov_transform(qubits, transformation_matrix))
 
         # Simulate the one-body terms for the full time
         yield (cirq.Z(qubits[i])**(-orbital_energies[i] * time / numpy.pi)
@@ -264,8 +261,7 @@ class ControlledAsymmetricSplitOperatorTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Rotate to the basis in which the one-body term is diagonal
-        yield cirq.inverse_of_invertible_op_tree(
-                bogoliubov_transform(qubits, transformation_matrix))
+        yield cirq.inverse(bogoliubov_transform(qubits, transformation_matrix))
 
         # Simulate the one-body terms for the full time
         yield (cirq.CZ(control_qubit, qubits[i])**(

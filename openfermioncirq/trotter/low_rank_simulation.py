@@ -109,7 +109,7 @@ def low_rank_trotter_step(qubits: Sequence[cirq.QubitId],
             prepare_one_body_squared_evolution(one_body_squares[j]))
 
         # Simulate basis transformation.
-        yield cirq.inverse_of_invertible_op_tree(
+        yield cirq.inverse(
             bogoliubov_transform(qubits, basis_transformation_matrix))
 
         # Perform evolution under the ZZ part of the two-body terms.
