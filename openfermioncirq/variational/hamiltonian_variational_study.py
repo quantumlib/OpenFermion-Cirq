@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy
 import scipy.special
@@ -93,26 +93,30 @@ class HamiltonianVariationalStudy(VariationalStudy):
         return numpy.random.normal(
                 loc=0.0, scale=numpy.sqrt(self._variance_bound / cost))
 
-    def noise_bound(self,
-                    cost: Optional[float]=None,
-                    confidence: float=0.99) -> float:
-        """An approximate bound on the magnitude of the noise.
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        """Exact or approximate bounds on noise in the objective function.
 
-        This returns a value that gives a "likely" upper bound on the absolute
-        value of noise produced with the specified cost. The probability that
-        the bound is correct is specified by the `confidence` parameter, which
-        must be strictly between 0 and 1. The default value is .99, which means
-        that the returned value is a true upper bound with 99% probability.
-        Lowering the confidence will give a smaller bound that is less likely to
-        be correct.
+        Returns a tuple (a, b) such that the integral from a to b of the
+        normal distribution that the noise is sampled from is equal to the
+        confidence level. The variance of the normal distribution is inversely
+        proportional to the cost provided, so providing a higher cost will
+        yield a smaller interval, corresponding to a tighter bound on the noise.
+
+        If confidence is not specified, a default value of .99 is used.
         """
-        if cost is None:
-            return 0.0
+        if confidence is None:
+            confidence = 0.99
+
         if not 0 < confidence < 1:
             raise ValueError('The confidence in the noise bound must be '
                              'between 0 and 1.')
+
         sigmas = scipy.special.erfinv(confidence) * numpy.sqrt(2)
-        return sigmas * numpy.sqrt(self._variance_bound / cost)
+        magnitude_bound = sigmas * numpy.sqrt(self._variance_bound / cost)
+        return -magnitude_bound, magnitude_bound
 
     def _init_kwargs(self) -> Dict[str, Any]:
         """Arguments to pass to __init__ when re-loading the study."""

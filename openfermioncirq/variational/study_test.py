@@ -160,8 +160,12 @@ def test_variational_study_evaluate_with_cost():
             1 + numpy.exp(-2.0))
 
 
+def test_variational_study_noise_bounds():
+    assert test_study.noise_bounds(100) == (-numpy.inf, numpy.inf)
+
+
 def test_variational_study_run():
-    study = ExampleStudy('study', test_ansatz,)
+    study = ExampleStudy('study', test_ansatz)
     assert len(study.results) == 0
 
     study.run('run1',
@@ -243,3 +247,8 @@ def test_variational_study_black_box_dimension():
 def test_variational_study_black_box_bounds():
     black_box = VariationalStudyBlackBox(test_study)
     assert black_box.bounds == test_study.param_bounds()
+
+
+def test_variational_study_black_box_noise_bounds():
+    black_box = VariationalStudyBlackBox(test_study)
+    assert black_box.noise_bounds(100) == (-numpy.inf, numpy.inf)

@@ -92,20 +92,33 @@ def test_hamiltonian_variational_study_noise():
             abs(study.noise(1e4)) < abs(study.noise(1e3)))
 
 
-def test_hamiltonian_variational_study_noise_bound():
+def test_hamiltonian_variational_study_noise_bounds():
 
     ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
     study = HamiltonianVariationalStudy('study', ansatz, hubbard_hamiltonian)
 
-    numpy.testing.assert_allclose(10 * study.noise_bound(1e4),
-                                  study.noise_bound(1e2))
-    numpy.testing.assert_allclose(study.noise_bound(), 0)
+    numpy.random.seed(38017)
+
+    a, b = study.noise_bounds(1e4)
+    c, d = study.noise_bounds(1e2)
+
+    numpy.testing.assert_allclose(10 * a, c)
+    numpy.testing.assert_allclose(10 * b, d)
+
+    a, b = study.noise_bounds(1e4, confidence=0.95)
+    c, d = study.noise_bounds(1e2, confidence=0.95)
+
+    numpy.testing.assert_allclose(10 * a, c)
+    numpy.testing.assert_allclose(10 * b, d)
+
+    numpy.testing.assert_allclose(study.noise_bounds(1e2),
+                                  study.noise_bounds(1e2, 0.99))
 
     with pytest.raises(ValueError):
-        _ = study.noise_bound(1.0, 1.0)
+        _ = study.noise_bounds(1.0, 1.0)
 
     with pytest.raises(ValueError):
-        _ = study.noise_bound(1.0, -1.0)
+        _ = study.noise_bounds(1.0, -1.0)
 
 
 def test_hamiltonian_variational_study_save_load():

@@ -129,6 +129,24 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         # Default: add artifical noise with the specified cost
         return self.evaluate(param_values) + self.noise(cost)
 
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        """Exact or approximate bounds on noise in the objective function.
+
+        Returns a tuple (a, b) such that when `evaluate_with_cost` is called
+        with the given cost and returns an approximate function value y, the
+        true function value lies in the interval [y + a, y + b]. Thus, it should
+        be the case that a <= 0 <= b.
+
+        This function takes an optional `confidence` parameter which is a real
+        number strictly between 0 and 1 that gives the probability of the bounds
+        being correct. This is used for situations in which exact bounds on the
+        noise cannot be guaranteed.
+        """
+        return -numpy.inf, numpy.inf
+
     def run(self,
             identifier: Hashable,
             algorithm: OptimizationAlgorithm,
@@ -423,3 +441,10 @@ class VariationalStudyBlackBox(BlackBox):
         self.num_evaluations += 1
         self.cost_spent += cost
         return self.study.evaluate_with_cost(x, cost)
+
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        """Exact or approximate bounds on noise in the objective function."""
+        return self.study.noise_bounds(cost, confidence)

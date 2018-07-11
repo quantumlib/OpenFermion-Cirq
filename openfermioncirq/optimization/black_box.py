@@ -72,3 +72,23 @@ class BlackBox(metaclass=abc.ABCMeta):
         """
         # Default: defer to `evaluate`
         return self.evaluate(x)
+
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        """Exact or approximate bounds on noise in the objective function.
+
+        Returns a tuple (a, b) such that when `evaluate_with_cost` is called
+        with the given cost and returns an approximate function value y, the
+        true function value lies in the interval [y + a, y + b]. Thus, it should
+        be the case that a <= 0 <= b.
+
+        This function takes an optional `confidence` parameter which is a real
+        number strictly between 0 and 1 that gives the confidence level in the
+        bound. This is used for situations in which exact bounds on the noise
+        cannot be guaranteed. The value can be interpreted as the probability
+        that a repeated call to `evaluate_with_cost` with the same cost will
+        return a value within the bounds.
+        """
+        return -numpy.inf, numpy.inf

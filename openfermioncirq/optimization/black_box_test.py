@@ -53,6 +53,11 @@ def test_black_box_evaluate_with_cost():
             numpy.array([1.0, 2.0]), 2.0) == 5.5
 
 
+def test_black_box_noise_bounds():
+    black_box = ExampleBlackBox()
+    assert black_box.noise_bounds(100) == (-numpy.inf, numpy.inf)
+
+
 def test_black_box_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = BlackBox()
