@@ -13,13 +13,15 @@
 from typing import Optional, Sequence
 
 import cirq
+from openfermion import DiagonalCoulombHamiltonian, InteractionOperator
 
-from openfermioncirq.trotter.trotter_step_algorithm import (
+from openfermioncirq.trotter.trotter_algorithm import (
         Hamiltonian,
         TrotterStep,
-        TrotterStepAlgorithm)
-from openfermioncirq.trotter.linear_swap_network_trotter_step import (
-        LINEAR_SWAP_NETWORK)
+        TrotterAlgorithm)
+from openfermioncirq.trotter.algorithms import (
+        LINEAR_SWAP_NETWORK,
+        LOW_RANK)
 
 
 def simulate_trotter(qubits: Sequence[cirq.QubitId],
@@ -27,16 +29,15 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
                      time: float,
                      n_steps: int=1,
                      order: int=0,
-                     algorithm: TrotterStepAlgorithm=LINEAR_SWAP_NETWORK,
+                     algorithm: Optional[TrotterAlgorithm]=None,
                      control_qubit: Optional[cirq.QubitId]=None,
                      omit_final_swaps: bool=False
                      ) -> cirq.OP_TREE:
     """Simulate Hamiltonian evolution using a Trotter-Suzuki product formula.
 
-    The input is a Hamiltonian represented as a FermionOperator, QubitOperator,
-    InteractionOperator, or DiagonalCoulombHamiltonian. Not all types are
-    supported by all algorithm options. The default algorithm option,
-    LINEAR_SWAP_NETWORK, only supports DiagonalCoulombHamiltonians.
+    The input is a Hamiltonian represented as an InteractionOperator or
+    DiagonalCoulombHamiltonian. Not all types are supported by all algorithm
+    options.
 
     The product formula used is from "General theory of fractal path integrals
     with applications to many-body theories and statistical physics" by
@@ -55,9 +56,15 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
             indicates an asymmetric Trotter formula. Default is 1.
         algorithm: The algorithm to use to simulate a single Trotter step.
             This is a constant exposed in the openfermioncirq.trotter module.
+            If not specified, a default option will be chosen based on the
+            type of the given Hamiltonian.
             Available options:
                 LINEAR_SWAP_NETWORK: The algorithm from arXiv:1711.04789.
+                    Requires the input to be a DiagonalCoulombHamiltonian.
+                LOW_RANK: The "low rank" strategy.
+                    Requires the input to be an InteractionOperator.
                 SPLIT_OPERATOR: The algorithm from arXiv:1706.00023.
+                    Requires the input to be a DiagonalCoulombHamiltonian.
         control_qubit: A qubit on which to control the Trotter step.
         omit_final_swaps: If this is set to True, then SWAP or FSWAP gates at
             the end of the circuit may be omitted. This option exists because
@@ -73,6 +80,9 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
     # TODO Document gate complexities of algorithm options
     if order < 0:
         raise ValueError('The order of the Trotter formula must be at least 0.')
+
+    if algorithm is None:
+        algorithm = _select_trotter_algorithm(hamiltonian)
 
     if type(hamiltonian) not in algorithm.supported_types:
         raise TypeError(
@@ -134,9 +144,20 @@ def _perform_trotter_step(qubits: Sequence[cirq.QubitId],
                     qubits, control_qubit)
 
 
-def _select_trotter_step(hamiltonian,
+def _select_trotter_algorithm(hamiltonian: Hamiltonian) -> TrotterAlgorithm:
+    if isinstance(hamiltonian, DiagonalCoulombHamiltonian):
+        return LINEAR_SWAP_NETWORK
+    elif isinstance(hamiltonian, InteractionOperator):
+        return LOW_RANK
+    else:
+        raise TypeError('Failed to select a default Trotter algorithm '
+                        'for Hamiltonian of type {}.'.format(
+                            type(hamiltonian).__name__))
+
+
+def _select_trotter_step(hamiltonian: Hamiltonian,
                          order: int,
-                         algorithm: TrotterStepAlgorithm,
+                         algorithm: TrotterAlgorithm,
                          controlled: bool) -> TrotterStep:
     """Select a particular Trotter step from a Trotter step algorithm."""
     if controlled:

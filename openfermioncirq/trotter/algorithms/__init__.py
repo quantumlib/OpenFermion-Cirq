@@ -10,14 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openfermioncirq.trotter.simulate_trotter import simulate_trotter
+from openfermioncirq.trotter.algorithms.linear_swap_network import (
+        LINEAR_SWAP_NETWORK)
 
-from openfermioncirq.trotter.algorithms import (
-        LINEAR_SWAP_NETWORK,
+from openfermioncirq.trotter.algorithms.low_rank import (
         LOW_RANK,
-        LowRankTrotterAlgorithm,
-        SPLIT_OPERATOR)
+        LowRankTrotterAlgorithm)
 
-from openfermioncirq.trotter.trotter_algorithm import (
-        TrotterStep,
-        TrotterAlgorithm)
+from openfermioncirq.trotter.algorithms.split_operator import (
+        SPLIT_OPERATOR)

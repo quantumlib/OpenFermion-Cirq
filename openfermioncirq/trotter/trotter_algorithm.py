@@ -113,7 +113,7 @@ class TrotterStep(metaclass=abc.ABCMeta):
         return ()
 
 
-class TrotterStepAlgorithm(metaclass=abc.ABCMeta):
+class TrotterAlgorithm(metaclass=abc.ABCMeta):
     """An algorithm for performing a Trotter step.
 
     A Trotter step algorithm contains methods for performing a symmetric or
