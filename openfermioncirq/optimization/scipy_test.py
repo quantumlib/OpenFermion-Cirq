@@ -42,8 +42,6 @@ def test_scipy_algorithm(algorithm):
     assert isinstance(result.optimal_value, float)
     assert isinstance(result.optimal_parameters, numpy.ndarray)
     assert isinstance(result.num_evaluations, int)
-    assert isinstance(result.cost_spent, float)
-    assert isinstance(result.initial_guess, numpy.ndarray)
     assert isinstance(result.status, int)
     assert isinstance(result.message, (str, bytes))
 

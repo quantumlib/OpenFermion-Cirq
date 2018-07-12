@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional, Sequence, cast
+from typing import Optional, Sequence, Union, cast
 
 import os
 
@@ -19,46 +19,44 @@ import pytest
 
 import cirq
 
-from openfermioncirq import VariationalAnsatz
+from openfermioncirq import (
+        OptimizationParams,
+        VariationalAnsatz,
+        VariationalStudy)
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
-        OptimizationResult)
-
-from openfermioncirq.variational.study import (
-        VariationalStudy,
-        VariationalStudyBlackBox)
+        OptimizationResult,
+        OptimizationTrialResult,
+        ScipyOptimizationAlgorithm)
+from openfermioncirq.variational.study import VariationalStudyBlackBox
 
 
 class ExampleAnsatz(VariationalAnsatz):
 
     def param_names(self) -> Sequence[str]:
-        return ['theta{}'.format(i) for i in range(8)]
+        return ['theta{}'.format(i) for i in range(2)]
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
-        return cirq.LineQubit.range(4)
+        return cirq.LineQubit.range(2)
 
     def _generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
-        a, b, c, d = qubits
+        a, b = qubits
         return cirq.Circuit.from_ops(
                 cirq.RotXGate(half_turns=self.params['theta0']).on(a),
                 cirq.RotXGate(half_turns=self.params['theta1']).on(b),
-                cirq.RotXGate(half_turns=self.params['theta2']).on(c),
-                cirq.RotXGate(half_turns=self.params['theta3']).on(d),
-                cirq.CNOT(a, b),
-                cirq.CNOT(c, d),
-                cirq.CNOT(b, c),
-                cirq.RotZGate(half_turns=self.params['theta4']).on(a),
-                cirq.RotZGate(half_turns=self.params['theta5']).on(b),
-                cirq.RotZGate(half_turns=self.params['theta6']).on(c),
-                cirq.RotZGate(half_turns=self.params['theta7']).on(d),
-                cirq.MeasurementGate('all').on(a, b, c, d))
+                cirq.CZ(a, b),
+                cirq.RotXGate(half_turns=self.params['theta0']).on(a),
+                cirq.RotXGate(half_turns=self.params['theta1']).on(b),
+                cirq.MeasurementGate('all').on(a, b))
 
 
 class ExampleStudy(VariationalStudy):
 
     def value(self,
-              trial_result: cirq.TrialResult) -> float:
+              trial_result: Union[cirq.TrialResult,
+                                  cirq.google.XmonSimulateTrialResult]
+              ) -> float:
         measurements = trial_result.measurements['all']
         return numpy.sum(measurements)
 
@@ -94,8 +92,8 @@ class ExampleAlgorithm(OptimizationAlgorithm):
 
 test_ansatz = ExampleAnsatz()
 
-a, b, _, _ = test_ansatz.qubits
-preparation_circuit = cirq.Circuit.from_ops(cirq.X(a), cirq.X(b))
+a, b = test_ansatz.qubits
+preparation_circuit = cirq.Circuit.from_ops(cirq.X(a))
 test_study = ExampleStudy('test_study',
                           test_ansatz,
                           preparation_circuit=preparation_circuit)
@@ -108,18 +106,14 @@ test_algorithm = ExampleAlgorithm()
 
 def test_variational_study_circuit():
     assert (test_study.circuit.to_text_diagram().strip() == """
-0: ───X───X^theta0───@───Z^theta4──────────────M───
-                     │                         │
-1: ───X───X^theta1───X───@──────────Z^theta5───M───
-                         │                     │
-2: ───────X^theta2───@───X──────────Z^theta6───M───
-                     │                         │
-3: ───────X^theta3───X──────────────Z^theta7───M───
+0: ───X───X^theta0───@───X^theta0───M───
+                     │              │
+1: ───────X^theta1───@───X^theta1───M───
 """.strip())
 
 
 def test_variational_study_num_params():
-    assert test_study.num_params == 8
+    assert test_study.num_params == 2
 
 
 def test_variational_study_ansatz_properties():
@@ -164,42 +158,96 @@ def test_variational_study_noise_bounds():
     assert test_study.noise_bounds(100) == (-numpy.inf, numpy.inf)
 
 
-def test_variational_study_run():
+def test_variational_study_optimize_and_summary():
+    numpy.random.seed(63351)
+
     study = ExampleStudy('study', test_ansatz)
     assert len(study.results) == 0
 
-    study.run('run1',
-              test_algorithm)
+    study.optimize(
+            'run1',
+            OptimizationParams(test_algorithm))
+    result, params = study.results['run1']
     assert len(study.results) == 1
-    assert isinstance(study.results['run1'], list)
-    assert len(study.results['run1']) == 1
-    assert isinstance(study.results['run1'][0], OptimizationResult)
+    assert isinstance(result, OptimizationTrialResult)
+    assert isinstance(params, OptimizationParams)
+    assert result.repetitions == 1
 
-    study.run('run2',
-              test_algorithm,
-              cost_of_evaluate=1.0)
+    study.optimize('run2',
+                   OptimizationParams(test_algorithm),
+                   repetitions=2,
+                   use_multiprocessing=True)
+    result, params = study.results['run2']
     assert len(study.results) == 2
-    assert isinstance(study.results['run2'], list)
-    assert len(study.results['run2']) == 1
-    assert isinstance(study.results['run1'][0], OptimizationResult)
+    assert isinstance(result, OptimizationTrialResult)
+    assert isinstance(params, OptimizationParams)
+    assert result.repetitions == 2
 
-    study.run('run3',
-              test_algorithm,
-              repetitions=2,
-              use_multiprocessing=True,
-              num_processes=2)
+    study.optimize(
+            'run3',
+            OptimizationParams(
+                test_algorithm,
+                initial_guess=numpy.array([4.5, 8.8]),
+                initial_guess_array=numpy.array([[7.2, 6.3],
+                                                 [3.6, 9.8]]),
+                cost_of_evaluate=1.0,
+                reevaluate_final_params=True))
+    result, params = study.results['run3']
     assert len(study.results) == 3
-    assert isinstance(study.results['run2'], list)
-    assert len(study.results['run3']) == 2
-    assert isinstance(study.results['run3'][1], OptimizationResult)
+    assert isinstance(result, OptimizationTrialResult)
+    assert isinstance(params, OptimizationParams)
+    assert result.repetitions == 1
+    assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
+               result.data_frame['optimal_value'])
+    numpy.testing.assert_allclose(params.initial_guess,
+                                  numpy.array([4.5, 8.8]))
+    numpy.testing.assert_allclose(params.initial_guess_array,
+                                  numpy.array([[7.2, 6.3],
+                                               [3.6, 9.8]]))
+    assert params.cost_of_evaluate == 1.0
+    assert params.reevaluate_final_params == True
+
+    assert study.summary.strip() == """
+This study contains 3 results.
+The optimal value found among all results is 0.
+It was found by the run with identifier 'run1'.
+Result details:
+    Identifier: run1
+        Optimal value: 0
+        Number of repetitions: 1
+        Optimal value 1st, 2nd, 3rd quartiles:
+            [0.0, 0.0, 0.0]
+        Num evaluations 1st, 2nd, 3rd quartiles:
+            [2.0, 2.0, 2.0]
+        Cost spent 1st, 2nd, 3rd quartiles:
+            [1.0, 1.0, 1.0]
+    Identifier: run2
+        Optimal value: 0
+        Number of repetitions: 2
+        Optimal value 1st, 2nd, 3rd quartiles:
+            [0.0, 0.0, 0.0]
+        Num evaluations 1st, 2nd, 3rd quartiles:
+            [2.0, 2.0, 2.0]
+        Cost spent 1st, 2nd, 3rd quartiles:
+            [1.0, 1.0, 1.0]
+    Identifier: run3
+        Optimal value: 0
+        Number of repetitions: 1
+        Optimal value 1st, 2nd, 3rd quartiles:
+            [0.0, 0.0, 0.0]
+        Num evaluations 1st, 2nd, 3rd quartiles:
+            [2.0, 2.0, 2.0]
+        Cost spent 1st, 2nd, 3rd quartiles:
+            [2.0, 2.0, 2.0]
+""".strip()
 
 
 def test_variational_study_run_too_few_seeds_raises_error():
     with pytest.raises(ValueError):
-        test_study.run('run',
-                       test_algorithm,
-                       repetitions=2,
-                       seeds=[0])
+        test_study.optimize('run',
+                            OptimizationParams(test_algorithm),
+                            repetitions=2,
+                            seeds=[0])
 
 
 def test_variational_study_save_load():
@@ -210,29 +258,40 @@ def test_variational_study_save_load():
             study_name,
             test_ansatz,
             datadir=datadir)
-    study.run('run',
-              test_algorithm,
-              repetitions=2)
+    study.optimize(
+            'example',
+            OptimizationParams(
+                ScipyOptimizationAlgorithm(
+                    kwargs={'method': 'COBYLA'},
+                    options={'maxiter': 1}),
+                initial_guess=numpy.array([7.9, 3.9]),
+                initial_guess_array=numpy.array([[7.5, 7.6],
+                                                 [8.8, 1.1]]),
+                cost_of_evaluate=1.0,
+                reevaluate_final_params=True))
     study.save()
 
     loaded_study = VariationalStudy.load(study_name, datadir=datadir)
 
     assert loaded_study.name == study.name
     assert str(loaded_study.circuit) == str(study.circuit)
-    assert len(loaded_study.results) == 1
-    assert len(loaded_study.results['run']) == 2
-    assert isinstance(loaded_study.results['run'][0], OptimizationResult)
     assert loaded_study.datadir == datadir
+    assert len(loaded_study.results) == 1
+
+    result, params = loaded_study.results['example']
+    assert isinstance(result, OptimizationTrialResult)
+    assert isinstance(params, OptimizationParams)
+    assert result.repetitions == 1
+    assert isinstance(params.algorithm, ScipyOptimizationAlgorithm)
+    assert params.algorithm.kwargs == {'method': 'COBYLA'}
+    assert params.algorithm.options == {'maxiter': 1}
+    assert params.cost_of_evaluate == 1.0
+    assert params.reevaluate_final_params == True
 
     loaded_study = VariationalStudy.load('{}.study'.format(study_name),
                                          datadir=datadir)
 
     assert loaded_study.name == study.name
-    assert str(loaded_study.circuit) == str(study.circuit)
-    assert len(loaded_study.results) == 1
-    assert len(loaded_study.results['run']) == 2
-    assert isinstance(loaded_study.results['run'][0], OptimizationResult)
-    assert loaded_study.datadir == datadir
 
     # Clean up
     os.remove(os.path.join(datadir, '{}.study'.format(study_name)))

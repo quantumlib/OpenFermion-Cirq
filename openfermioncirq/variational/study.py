@@ -10,10 +10,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import (
-        TYPE_CHECKING, Any, Dict, Hashable, Optional, Sequence, Tuple, Union)
+from typing import (TYPE_CHECKING, Any, Dict, Hashable, Iterable, Optional,
+                    Sequence, Tuple, Union)
 
-import itertools
+import collections
 import multiprocessing
 import os
 import pickle
@@ -27,11 +27,48 @@ from openfermioncirq.variational import VariationalAnsatz
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
-        OptimizationResult)
+        OptimizationResult,
+        OptimizationTrialResult)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import List
+
+
+class OptimizationParams:
+    """Parameters for an optimization run of a variational study.
+
+    Attributes:
+        algorithm: The algorithm to use.
+        initial_guess: An initial guess for the algorithm to use. If not
+            specified, then it will be set to the default initial parameters
+            of the study.
+        initial_guess_array: An array of initial guesses for the algorithm
+            to use. If not specified, then it will be set to an array
+            containing the default initial parameters of the study.
+        cost_of_evaluate: An optional cost to be used by the `evaluate`
+            method of the BlackBox that will be optimized.
+        reevaluate_final_params: Whether the optimal parameters returned
+            by the optimization algorithm should be reevaluated using the
+            `evaluate` method of the study and the optimal value adjusted
+            accordingly. This is useful when the optimizer only has access
+            to the noisy `evaluate_with_cost` method of the study (because
+            `cost_of_evaluate` is set), but you are interested in the true
+            noiseless value of the returned parameters.
+    """
+
+    def __init__(self,
+                 algorithm: OptimizationAlgorithm,
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None,
+                 cost_of_evaluate: Optional[float]=None,
+                 reevaluate_final_params: bool=False) -> None:
+        """Construct a parameters object by setting its attributes."""
+        self.algorithm = algorithm
+        self.initial_guess = initial_guess
+        self.initial_guess_array = initial_guess_array
+        self.cost_of_evaluate = cost_of_evaluate
+        self.reevaluate_final_params = reevaluate_final_params
 
 
 class VariationalStudy(metaclass=abc.ABCMeta):
@@ -57,15 +94,30 @@ class VariationalStudy(metaclass=abc.ABCMeta):
     computing the true expectation value and adding artificial noise drawn from
     a normal distribution with the desired variance.
 
+    Example:
+        ansatz = SomeVariationalAnsatz()
+        study = SomeVariationalStudy('my_study', ansatz)
+        optimize_params = OptimizationParams(
+            algorithm=openfermioncirq.optimization.COBYLA,
+            initial_guess=numpy.zeros(5))
+        study.optimize('run1', optimize_params)  # the result is saved into
+                                                 # study.results
+        result, params = study.results['run1']
+        print(result.optimal_value)  # prints a number
+        print(params.initial_guess)  # prints the initial guess used
+
     Attributes:
         name: The name of the study.
         circuit: The circuit of the study, which is the preparation circuit, if
             any, followed by the ansatz circuit.
         qubits: A list containing the qubits used by the circuit.
+        results: A dictionary of tuples. The first element of each tuple is an
+            OptimizationTrialResult containing the results of an optimization
+            run, and the second element of the tuple is the
+            OptimizationParams object giving the parameters of the
+            optimization run that produced that result. Key is an arbitrary
+            identifier used to label the run.
         num_params: The number of parameters in the circuit.
-        results: A dictionary of lists of OptimizationResults associated with
-            the study. Key is an arbitrary identifier used to label the
-            optimization run that produced the corresponding list of results.
     """
 
     def __init__(self,
@@ -84,7 +136,8 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         """
         # TODO store results as a pandas DataFrame?
         self.name = name
-        self.results = {}  # type: Dict[Any, List[OptimizationResult]]
+        self.results = collections.OrderedDict() \
+          # type: Dict[Any, Tuple[OptimizationTrialResult, OptimizationParams]]
         self._ansatz = ansatz
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
         self._circuit = self._preparation_circuit + self._ansatz.circuit
@@ -147,16 +200,13 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         """
         return -numpy.inf, numpy.inf
 
-    def run(self,
-            identifier: Hashable,
-            algorithm: OptimizationAlgorithm,
-            initial_guess: Optional[numpy.ndarray]=None,
-            initial_guess_array: Optional[numpy.ndarray]=None,
-            cost_of_evaluate: Optional[float]=None,
-            repetitions: int=1,
-            seeds: Optional[Sequence[int]]=None,
-            use_multiprocessing: bool=False,
-            num_processes: Optional[int]=None) -> None:
+    def optimize(self,
+                 identifier: Hashable,
+                 optimize_params: OptimizationParams,
+                 repetitions: int=1,
+                 seeds: Optional[Sequence[int]]=None,
+                 use_multiprocessing: bool=False,
+                 num_processes: Optional[int]=None) -> None:
         """Perform an optimization run and save the results.
 
         Constructs a BlackBox that uses the study to perform function
@@ -171,14 +221,9 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         study using this cost as input.
 
         Args:
-            algorithm: The algorithm to use.
-            initial_guess: An initial guess for the algorithm to use.
-            initial_guess_array: An array of initial guesses for the algorithm
-                to use.
             identifier: An identifier for the run. This is used as the key to
                 `self.results`, where results are saved.
-            cost_of_evaluate: An optional cost to be used by the `evaluate`
-                method of the BlackBox that will be optimized.
+            optimize_params: The parameters of the optimization run.
             repetitions: The number of times to run the optimization.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
@@ -189,55 +234,30 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                 The default behavior is to use the output of
                 `multiprocessing.cpu_count()`.
         """
-        if initial_guess is None:
-            initial_guess = self.default_initial_params()
-        if initial_guess_array is None:
-            initial_guess_array = numpy.array([self.default_initial_params()])
+        self.optimize_sweep([identifier],
+                            [optimize_params],
+                            repetitions,
+                            seeds,
+                            use_multiprocessing,
+                            num_processes)
 
-        self.run_sweep([identifier],
-                       algorithm,
-                       [initial_guess],
-                       [initial_guess_array],
-                       cost_of_evaluate,
-                       repetitions,
-                       seeds,
-                       use_multiprocessing,
-                       num_processes)
+    def optimize_sweep(self,
+                       identifiers: Iterable[Hashable],
+                       params: Iterable[OptimizationParams],
+                       repetitions: int=1,
+                       seeds: Optional[Sequence[int]]=None,
+                       use_multiprocessing: bool=False,
+                       num_processes: Optional[int]=None) -> None:
+        """Perform multiple optimization runs and save the results.
 
-    def run_sweep(self,
-                  identifiers: Sequence[Hashable],
-                  algorithm: OptimizationAlgorithm,
-                  initial_guesses: Sequence[numpy.ndarray]=(),
-                  initial_guess_arrays: Sequence[numpy.ndarray]=(),
-                  cost_of_evaluate: Optional[float]=None,
-                  repetitions: int=1,
-                  seeds: Optional[Sequence[int]]=None,
-                  use_multiprocessing: bool=False,
-                  num_processes: Optional[int]=None) -> None:
-        """Perform optimization runs and save the results.
-
-        Constructs a BlackBox that uses the study to perform function
-        evaluations, then uses the given algorithm to optimize the BlackBox.
-        The result is saved into a list in the `results` dictionary of the study
-        under the key specified by `identifier`.
-
-        The `cost_of_evaluate` argument affects how the BlackBox is constructed.
-        If it is None, then the `evaluate` method of the BlackBox will call the
-        `evaluate` method of the study. If it is not None, then the `evaluate`
-        method of the BlackBox will call the `evaluate_with_cost` method of the
-        study using this cost as input.
+        This is like `optimize`, but lets you specify multiple
+        OptimizationParams to use for separate runs.
 
         Args:
-            identifiers: Identifiers for the runs, one for each initial guess
-                given. This is used as the key to `self.results`, where results
-                are saved.
-            algorithm: The algorithm to use.
-            initial_guesses: Initial guesses for the algorithm to use in
-                different runs.
-            initial_guess_arrays: Initial guess arrays for the algorithm to use
-                in different runs.
-            cost_of_evaluate: An optional cost to be used by the `evaluate`
-                method of the BlackBox that will be optimized.
+            identifiers: Identifiers for the runs, one for each
+                OptimizationParams object provided. This is used as the key
+                to `self.results`, where results are saved.
+            params: The parameters for the optimization runs.
             repetitions: The number of times to run the algorithm for each
                 inititial guess.
             seeds: Random number generator seeds to use for the repetitions.
@@ -253,59 +273,108 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             raise ValueError(
                     "Provided fewer RNG seeds than the number of repetitions.")
 
-        for (identifier,
-             initial_guess,
-             initial_guess_array) in itertools.zip_longest(
-                     identifiers,
-                     initial_guesses,
-                     initial_guess_arrays):
-
-            if identifier not in self.results:
-                self.results[identifier] = []
-
+        for identifier, optimize_params in zip(identifiers, params):
             if use_multiprocessing:
+                if num_processes is None:
+                    num_processes = multiprocessing.cpu_count()
                 with multiprocessing.Pool(num_processes) as pool:
                     result_list = pool.starmap(
                             self._run_optimization,
-                            ((algorithm,
-                              initial_guess,
-                              initial_guess_array,
-                              cost_of_evaluate,
+                            ((optimize_params,
                               seeds[i] if seeds is not None
                                   else numpy.random.randint(4294967296))
                               for i in range(repetitions)))
-                self.results[identifier].extend(result_list)
             else:
+                result_list = []
                 for i in range(repetitions):
                     result = self._run_optimization(
-                            algorithm,
-                            initial_guess,
-                            initial_guess_array,
-                            cost_of_evaluate,
+                            optimize_params,
                             seeds[i] if seeds is not None
                                 else numpy.random.randint(4294967296))
-                    self.results[identifier].append(result)
-            # TODO store algorithm (and options) used too
+                    result_list.append(result)
+            self.results[identifier] = (OptimizationTrialResult(result_list),
+                                        optimize_params)
 
     def _run_optimization(
             self,
-            algorithm: OptimizationAlgorithm,
-            initial_guess: Optional[numpy.ndarray],
-            initial_guess_array: Optional[numpy.ndarray],
-            cost_of_evaluate: Optional[float],
+            optimize_params: OptimizationParams,
             seed: int) -> OptimizationResult:
-        black_box = VariationalStudyBlackBox(self,
-                                             cost_of_evaluate=cost_of_evaluate)
+        """Perform an optimization run and return the result.
+
+        If no initial guess is given, the default initial parameters of the
+        study are used.
+        """
+
+        black_box = VariationalStudyBlackBox(
+                self,
+                cost_of_evaluate=optimize_params.cost_of_evaluate)
+        initial_guess = optimize_params.initial_guess
+        initial_guess_array = optimize_params.initial_guess_array
+
+        if initial_guess is None:
+            initial_guess = self.default_initial_params()
+        if initial_guess_array is None:
+            initial_guess_array = numpy.array([self.default_initial_params()])
+
         numpy.random.seed(seed)
-        result = algorithm.optimize(black_box,
-                                    initial_guess,
-                                    initial_guess_array)
+        result = optimize_params.algorithm.optimize(black_box,
+                                                        initial_guess,
+                                                        initial_guess_array)
+
         result.num_evaluations = black_box.num_evaluations
         result.cost_spent = black_box.cost_spent
-        result.initial_guess = initial_guess
-        result.initial_guess_array = initial_guess_array
         result.seed = seed
+        if optimize_params.reevaluate_final_params:
+            result.optimal_value = self.evaluate(result.optimal_parameters)
+
         return result
+
+    @property
+    def summary(self) -> str:
+        header = []   # type: List[str]
+        details = []  # type: List[str]
+        optimal_value = numpy.inf
+        optimal_identifier = None  # type: Optional[Hashable]
+
+        for identifier, (result, _) in self.results.items():
+            result_opt = result.optimal_value
+            if result_opt < optimal_value:
+                optimal_value = result_opt
+                optimal_identifier = identifier
+            details.append(
+                    '    Identifier: {}'.format(identifier))
+            details.append(
+                    '        Optimal value: {}'.format(result_opt))
+            details.append(
+                    '        Number of repetitions: {}'.format(
+                        result.repetitions))
+            details.append(
+                    '        Optimal value 1st, 2nd, 3rd quartiles:')
+            details.append(
+                    '            {}'.format(
+                        list(result.optimal_value_quantile([.25, .5, .75]))))
+            details.append(
+                    '        Num evaluations 1st, 2nd, 3rd quartiles:')
+            details.append(
+                    '            {}'.format(
+                        list(result.num_evaluations_quantile([.25, .5, .75]))))
+            details.append(
+                    '        Cost spent 1st, 2nd, 3rd quartiles:')
+            details.append(
+                    '            {}'.format(
+                        list(result.cost_spent_quantile([.25, .5, .75]))))
+
+        header.append(
+                'This study contains {} results.'.format(len(self.results)))
+        header.append(
+                'The optimal value found among all results is {}.'.format(
+                    optimal_value))
+        header.append(
+                'It was found by the run with identifier {}.'.format(
+                    repr(optimal_identifier)))
+        header.append('Result details:')
+
+        return '\n'.join(header + details)
 
     @property
     def circuit(self) -> cirq.Circuit:
@@ -322,6 +391,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         """The number of parameters of the ansatz."""
         return self._num_params
 
+    # TODO expose ansatz instead of the methods below
     def param_names(self) -> Sequence[str]:
         """The names of the parameters of the ansatz."""
         return self._ansatz.param_names()
@@ -405,7 +475,7 @@ class VariationalStudyBlackBox(BlackBox):
     @property
     def dimension(self) -> int:
         """The dimension of the array accepted by the objective function."""
-        return len(self.study.param_names())
+        return self.study.num_params
 
     @property
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:

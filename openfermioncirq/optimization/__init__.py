@@ -14,7 +14,9 @@ from openfermioncirq.optimization.algorithm import OptimizationAlgorithm
 
 from openfermioncirq.optimization.black_box import BlackBox
 
-from openfermioncirq.optimization.result import OptimizationResult
+from openfermioncirq.optimization.result import (
+        OptimizationResult,
+        OptimizationTrialResult)
 
 from openfermioncirq.optimization.scipy import (
         COBYLA,

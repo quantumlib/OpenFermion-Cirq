@@ -10,13 +10,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional
+from typing import Iterable, Optional, Union
 
 import numpy
+import pandas
 
 
 class OptimizationResult:
-    """The results from optimizing a black-box objective function.
+    """A result from optimizing a black-box objective function.
 
     Attributes:
         optimal_value: The best value of the objective function found by the
@@ -27,7 +28,7 @@ class OptimizationResult:
             evaluated in the course of the optimization.
         cost_spent: For objective functions with a cost model, the total cost
             spent on function evaluations.
-        initial_guess: The initial guess, if any, used by the optimizer.
+        seed: A random number generator seed used to produce the result.
         status: A status flag set by the optimizer.
         message: A message returned by the optimizer.
     """
@@ -36,9 +37,7 @@ class OptimizationResult:
                  optimal_value: float,
                  optimal_parameters: numpy.ndarray,
                  num_evaluations: int,
-                 cost_spent: float=0.0,
-                 initial_guess: Optional[numpy.ndarray]=None,
-                 initial_guess_array: Optional[numpy.ndarray]=None,
+                 cost_spent: Optional[float]=None,
                  seed: Optional[int]=None,
                  status: Optional[int]=None,
                  message: Optional[str]=None) -> None:
@@ -46,8 +45,71 @@ class OptimizationResult:
         self.optimal_parameters = optimal_parameters
         self.num_evaluations = num_evaluations
         self.cost_spent = cost_spent
-        self.initial_guess = initial_guess
-        self.initial_guess_array = initial_guess_array
         self.seed = seed
         self.status = status
         self.message = message
+
+
+class OptimizationTrialResult:
+    """The results from multiple repetitions of an optimization run.
+
+    Attributes:
+        repetitions: The number of times the optimization run was repeated.
+        optimal_value: The optimal value over all repetitions of the run.
+        optimal_parameters: The parameters corresponding to the optimal value.
+    """
+
+    def __init__(self,
+                 results: Iterable[OptimizationResult]) -> None:
+        self.data_frame = pandas.DataFrame(
+                {'optimal_value': result.optimal_value,
+                 'optimal_parameters': result.optimal_parameters,
+                 'num_evaluations': result.num_evaluations,
+                 'cost_spent': result.cost_spent,
+                 'seed': result.seed,
+                 'status': result.status,
+                 'message': result.message}
+                for result in results)
+
+    @property
+    def repetitions(self):
+        return len(self.data_frame)
+
+    @property
+    def optimal_value(self):
+        return self.data_frame['optimal_value'].min()
+
+    @property
+    def optimal_parameters(self):
+        return self.data_frame['optimal_parameters'][
+                self.data_frame['optimal_value'].idxmin()]
+
+    def optimal_value_quantile(self,
+                               q: Union[float, numpy.ndarray]=0.5,
+                               interpolation='linear'):
+        """Return the optimal value at the given quantile.
+
+        This behaves like numpy.percentile.
+        """
+        return self.data_frame['optimal_value'].quantile(
+                q, interpolation=interpolation)
+
+    def num_evaluations_quantile(self,
+                                 q: Union[float, numpy.ndarray]=0.5,
+                                 interpolation='linear'):
+        """Return the number of evaluations used at the given quantile.
+
+        This behaves like numpy.percentile.
+        """
+        return self.data_frame['num_evaluations'].quantile(
+                q, interpolation=interpolation)
+
+    def cost_spent_quantile(self,
+                            q: Union[float, numpy.ndarray]=0.5,
+                            interpolation='linear'):
+        """Return the cost spent at the given quantile.
+
+        This behaves like numpy.percentile.
+        """
+        return self.data_frame['cost_spent'].quantile(
+                q, interpolation=interpolation)

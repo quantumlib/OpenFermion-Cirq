@@ -26,6 +26,11 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
     We use the convention that the optimization algorithm should try to minimize
     (rather than maximize) the value of the objective function.
 
+    In order to work with some routines that save optimization results,
+    instances of this class must be picklable. See
+    https://docs.python.org/3/library/pickle.html
+    for details.
+
     Attributes:
         options: Options for the algorithm.
     """

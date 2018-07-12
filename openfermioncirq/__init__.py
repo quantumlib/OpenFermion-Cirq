@@ -43,6 +43,7 @@ from openfermioncirq.variational import (
 
 from openfermioncirq.variational import (
         HamiltonianVariationalStudy,
+        OptimizationParams,
         SwapNetworkTrotterAnsatz,
         VariationalAnsatz,
         VariationalStudy)

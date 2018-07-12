@@ -58,7 +58,6 @@ class ScipyOptimizationAlgorithm(OptimizationAlgorithm):
         return OptimizationResult(optimal_value=result.fun,
                                   optimal_parameters=result.x,
                                   num_evaluations=result.nfev,
-                                  initial_guess=initial_guess,
                                   status=result.status,
                                   message=result.message)
 

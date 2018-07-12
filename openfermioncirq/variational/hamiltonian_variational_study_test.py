@@ -20,17 +20,18 @@ import pytest
 import cirq
 import openfermion
 
-from openfermioncirq import prepare_gaussian_state, simulate_trotter
+from openfermioncirq import (
+        HamiltonianVariationalStudy,
+        OptimizationParams,
+        SwapNetworkTrotterAnsatz,
+        prepare_gaussian_state,
+        simulate_trotter)
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
-        OptimizationResult)
+        OptimizationResult,
+        OptimizationTrialResult)
 from openfermioncirq.trotter import LINEAR_SWAP_NETWORK
-
-from openfermioncirq.variational.swap_network_trotter_ansatz import (
-        SwapNetworkTrotterAnsatz)
-from openfermioncirq.variational.hamiltonian_variational_study import (
-        HamiltonianVariationalStudy)
 
 
 class ExampleAlgorithm(OptimizationAlgorithm):
@@ -121,6 +122,24 @@ def test_hamiltonian_variational_study_noise_bounds():
         _ = study.noise_bounds(1.0, -1.0)
 
 
+def test_hamiltonian_variational_study_optimize():
+    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
+    study = HamiltonianVariationalStudy('study',
+                                        ansatz,
+                                        hubbard_model)
+    study.optimize(
+            'run',
+            OptimizationParams(
+                ExampleAlgorithm(),
+                cost_of_evaluate=1.0,
+                reevaluate_final_params=True))
+    result, params = study.results['run']
+    assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
+               result.data_frame['optimal_value'])
+    assert params.cost_of_evaluate == 1.0
+    assert params.reevaluate_final_params == True
+
+
 def test_hamiltonian_variational_study_save_load():
     datadir = 'tmp_ffETr2rB49RGP8WE8jer'
     study_name = 'test_hamiltonian_study'
@@ -130,16 +149,27 @@ def test_hamiltonian_variational_study_save_load():
                                         ansatz,
                                         hubbard_model,
                                         datadir=datadir)
-    study.run('example', ExampleAlgorithm())
+    study.optimize(
+            'example',
+            OptimizationParams(
+                ExampleAlgorithm(),
+                cost_of_evaluate=1.0,
+                reevaluate_final_params=True))
     study.save()
     loaded_study = HamiltonianVariationalStudy.load(study_name, datadir=datadir)
 
     assert loaded_study.name == study.name
     assert str(loaded_study.circuit) == str(study.circuit)
-    assert len(loaded_study.results) == 1
-    assert isinstance(loaded_study.results['example'][0], OptimizationResult)
     assert loaded_study.datadir == datadir
     assert loaded_study.hamiltonian == hubbard_model
+    assert len(loaded_study.results) == 1
+
+    result, params = loaded_study.results['example']
+    assert isinstance(result, OptimizationTrialResult)
+    assert isinstance(params, OptimizationParams)
+    assert result.repetitions == 1
+    assert params.cost_of_evaluate == 1.0
+    assert params.reevaluate_final_params == True
 
     # Clean up
     os.remove('{}/{}.study'.format(datadir, study_name))

@@ -20,4 +20,5 @@ from openfermioncirq.variational.swap_network_trotter_ansatz import (
         SwapNetworkTrotterAnsatz)
 
 from openfermioncirq.variational.study import (
+        OptimizationParams,
         VariationalStudy)
