@@ -1,4 +1,5 @@
 mypy
+nbformat
 numpy
 pandas
 pylint
