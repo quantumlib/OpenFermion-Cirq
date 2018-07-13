@@ -55,7 +55,10 @@ def assert_code_cell_runs_and_prints_expected(cell: nbformat.NotebookNode,
                                               state: Dict):
     """Executes a code cell and compares captured output to saved output."""
 
-    expected_outputs = cell.outputs[0].text.strip().split('\n')
+    if cell.outputs and hasattr(cell.outputs[0], 'text'):
+        expected_outputs = cell.outputs[0].text.strip().split('\n')
+    else:
+        expected_outputs = ['']  # coverage: ignore
     expected_lines = [canonicalize_printed_line(line)
                       for line in expected_outputs]
 
@@ -63,10 +66,11 @@ def assert_code_cell_runs_and_prints_expected(cell: nbformat.NotebookNode,
 
     def print_capture(*values, sep=' '):
         output_lines.extend(
-                sep.join(str(e) for e in values).strip().split('\n'))
+                sep.join(str(e) for e in values).split('\n'))
 
     state['print'] = print_capture
-    exec(cell.source, state)
+    exec(strip_magics_and_shows(cell.source), state)
+    output_lines = '\n'.join(output_lines).strip().split('\n')
 
     actual_lines = [canonicalize_printed_line(line) for line in output_lines]
 
@@ -74,6 +78,19 @@ def assert_code_cell_runs_and_prints_expected(cell: nbformat.NotebookNode,
 
     for i, line in enumerate(actual_lines):
         assert line == expected_lines[i]
+
+
+def strip_magics_and_shows(text: str) -> str:
+    """Remove Jupyter magics and pyplot show commands."""
+    lines = [line for line in text.split('\n')
+             if not contains_magic_or_show(line)]
+    return '\n'.join(lines)
+
+
+def contains_magic_or_show(line: str) -> bool:
+    return (line.strip().startswith('%') or
+            'pyplot.show(' in line or
+            'plt.show(' in line)
 
 
 def canonicalize_printed_line(line: str) -> str:
@@ -90,7 +107,7 @@ def canonicalize_printed_line(line: str) -> str:
     """
     prev_end = 0
     result = []
-    for match in re.finditer(r"[0-9]\.[0-9]+", line):
+    for match in re.finditer(r"[0-9]+\.[0-9]+(e-[0-9]+)?", line):
         start = match.start()
         end = match.end()
         result.append(line[prev_end:start])
@@ -103,3 +120,5 @@ def canonicalize_printed_line(line: str) -> str:
 def test_canonicalize_printed_line():
     x = 'first 20.37378859061888 then 20.37378627319067'
     assert canonicalize_printed_line(x) == 'first 20.3738 then 20.3738'
+    x = 'first 20.37e-8 then 224.373e-14'
+    assert canonicalize_printed_line(x) == 'first 0.0000 then 0.0000'
