@@ -1,13 +1,4 @@
-================
-OpenFermion-Cirq
-================
-
-.. image:: https://travis-ci.com/quantumlib/OpenFermion-Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
-  :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
-  :alt: Build Status
-
-.. image:: https://img.shields.io/badge/python-2.7%2C%203.5-brightgreen.svg
-
+.. image:: https://github.com/quantumlib/openfermion-cirq/blob/master/dev_tools/logo.svg
 
 `OpenFermion <http://openfermion.org>`_ is an open source library for
 obtaining and manipulating representations of fermionic systems (including
@@ -18,6 +9,11 @@ against quantum computers and simulators. OpenFermion-Cirq is a plugin
 library which uses OpenFermion to compile and compose quantum simulation
 circuits in Cirq.
 
+.. image:: https://travis-ci.com/quantumlib/OpenFermion-Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
+  :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
+  :alt: Build Status
+
+.. image:: https://img.shields.io/badge/python-2.7%2C%203.5-brightgreen.svg
 
 Getting started
 ===============
