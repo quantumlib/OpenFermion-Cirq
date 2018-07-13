@@ -10,10 +10,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 import numpy
 import pandas
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from openfermioncirq.optimization.algorithm import OptimizationParams
 
 
 class OptimizationResult:
@@ -54,13 +58,28 @@ class OptimizationTrialResult:
     """The results from multiple repetitions of an optimization run.
 
     Attributes:
+        data_frame: A pandas DataFrame storing the results of each repetition
+            of the optimization run. It has the following columns:
+                optimal_value: The optimal value found.
+                optimal_parameters: The function input corresponding to the
+                    optimal value.
+                num_evaluations: The number of function evaluations used
+                    by the optimization algorithm.
+                cost_spent: The total cost spent on function evaluations.
+                seed: A random number generator seed used by the repetition.
+                status: A status returned by the optimization algorithm.
+                message: A message returned by the optimization algorithm.
+        params: An OptimizationParams object storing the optimization
+            parameters used to obtain the results.
         repetitions: The number of times the optimization run was repeated.
         optimal_value: The optimal value over all repetitions of the run.
-        optimal_parameters: The parameters corresponding to the optimal value.
+        optimal_parameters: The function parameters corresponding to the
+            optimal value.
     """
 
     def __init__(self,
-                 results: Iterable[OptimizationResult]) -> None:
+                 results: Iterable[OptimizationResult],
+                 params: 'OptimizationParams') -> None:
         self.data_frame = pandas.DataFrame(
                 {'optimal_value': result.optimal_value,
                  'optimal_parameters': result.optimal_parameters,
@@ -70,6 +89,7 @@ class OptimizationTrialResult:
                  'status': result.status,
                  'message': result.message}
                 for result in results)
+        self.params = params
 
     @property
     def repetitions(self):

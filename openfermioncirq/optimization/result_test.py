@@ -10,11 +10,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from typing import Optional
+
 import numpy
 
 from openfermioncirq.optimization import (
+        BlackBox,
+        OptimizationAlgorithm,
+        OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult)
+
+
+class ExampleAlgorithm(OptimizationAlgorithm):
+
+    def optimize(self,
+                 black_box: BlackBox,
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
+                 ) -> OptimizationResult:
+        pass
 
 
 def test_optimization_result_init():
@@ -53,7 +68,9 @@ def test_optimize_trial_result_init():
             seed=51,
             status=32,
             message='cicCZ8iCg0D')
-    trial = OptimizationTrialResult([result1, result2])
+    trial = OptimizationTrialResult(
+            [result1, result2],
+            params=OptimizationParams(ExampleAlgorithm()))
 
     assert all(trial.data_frame['optimal_value'] == [5.7, 4.7])
     numpy.testing.assert_allclose(
@@ -84,7 +101,9 @@ def test_optimize_trial_result_data_methods():
             seed=51,
             status=32,
             message='cicCZ8iCg0D')
-    trial = OptimizationTrialResult([result1, result2])
+    trial = OptimizationTrialResult(
+            [result1, result2],
+            params=OptimizationParams(ExampleAlgorithm()))
 
     assert trial.repetitions == 2
     assert trial.optimal_value == 4.7

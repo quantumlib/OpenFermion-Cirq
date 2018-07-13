@@ -67,3 +67,29 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
                 representing one initial point.
         """
         pass
+
+
+class OptimizationParams:
+    """Parameters for an optimization run.
+
+    Attributes:
+        algorithm: The algorithm to use.
+        initial_guess: An initial guess for the algorithm to use.
+        initial_guess_array: An array of initial guesses for the algorithm
+            to use. This is a 2d numpy array with each row representing
+            one initial point.
+        cost_of_evaluate: A cost value associated with the `evaluate`
+            method of the BlackBox to be optimized. For use with black boxes
+            with a noise and cost model.
+    """
+
+    def __init__(self,
+                 algorithm: OptimizationAlgorithm,
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None,
+                 cost_of_evaluate: Optional[float]=None) -> None:
+        """Construct a parameters object by setting its attributes."""
+        self.algorithm = algorithm
+        self.initial_guess = initial_guess
+        self.initial_guess_array = initial_guess_array
+        self.cost_of_evaluate = cost_of_evaluate

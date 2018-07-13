@@ -161,48 +161,41 @@ def test_variational_study_optimize_and_summary():
     study = ExampleStudy('study', test_ansatz)
     assert len(study.results) == 0
 
-    study.optimize(
-            'run1',
-            OptimizationParams(test_algorithm))
-    result, params = study.results['run1']
+    result = study.optimize(
+            OptimizationParams(test_algorithm),
+            'run1')
     assert len(study.results) == 1
     assert isinstance(result, OptimizationTrialResult)
-    assert isinstance(params, OptimizationParams)
     assert result.repetitions == 1
 
-    study.optimize('run2',
-                   OptimizationParams(test_algorithm),
+    study.optimize(OptimizationParams(test_algorithm),
                    repetitions=2,
                    use_multiprocessing=True)
-    result, params = study.results['run2']
+    result = study.results[0]
     assert len(study.results) == 2
     assert isinstance(result, OptimizationTrialResult)
-    assert isinstance(params, OptimizationParams)
     assert result.repetitions == 2
 
     study.optimize(
-            'run3',
             OptimizationParams(
                 test_algorithm,
                 initial_guess=numpy.array([4.5, 8.8]),
                 initial_guess_array=numpy.array([[7.2, 6.3],
                                                  [3.6, 9.8]]),
-                cost_of_evaluate=1.0,
-                reevaluate_final_params=True))
-    result, params = study.results['run3']
+                cost_of_evaluate=1.0),
+            reevaluate_final_params=True)
+    result = study.results[1]
     assert len(study.results) == 3
     assert isinstance(result, OptimizationTrialResult)
-    assert isinstance(params, OptimizationParams)
     assert result.repetitions == 1
     assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
                result.data_frame['optimal_value'])
-    numpy.testing.assert_allclose(params.initial_guess,
+    numpy.testing.assert_allclose(result.params.initial_guess,
                                   numpy.array([4.5, 8.8]))
-    numpy.testing.assert_allclose(params.initial_guess_array,
+    numpy.testing.assert_allclose(result.params.initial_guess_array,
                                   numpy.array([[7.2, 6.3],
                                                [3.6, 9.8]]))
-    assert params.cost_of_evaluate == 1.0
-    assert params.reevaluate_final_params == True
+    assert result.params.cost_of_evaluate == 1.0
 
     assert study.summary.strip() == """
 This study contains 3 results.
@@ -218,7 +211,7 @@ Result details:
             [2.0, 2.0, 2.0]
         Cost spent 1st, 2nd, 3rd quartiles:
             [1.0, 1.0, 1.0]
-    Identifier: run2
+    Identifier: 0
         Optimal value: 0
         Number of repetitions: 2
         Optimal value 1st, 2nd, 3rd quartiles:
@@ -227,7 +220,7 @@ Result details:
             [2.0, 2.0, 2.0]
         Cost spent 1st, 2nd, 3rd quartiles:
             [1.0, 1.0, 1.0]
-    Identifier: run3
+    Identifier: 1
         Optimal value: 0
         Number of repetitions: 1
         Optimal value 1st, 2nd, 3rd quartiles:
@@ -241,8 +234,8 @@ Result details:
 
 def test_variational_study_run_too_few_seeds_raises_error():
     with pytest.raises(ValueError):
-        test_study.optimize('run',
-                            OptimizationParams(test_algorithm),
+        test_study.optimize(OptimizationParams(test_algorithm),
+                            'run',
                             repetitions=2,
                             seeds=[0])
 
@@ -256,7 +249,6 @@ def test_variational_study_save_load():
             test_ansatz,
             datadir=datadir)
     study.optimize(
-            'example',
             OptimizationParams(
                 ScipyOptimizationAlgorithm(
                     kwargs={'method': 'COBYLA'},
@@ -264,8 +256,8 @@ def test_variational_study_save_load():
                 initial_guess=numpy.array([7.9, 3.9]),
                 initial_guess_array=numpy.array([[7.5, 7.6],
                                                  [8.8, 1.1]]),
-                cost_of_evaluate=1.0,
-                reevaluate_final_params=True))
+                cost_of_evaluate=1.0),
+            'example')
     study.save()
 
     loaded_study = VariationalStudy.load(study_name, datadir=datadir)
@@ -275,15 +267,13 @@ def test_variational_study_save_load():
     assert loaded_study.datadir == datadir
     assert len(loaded_study.results) == 1
 
-    result, params = loaded_study.results['example']
+    result = loaded_study.results['example']
     assert isinstance(result, OptimizationTrialResult)
-    assert isinstance(params, OptimizationParams)
     assert result.repetitions == 1
-    assert isinstance(params.algorithm, ScipyOptimizationAlgorithm)
-    assert params.algorithm.kwargs == {'method': 'COBYLA'}
-    assert params.algorithm.options == {'maxiter': 1}
-    assert params.cost_of_evaluate == 1.0
-    assert params.reevaluate_final_params == True
+    assert isinstance(result.params.algorithm, ScipyOptimizationAlgorithm)
+    assert result.params.algorithm.kwargs == {'method': 'COBYLA'}
+    assert result.params.algorithm.options == {'maxiter': 1}
+    assert result.params.cost_of_evaluate == 1.0
 
     loaded_study = VariationalStudy.load('{}.study'.format(study_name),
                                          datadir=datadir)

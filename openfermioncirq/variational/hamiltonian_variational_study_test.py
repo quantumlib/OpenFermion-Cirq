@@ -118,16 +118,15 @@ def test_hamiltonian_variational_study_optimize():
                                         ansatz,
                                         test_fermion_op)
     study.optimize(
-            'run',
             OptimizationParams(
                 ExampleAlgorithm(),
-                cost_of_evaluate=1.0,
-                reevaluate_final_params=True))
-    result, params = study.results['run']
+                cost_of_evaluate=1.0),
+            'run',
+            reevaluate_final_params=True)
+    result = study.results['run']
     assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
                result.data_frame['optimal_value'])
-    assert params.cost_of_evaluate == 1.0
-    assert params.reevaluate_final_params == True
+    assert result.params.cost_of_evaluate == 1.0
 
 
 def test_hamiltonian_variational_study_save_load():
@@ -142,11 +141,10 @@ def test_hamiltonian_variational_study_save_load():
             test_fermion_op,
             datadir=datadir)
     study.optimize(
-            'example',
             OptimizationParams(
                 ExampleAlgorithm(),
-                cost_of_evaluate=1.0,
-                reevaluate_final_params=True))
+                cost_of_evaluate=1.0),
+            'example')
     study.save()
     loaded_study = HamiltonianVariationalStudy.load(study_name, datadir=datadir)
 
@@ -156,12 +154,10 @@ def test_hamiltonian_variational_study_save_load():
     assert loaded_study.hamiltonian == test_fermion_op
     assert len(loaded_study.results) == 1
 
-    result, params = loaded_study.results['example']
+    result = loaded_study.results['example']
     assert isinstance(result, OptimizationTrialResult)
-    assert isinstance(params, OptimizationParams)
     assert result.repetitions == 1
-    assert params.cost_of_evaluate == 1.0
-    assert params.reevaluate_final_params == True
+    assert result.params.cost_of_evaluate == 1.0
 
     # Clean up
     os.remove('{}/{}.study'.format(datadir, study_name))

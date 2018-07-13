@@ -10,7 +10,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from openfermioncirq.optimization.algorithm import OptimizationAlgorithm
+from openfermioncirq.optimization.algorithm import (
+        OptimizationAlgorithm,
+        OptimizationParams)
 
 from openfermioncirq.optimization.black_box import BlackBox
 
