@@ -19,10 +19,13 @@ import pytest
 
 import cirq
 import openfermion
+from openfermion.utils._testing_utils import (
+        random_diagonal_coulomb_hamiltonian)
 
 from openfermioncirq import (
         HamiltonianVariationalStudy,
         OptimizationParams,
+        SplitOperatorTrotterAnsatz,
         SwapNetworkTrotterAnsatz,
         prepare_gaussian_state,
         simulate_trotter)
@@ -31,7 +34,7 @@ from openfermioncirq.optimization import (
         OptimizationAlgorithm,
         OptimizationResult,
         OptimizationTrialResult)
-from openfermioncirq.trotter import LINEAR_SWAP_NETWORK
+from openfermioncirq.trotter import LINEAR_SWAP_NETWORK, SPLIT_OPERATOR
 
 
 class ExampleAlgorithm(OptimizationAlgorithm):
@@ -57,27 +60,14 @@ class ExampleAlgorithm(OptimizationAlgorithm):
                                   message='success')
 
 
-# Construct a Hubbard model Hamiltonian
-hubbard_model = openfermion.fermi_hubbard(2, 2, 1., 4.)
-hubbard_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(
-        hubbard_model)
-
-# Construct a Hamiltonian with complex one-body entries
-grid = openfermion.Grid(2, 2, 1.0)
-jellium = openfermion.jellium_model(grid, spinless=True, plane_wave=False)
-complex_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
-complex_hamiltonian.one_body += 1j * numpy.triu(complex_hamiltonian.one_body)
-complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
-
-# Construct an empty Hamiltonian
-zero_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
-        one_body=numpy.zeros((5, 5)),
-        two_body=numpy.zeros((5, 5)))
+# Construct a Hamiltonian for testing
+test_hamiltonian = random_diagonal_coulomb_hamiltonian(4, real=True, seed=26191)
+test_fermion_op = openfermion.get_fermion_operator(test_hamiltonian)
 
 
 def test_hamiltonian_variational_study_init_qubit_operator():
 
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
     study = HamiltonianVariationalStudy(
             'study', ansatz, openfermion.QubitOperator('X0'))
     assert study.hamiltonian == openfermion.QubitOperator('X0')
@@ -85,8 +75,8 @@ def test_hamiltonian_variational_study_init_qubit_operator():
 
 def test_hamiltonian_variational_study_noise():
 
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
-    study = HamiltonianVariationalStudy('study', ansatz, hubbard_hamiltonian)
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
+    study = HamiltonianVariationalStudy('study', ansatz, test_hamiltonian)
 
     numpy.random.seed(10821)
     assert (abs(study.noise()) < abs(study.noise(1e6)) < abs(study.noise(1e5)) <
@@ -95,8 +85,8 @@ def test_hamiltonian_variational_study_noise():
 
 def test_hamiltonian_variational_study_noise_bounds():
 
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
-    study = HamiltonianVariationalStudy('study', ansatz, hubbard_hamiltonian)
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
+    study = HamiltonianVariationalStudy('study', ansatz, test_hamiltonian)
 
     numpy.random.seed(38017)
 
@@ -123,10 +113,10 @@ def test_hamiltonian_variational_study_noise_bounds():
 
 
 def test_hamiltonian_variational_study_optimize():
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
     study = HamiltonianVariationalStudy('study',
                                         ansatz,
-                                        hubbard_model)
+                                        test_fermion_op)
     study.optimize(
             'run',
             OptimizationParams(
@@ -144,11 +134,13 @@ def test_hamiltonian_variational_study_save_load():
     datadir = 'tmp_ffETr2rB49RGP8WE8jer'
     study_name = 'test_hamiltonian_study'
 
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
-    study = HamiltonianVariationalStudy(study_name,
-                                        ansatz,
-                                        hubbard_model,
-                                        datadir=datadir)
+
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
+    study = HamiltonianVariationalStudy(
+            study_name,
+            ansatz,
+            test_fermion_op,
+            datadir=datadir)
     study.optimize(
             'example',
             OptimizationParams(
@@ -161,7 +153,7 @@ def test_hamiltonian_variational_study_save_load():
     assert loaded_study.name == study.name
     assert str(loaded_study.circuit) == str(study.circuit)
     assert loaded_study.datadir == datadir
-    assert loaded_study.hamiltonian == hubbard_model
+    assert loaded_study.hamiltonian == test_fermion_op
     assert len(loaded_study.results) == 1
 
     result, params = loaded_study.results['example']
@@ -177,8 +169,8 @@ def test_hamiltonian_variational_study_save_load():
 
 
 def test_swap_network_trotter_ansatz_value_not_implemented():
-    ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
-    study = HamiltonianVariationalStudy('study', ansatz, hubbard_hamiltonian)
+    ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
+    study = HamiltonianVariationalStudy('study', ansatz, test_hamiltonian)
     trial_result = cirq.TrialResult(
             params=ansatz.param_resolver(ansatz.default_initial_params()),
             measurements={},
@@ -187,23 +179,24 @@ def test_swap_network_trotter_ansatz_value_not_implemented():
         _ = study.value(trial_result)
 
 
-@pytest.mark.parametrize('hamiltonian, include_all_xxyy, atol',
-                         [(hubbard_hamiltonian, True, 5e-6),
-                          (complex_hamiltonian, False, 5e-5)])
-def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
-                                                      include_all_xxyy,
-                                                      atol):
-    """Check that the ansatz with one iteration and default parameters is
-    consistent with time evolution with one Trotter step."""
+@pytest.mark.parametrize(
+        'ansatz_factory, trotter_algorithm, hamiltonian, atol', [
+    (SwapNetworkTrotterAnsatz, LINEAR_SWAP_NETWORK, test_hamiltonian, 5e-5),
+    (SplitOperatorTrotterAnsatz, SPLIT_OPERATOR, test_hamiltonian, 5e-5),
+])
+def test_trotter_ansatzes_evaluate_order_1(
+        ansatz_factory, trotter_algorithm, hamiltonian, atol):
+    """Check that a Trotter aansatz with one iteration and default parameters
+    is consistent with time evolution with one Trotter step."""
 
-    ansatz = SwapNetworkTrotterAnsatz(hamiltonian,
-                                      iterations=1,
-                                      include_all_xxyy=include_all_xxyy)
+    ansatz = ansatz_factory(hamiltonian, iterations=1)
+    qubits = ansatz.qubits
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
-                ansatz.qubits,
+                qubits,
                 openfermion.QuadraticHamiltonian(hamiltonian.one_body),
-                occupied_orbitals=range(len(ansatz.qubits) // 2))
+                occupied_orbitals=range(len(qubits) // 2))
     )
     study = HamiltonianVariationalStudy('study',
                                         ansatz,
@@ -213,15 +206,16 @@ def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
     simulator = cirq.google.XmonSimulator()
 
     # Compute value using ansatz
+    circuit = study.circuit
     result = simulator.simulate(
-            study.circuit,
+            circuit,
             param_resolver=ansatz.param_resolver(
-                study.default_initial_params())
+                study.default_initial_params()),
+            qubit_order = ansatz.qubit_permutation(qubits)
     )
     val = study.value(result)
 
     # Compute value by simulating time evolution
-    qubits = cirq.LineQubit.range(len(ansatz.qubits))
     half_way_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
             one_body=hamiltonian.one_body,
             two_body=0.5 * hamiltonian.two_body)
@@ -232,7 +226,7 @@ def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
                 time=100.,
                 n_steps=1,
                 order=1,
-                algorithm=LINEAR_SWAP_NETWORK)
+                algorithm=trotter_algorithm)
     )
     circuit = preparation_circuit + simulation_circuit
     result = simulator.simulate(circuit)
@@ -243,23 +237,24 @@ def test_swap_network_trotter_ansatz_evaluate_order_1(hamiltonian,
     numpy.testing.assert_allclose(val, correct_val, atol=atol)
 
 
-@pytest.mark.parametrize('hamiltonian, include_all_xxyy, atol',
-                         [(hubbard_hamiltonian, False, 5e-5),
-                          (complex_hamiltonian, True, 5e-5)])
-def test_swap_network_trotter_ansatz_evaluate_order_2(hamiltonian,
-                                                      include_all_xxyy,
-                                                      atol):
-    """Check that the ansatz with two iterations and default parameters is
-    consistent with time evolution with two Trotter steps."""
+@pytest.mark.parametrize(
+        'ansatz_factory, trotter_algorithm, hamiltonian, atol', [
+    (SwapNetworkTrotterAnsatz, LINEAR_SWAP_NETWORK, test_hamiltonian, 5e-5),
+    (SplitOperatorTrotterAnsatz, SPLIT_OPERATOR, test_hamiltonian, 5e-5),
+])
+def test_trotter_ansatzes_evaluate_order_2(
+        ansatz_factory, trotter_algorithm, hamiltonian, atol):
+    """Check that a Trotter ansatz with two iterations and default parameters
+    is consistent with time evolution with two Trotter steps."""
 
-    ansatz = SwapNetworkTrotterAnsatz(hamiltonian,
-                                      iterations=2,
-                                      include_all_xxyy=include_all_xxyy)
+    ansatz = ansatz_factory(hamiltonian, iterations=2)
+    qubits = ansatz.qubits
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
-                ansatz.qubits,
+                qubits,
                 openfermion.QuadraticHamiltonian(hamiltonian.one_body),
-                occupied_orbitals=range(len(ansatz.qubits) // 2))
+                occupied_orbitals=range(len(qubits) // 2))
     )
     study = HamiltonianVariationalStudy('study',
                                         ansatz,
@@ -269,15 +264,16 @@ def test_swap_network_trotter_ansatz_evaluate_order_2(hamiltonian,
     simulator = cirq.google.XmonSimulator()
 
     # Compute value using ansatz
+    circuit = study.circuit
     result = simulator.simulate(
-            study.circuit,
+            circuit,
             param_resolver=ansatz.param_resolver(
-                study.default_initial_params())
+                study.default_initial_params()),
+            qubit_order = ansatz.qubit_permutation(qubits)
     )
     val = study.value(result)
 
     # Compute value by simulating time evolution
-    qubits = cirq.LineQubit.range(len(ansatz.qubits))
     quarter_way_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
             one_body=hamiltonian.one_body,
             two_body=0.25 * hamiltonian.two_body)
@@ -291,14 +287,14 @@ def test_swap_network_trotter_ansatz_evaluate_order_2(hamiltonian,
                 time=50.,
                 n_steps=1,
                 order=1,
-                algorithm=LINEAR_SWAP_NETWORK),
+                algorithm=trotter_algorithm),
             simulate_trotter(
                 qubits,
                 three_quarters_way_hamiltonian,
                 time=50.,
                 n_steps=1,
                 order=1,
-                algorithm=LINEAR_SWAP_NETWORK)
+                algorithm=trotter_algorithm)
     )
     circuit = preparation_circuit + simulation_circuit
     result = simulator.simulate(circuit)

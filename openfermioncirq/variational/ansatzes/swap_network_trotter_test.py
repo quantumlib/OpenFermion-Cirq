@@ -14,21 +14,13 @@ import numpy
 
 import openfermion
 
-from openfermioncirq.variational.swap_network_trotter_ansatz import (
-        SwapNetworkTrotterAnsatz)
+from openfermioncirq.variational.ansatzes import SwapNetworkTrotterAnsatz
 
 
 # Construct a Hubbard model Hamiltonian
 hubbard_model = openfermion.fermi_hubbard(2, 2, 1., 4.)
 hubbard_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(
         hubbard_model)
-
-# Construct a Hamiltonian with complex one-body entries
-grid = openfermion.Grid(2, 2, 1.0)
-jellium = openfermion.jellium_model(grid, spinless=True, plane_wave=False)
-complex_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(jellium)
-complex_hamiltonian.one_body += 1j * numpy.triu(complex_hamiltonian.one_body)
-complex_hamiltonian.one_body -= 1j * numpy.tril(complex_hamiltonian.one_body)
 
 # Construct an empty Hamiltonian
 zero_hamiltonian = openfermion.DiagonalCoulombHamiltonian(

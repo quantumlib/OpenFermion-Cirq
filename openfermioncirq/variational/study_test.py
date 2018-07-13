@@ -40,7 +40,7 @@ class ExampleAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
 
-    def _generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
+    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
         a, b = qubits
         return cirq.Circuit.from_ops(
                 cirq.RotXGate(half_turns=self.params['theta0']).on(a),
@@ -117,9 +117,6 @@ def test_variational_study_num_params():
 
 
 def test_variational_study_ansatz_properties():
-    assert test_study.qubits == test_ansatz.qubits
-    assert test_study.param_names() == test_ansatz.param_names()
-    assert test_study.param_bounds() == test_ansatz.param_bounds()
     numpy.testing.assert_allclose(test_study.default_initial_params(),
                                   test_ansatz.default_initial_params())
 
@@ -300,12 +297,12 @@ def test_variational_study_save_load():
 
 def test_variational_study_black_box_dimension():
     black_box = VariationalStudyBlackBox(test_study)
-    assert black_box.dimension == len(test_study.param_names())
+    assert black_box.dimension == len(test_study.ansatz.param_names())
 
 
 def test_variational_study_black_box_bounds():
     black_box = VariationalStudyBlackBox(test_study)
-    assert black_box.bounds == test_study.param_bounds()
+    assert black_box.bounds == test_study.ansatz.param_bounds()
 
 
 def test_variational_study_black_box_noise_bounds():

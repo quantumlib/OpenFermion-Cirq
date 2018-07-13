@@ -89,7 +89,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.RotZGate(rads=
-                   -self.orbital_energies[i] * 0.5 * time).on(qubits[i])
+                   -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
         # Rotate to the computational basis
@@ -109,7 +109,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.RotZGate(rads=
-                   -self.orbital_energies[i] * 0.5 * time).on(qubits[i])
+                   -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
     def step_qubit_permutation(self,
@@ -155,7 +155,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.Rot11Gate(rads=
-                   -self.orbital_energies[i] * 0.5 * time).on(
+                   -0.5 * self.orbital_energies[i] * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
 
@@ -177,7 +177,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the one-body terms for half of the full time
         yield (cirq.Rot11Gate(rads=
-                   -self.orbital_energies[i] * 0.5 * time).on(
+                   -0.5 * self.orbital_energies[i] * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
 

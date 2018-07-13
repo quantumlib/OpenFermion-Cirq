@@ -51,7 +51,7 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
                        for param_name in self.param_names()}
 
         # Generate the ansatz circuit
-        self.circuit = self._generate_circuit(self.qubits)
+        self.circuit = self.generate_circuit(self.qubits)
 
     @abc.abstractmethod
     def param_names(self) -> Sequence[str]:
@@ -68,21 +68,6 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         """
         return None
 
-    @abc.abstractmethod
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
-        """Produce qubits that can be used by the ansatz circuit."""
-        pass
-
-    @abc.abstractmethod
-    def _generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
-        """Produce the ansatz circuit.
-
-        The circuit should use Symbols stored in `self.params`. To access the
-        Symbol associated with the parameter named 'some_parameter_name', use
-        the expression `self.params['some_parameter_name']`.
-        """
-        pass
-
     def param_resolver(self, param_values: numpy.ndarray) -> cirq.ParamResolver:
         """Interprets parameters input as an array of real numbers."""
         # Default: leave the parameters unchanged
@@ -92,3 +77,32 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         """Suggested initial parameter settings."""
         # Default: zeros
         return numpy.zeros(len(self.params))
+
+    @abc.abstractmethod
+    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+        """Produce qubits that can be used by the ansatz circuit."""
+        pass
+
+    @abc.abstractmethod
+    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
+        """Produce the ansatz circuit.
+
+        The circuit should use Symbols stored in `self.params`. To access the
+        Symbol associated with the parameter named 'some_parameter_name', use
+        the expression `self.params['some_parameter_name']`.
+        """
+        pass
+
+    # TODO also need to consider mode permutation
+    def qubit_permutation(self, qubits: Sequence[cirq.QubitId]
+                          ) -> Sequence[cirq.QubitId]:
+        """The qubit permutation induced by the ansatz circuit.
+
+        An ansatz circuit may induce a permutation on its qubits. For example,
+        an ansatz that applies interactions using an odd number of swap networks
+        will reverse the order of the qubits. Keeping track of the qubit
+        ordering is important for composing circuit primitives and calculating
+        properties of the final state.
+        """
+        # Default: identity permutation
+        return qubits

@@ -141,7 +141,6 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         self._ansatz = ansatz
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
         self._circuit = self._preparation_circuit + self._ansatz.circuit
-        self._num_params = len(self.param_names())
         self.datadir = datadir
 
     @abc.abstractmethod
@@ -382,23 +381,14 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return self._circuit
 
     @property
-    def qubits(self) -> cirq.Circuit:
-        """The qubits used by the study circuit."""
-        return self._ansatz.qubits
+    def ansatz(self) -> VariationalAnsatz:
+        """The ansatz associated with the study."""
+        return self._ansatz
 
     @property
     def num_params(self) -> int:
         """The number of parameters of the ansatz."""
-        return self._num_params
-
-    # TODO expose ansatz instead of the methods below
-    def param_names(self) -> Sequence[str]:
-        """The names of the parameters of the ansatz."""
-        return self._ansatz.param_names()
-
-    def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
-        """Optional bounds on the parameters."""
-        return self._ansatz.param_bounds()
+        return len(self.ansatz.params)
 
     def default_initial_params(self) -> numpy.ndarray:
         """Suggested initial parameter settings."""
@@ -480,7 +470,7 @@ class VariationalStudyBlackBox(BlackBox):
     @property
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Optional bounds on the inputs to the objective function."""
-        return self.study.param_bounds()
+        return self.study.ansatz.param_bounds()
 
     def evaluate(self,
                  x: numpy.ndarray) -> float:

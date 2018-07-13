@@ -37,6 +37,7 @@ from openfermioncirq.primitives.swap_network import swap_network
 from openfermioncirq.trotter import simulate_trotter
 
 from openfermioncirq.variational import (
+        SplitOperatorTrotterAnsatz,
         SwapNetworkTrotterAnsatz,
         VariationalAnsatz,
         VariationalStudy)
