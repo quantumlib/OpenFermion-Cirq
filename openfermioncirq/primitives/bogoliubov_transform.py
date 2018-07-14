@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Sequence, Set, Tuple, Union, Iterable, cast
+from typing import Optional, Sequence, Set, Tuple, Union, Iterable, cast
 
 import numpy
 
@@ -25,7 +25,7 @@ from openfermioncirq import YXXY
 
 def bogoliubov_transform(qubits: Sequence[cirq.QubitId],
                          transformation_matrix: numpy.ndarray,
-                         initial_state: int=None) -> cirq.OP_TREE:
+                         initial_state: Optional[int]=None) -> cirq.OP_TREE:
     r"""Perform a Bogoliubov transformation.
 
     This circuit performs the transformation to a basis determined by a new set
@@ -68,6 +68,10 @@ def bogoliubov_transform(qubits: Sequence[cirq.QubitId],
             function to assume that the given qubits are in the computational
             basis state corresponding to this integer. This assumption enables
             optimizations that result in a circuit with fewer gates.
+            Integers are mapped to computational basis states via "big endian"
+            ordering of the binary representation of the integer. For example,
+            The computational basis state on five qubits with the first and
+            second qubits set to one is 0b11000, which has the integer value 24.
     """
     n_qubits = len(qubits)
     shape = transformation_matrix.shape
@@ -100,7 +104,7 @@ def _occupied_orbitals(computational_basis_state: int, n_qubits) -> Set[int]:
 def _slater_basis_change(qubits: Sequence[cirq.QubitId],
                          transformation_matrix: numpy.ndarray,
                          initial_state: int=None) -> cirq.OP_TREE:
-    n_qubits = transformation_matrix.shape[0]
+    n_qubits = len(qubits)
 
     if initial_state is None:
         decomposition, _ = givens_decomposition_square(
@@ -112,7 +116,7 @@ def _slater_basis_change(qubits: Sequence[cirq.QubitId],
         n_occupied = len(occupied_orbitals)
         # Flip bits so that the first n_occupied are 1 and the rest 0
         yield (cirq.X(qubits[j]) for j in range(n_qubits)
-                if (j < n_occupied) != (j in occupied_orbitals))
+               if (j < n_occupied) != (j in occupied_orbitals))
         circuit_description = slater_determinant_preparation_circuit(
                 transformation_matrix)
 
@@ -123,7 +127,7 @@ def _slater_basis_change(qubits: Sequence[cirq.QubitId],
 def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
                            transformation_matrix: numpy.ndarray,
                            initial_state: int=None) -> cirq.OP_TREE:
-    n_qubits = transformation_matrix.shape[0]
+    n_qubits = len(qubits)
 
     # Rearrange the transformation matrix because the OpenFermion routine
     # expects it to describe annihilation operators rather than creation
@@ -149,8 +153,7 @@ def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
 def _ops_from_givens_rotations_circuit_description(
         qubits: Sequence[cirq.QubitId],
         circuit_description: Iterable[Iterable[
-            Union[str, Tuple[int, int, float, float]]]]
-) -> cirq.OP_TREE:
+            Union[str, Tuple[int, int, float, float]]]]) -> cirq.OP_TREE:
     """Yield operations from a Givens rotations circuit obtained from
     OpenFermion.
     """
