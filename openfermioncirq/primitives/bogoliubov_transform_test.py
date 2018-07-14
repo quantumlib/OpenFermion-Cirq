@@ -24,7 +24,7 @@ from openfermioncirq import bogoliubov_transform
 def fourier_transform_matrix(n_modes):
     root_of_unity = numpy.exp(2j * numpy.pi / n_modes)
     return numpy.array([[root_of_unity ** (j * k) for k in range(n_modes)]
-                        for j in range(n_modes)])
+                        for j in range(n_modes)]) / numpy.sqrt(n_modes)
 
 
 @pytest.mark.parametrize(
@@ -75,7 +75,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
 
     # Pick some random eigenstates to prepare, which correspond to random
     # subsets of [0 ... n_qubits - 1]
-    n_eigenstates = min(1 << n_qubits, 5)
+    n_eigenstates = min(2**n_qubits, 5)
     subsets = [numpy.random.choice(range(n_qubits),
                                    numpy.random.randint(1, n_qubits + 1),
                                    False)
@@ -89,7 +89,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                   constant)
 
         # Construct initial state
-        initial_state = sum(1 << (n_qubits - 1 - int(i))
+        initial_state = sum(2**(n_qubits - 1 - int(i))
                             for i in occupied_orbitals)
 
         # Get the state using a circuit simulation
@@ -113,6 +113,70 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                 quad_ham_sparse.dot(state1), energy * state1, atol=atol)
         numpy.testing.assert_allclose(
                 quad_ham_sparse.dot(state2), energy * state2, atol=atol)
+
+
+@pytest.mark.parametrize('n_qubits', [
+    4, 5
+])
+def test_bogoliubov_transform_fourier_transform_inverse_is_dagger(
+        n_qubits):
+    u = fourier_transform_matrix(n_qubits)
+
+    qubits = cirq.LineQubit.range(n_qubits)
+
+    circuit = cirq.Circuit.from_ops(
+        bogoliubov_transform(qubits, u),
+        bogoliubov_transform(qubits, u.T.conj()))
+
+    initial_state = numpy.random.randn(2**n_qubits).astype(
+            numpy.complex64, copy=False)
+    initial_state /= numpy.linalg.norm(initial_state)
+
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(circuit, initial_state=initial_state)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+            result.final_state, initial_state, atol=1e-5)
+
+
+@pytest.mark.parametrize('n_qubits, real, particle_conserving', [
+    (5, True, True),
+    (5, False, True),
+    (5, True, False),
+    (5, False, False),
+])
+def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
+        n_qubits, real, particle_conserving):
+    quad_ham = random_quadratic_hamiltonian(
+            n_qubits,
+            real=real,
+            conserves_particle_number=particle_conserving,
+            seed=46533)
+    transformation_matrix = quad_ham.diagonalizing_bogoliubov_transform()
+
+    qubits = cirq.LineQubit.range(n_qubits)
+
+    if transformation_matrix.shape == (n_qubits, n_qubits):
+        daggered_transformation_matrix = transformation_matrix.T.conj()
+    else:
+        left_block = transformation_matrix[:, :n_qubits]
+        right_block = transformation_matrix[:, n_qubits:]
+        daggered_transformation_matrix = numpy.block(
+            [left_block.T.conj(), right_block.T])
+
+    circuit = cirq.Circuit.from_ops(
+        bogoliubov_transform(qubits, transformation_matrix),
+        bogoliubov_transform(qubits, daggered_transformation_matrix))
+
+    initial_state = numpy.random.randn(2**n_qubits).astype(
+            numpy.complex64, copy=False)
+    initial_state /= numpy.linalg.norm(initial_state)
+
+    simulator = cirq.google.XmonSimulator()
+    result = simulator.simulate(circuit, initial_state=initial_state)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+            result.final_state, initial_state, atol=1e-5)
 
 
 def test_bogoliubov_transform_bad_shape_raises_error():

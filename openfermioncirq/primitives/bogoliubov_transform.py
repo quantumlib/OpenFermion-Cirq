@@ -107,9 +107,13 @@ def _slater_basis_change(qubits: Sequence[cirq.QubitId],
     n_qubits = len(qubits)
 
     if initial_state is None:
-        decomposition, _ = givens_decomposition_square(
+        decomposition, diagonal = givens_decomposition_square(
                 transformation_matrix)
         circuit_description = list(reversed(decomposition))
+        # The initial state is not a computational basis state so the
+        # phases left on the diagonal in the decomposition matter
+        yield (cirq.RotZGate(rads=numpy.angle(diagonal[j])).on(qubits[j])
+               for j in range(n_qubits))
     else:
         occupied_orbitals = _occupied_orbitals(initial_state, n_qubits)
         transformation_matrix = transformation_matrix[list(occupied_orbitals)]
@@ -137,13 +141,19 @@ def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
     transformation_matrix = numpy.block(
             [numpy.conjugate(right_block), numpy.conjugate(left_block)])
 
-    decomposition, left_decomposition, _, _ = (
+    decomposition, left_decomposition, _, left_diagonal = (
         fermionic_gaussian_decomposition(transformation_matrix))
 
     if initial_state == 0:
         # Starting with the vacuum state yields additional symmetry
         circuit_description = list(reversed(decomposition))
     else:
+        if initial_state is None:
+            # The initial state is not a computational basis state so the
+            # phases left on the diagonal in the Givens decomposition matter
+            yield (cirq.RotZGate(rads=
+                       numpy.angle(left_diagonal[j])).on(qubits[j])
+                   for j in range(n_qubits))
         circuit_description = list(reversed(decomposition + left_decomposition))
 
     yield _ops_from_givens_rotations_circuit_description(

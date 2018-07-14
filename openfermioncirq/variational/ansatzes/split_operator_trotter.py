@@ -50,7 +50,11 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
     │    │           │           │
     │    │           YXXY────────#2^-0.392
     │    │           │           │
+    │    Z           │           Z
+    │    │           │           │
     │    Z^U1        Z^U2        Z^U3
+    │    │           │           │
+    │    Z           │           Z
     │    │           │           │
     │    │           YXXY────────#2^0.392
     │    │           │           │
@@ -94,7 +98,11 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
     │    │           │           │
     #2───YXXY^-0.392 │           │
     │    │           │           │
+    Z    │           Z           │
+    │    │           │           │
     Z^U3 Z^U2        Z^U1        │
+    │    │           │           │
+    Z    │           Z           │
     │    │           │           │
     #2───YXXY^0.392  │           │
     │    │           │           │
