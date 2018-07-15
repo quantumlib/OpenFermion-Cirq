@@ -61,7 +61,6 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
     :math:`\sum_{l=0}^{L-1} (\sum_{pq} |g_{lpq}|)^2 |\lambda_l| < x`
     where x is a truncation threshold specified by user.
     """
-    # TODO Add functionality for merging basis transformations.
 
     supported_types = {InteractionOperator}
 
@@ -152,13 +151,28 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
                for j in range(n_qubits))
 
         # Simulate each singular vector of the two-body terms.
+        prior_basis_matrix = numpy.identity(n_qubits, complex)
         for j in range(len(self.eigenvalues)):
 
+            # Get the basis change matrix and its inverse.
             two_body_coefficients = self.scaled_density_density_matrices[j]
             basis_change_matrix = self.basis_change_matrices[j]
 
-            # Perform basis transformation.
-            yield cirq.inverse(
+            # If the basis change matrix is unitary, merge rotations.
+            # Otherwise, you must simulate two basis rotations.
+            is_unitary = cirq.is_unitary(basis_change_matrix)
+            if is_unitary:
+                inverse_basis_matrix = numpy.conjugate(
+                    numpy.transpose(basis_change_matrix))
+                merged_basis_matrix = numpy.dot(prior_basis_matrix,
+                                                inverse_basis_matrix)
+                yield bogoliubov_transform(qubits, merged_basis_matrix)
+            else:
+                # TODO add LiH test to cover this.
+                # coverage: ignore
+                if j:
+                    yield bogoliubov_transform(qubits, prior_basis_matrix)
+                yield cirq.inverse(
                     bogoliubov_transform(qubits, basis_change_matrix))
 
             # Simulate the off-diagonal two-body terms.
@@ -173,8 +187,19 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
                        -two_body_coefficients[k, k] * time).on(qubits[k])
                    for k in range(n_qubits))
 
-            # Undo basis transformation.
-            yield bogoliubov_transform(qubits, basis_change_matrix)
+            # Undo basis transformation non-unitary case.
+            # Else, set basis change matrix to prior matrix for merging.
+            if is_unitary:
+                prior_basis_matrix = basis_change_matrix
+            else:
+                # TODO add LiH test to cover this.
+                # coverage: ignore
+                yield bogoliubov_transform(qubits, basis_change_matrix)
+                prior_basis_matrix = numpy.identity(n_qubits, complex)
+
+        # Undo final basis transformation in unitary case.
+        if is_unitary:
+            yield bogoliubov_transform(qubits, prior_basis_matrix)
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.QubitId],
@@ -232,13 +257,28 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                for j in range(n_qubits))
 
         # Simulate each singular vector of the two-body terms.
+        prior_basis_matrix = numpy.identity(n_qubits, complex)
         for j in range(len(self.eigenvalues)):
 
+            # Get the basis change matrix and its inverse.
             two_body_coefficients = self.scaled_density_density_matrices[j]
             basis_change_matrix = self.basis_change_matrices[j]
 
-            # Perform basis transformation.
-            yield cirq.inverse(
+            # If the basis change matrix is unitary, merge rotations.
+            # Otherwise, you must simulate two basis rotations.
+            is_unitary = cirq.is_unitary(basis_change_matrix)
+            if is_unitary:
+                inverse_basis_matrix = numpy.conjugate(
+                    numpy.transpose(basis_change_matrix))
+                merged_basis_matrix = numpy.dot(prior_basis_matrix,
+                                                inverse_basis_matrix)
+                yield bogoliubov_transform(qubits, merged_basis_matrix)
+            else:
+                # TODO add LiH test to cover this.
+                # coverage: ignore
+                if j:
+                    yield bogoliubov_transform(qubits, prior_basis_matrix)
+                yield cirq.inverse(
                     bogoliubov_transform(qubits, basis_change_matrix))
 
             # Simulate the off-diagonal two-body terms.
@@ -255,8 +295,19 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                            control_qubit, qubits[k])
                    for k in range(n_qubits))
 
-            # Undo basis transformation.
-            yield bogoliubov_transform(qubits, basis_change_matrix)
+            # Undo basis transformation non-unitary case.
+            # Else, set basis change matrix to prior matrix for merging.
+            if is_unitary:
+                prior_basis_matrix = basis_change_matrix
+            else:
+                # TODO add LiH test to cover this.
+                # coverage: ignore
+                yield bogoliubov_transform(qubits, basis_change_matrix)
+                prior_basis_matrix = numpy.identity(n_qubits, complex)
+
+        # Undo final basis transformation in unitary case.
+        if is_unitary:
+            yield bogoliubov_transform(qubits, prior_basis_matrix)
 
         # Apply phase from constant term
         yield cirq.RotZGate(rads=-self.constant * time).on(control_qubit)
