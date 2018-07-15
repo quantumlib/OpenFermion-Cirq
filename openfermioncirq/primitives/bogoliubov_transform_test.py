@@ -16,7 +16,8 @@ import pytest
 import cirq
 from cirq import LineQubit
 from openfermion import get_sparse_operator
-from openfermion.utils._testing_utils import random_quadratic_hamiltonian
+from openfermion.utils import (
+        random_quadratic_hamiltonian, random_unitary_matrix)
 
 from openfermioncirq import bogoliubov_transform
 
@@ -115,38 +116,36 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                 quad_ham_sparse.dot(state2), energy * state2, atol=atol)
 
 
-@pytest.mark.parametrize('n_qubits', [
-    4, 5
+@pytest.mark.parametrize('n_qubits, atol', [
+    (4, 1e-7),
+    (5, 1e-7),
 ])
 def test_bogoliubov_transform_fourier_transform_inverse_is_dagger(
-        n_qubits):
+        n_qubits, atol):
     u = fourier_transform_matrix(n_qubits)
 
     qubits = cirq.LineQubit.range(n_qubits)
 
-    circuit = cirq.Circuit.from_ops(
-        bogoliubov_transform(qubits, u),
-        bogoliubov_transform(qubits, u.T.conj()))
+    circuit1 = cirq.Circuit.from_ops(
+            cirq.inverse(bogoliubov_transform(qubits, u)))
 
-    initial_state = numpy.random.randn(2**n_qubits).astype(
-            numpy.complex64, copy=False)
-    initial_state /= numpy.linalg.norm(initial_state)
-
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.simulate(circuit, initial_state=initial_state)
+    circuit2 = cirq.Circuit.from_ops(
+            bogoliubov_transform(qubits, u.T.conj()))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state, initial_state, atol=1e-5)
+            circuit1.to_unitary_matrix(),
+            circuit2.to_unitary_matrix(),
+            atol=atol)
 
 
-@pytest.mark.parametrize('n_qubits, real, particle_conserving', [
-    (5, True, True),
-    (5, False, True),
-    (5, True, False),
-    (5, False, False),
+@pytest.mark.parametrize('n_qubits, real, particle_conserving, atol', [
+    (5, True, True, 1e-7),
+    (5, False, True, 1e-7),
+    (5, True, False, 1e-7),
+    (5, False, False, 1e-7),
 ])
 def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
-        n_qubits, real, particle_conserving):
+        n_qubits, real, particle_conserving, atol):
     quad_ham = random_quadratic_hamiltonian(
             n_qubits,
             real=real,
@@ -164,19 +163,38 @@ def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
         daggered_transformation_matrix = numpy.block(
             [left_block.T.conj(), right_block.T])
 
-    circuit = cirq.Circuit.from_ops(
-        bogoliubov_transform(qubits, transformation_matrix),
-        bogoliubov_transform(qubits, daggered_transformation_matrix))
+    circuit1 = cirq.Circuit.from_ops(
+            cirq.inverse(bogoliubov_transform(qubits, transformation_matrix)))
 
-    initial_state = numpy.random.randn(2**n_qubits).astype(
-            numpy.complex64, copy=False)
-    initial_state /= numpy.linalg.norm(initial_state)
-
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.simulate(circuit, initial_state=initial_state)
+    circuit2 = cirq.Circuit.from_ops(
+            bogoliubov_transform(qubits, daggered_transformation_matrix))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state, initial_state, atol=1e-5)
+            circuit1.to_unitary_matrix(),
+            circuit2.to_unitary_matrix())
+
+
+@pytest.mark.parametrize('n_qubits, atol', [
+    (4, 1e-7),
+    (5, 1e-7),
+])
+def test_bogoliubov_transform_compose(n_qubits, atol):
+    u = random_unitary_matrix(n_qubits, seed=24964)
+    v = random_unitary_matrix(n_qubits, seed=33656)
+
+    qubits = cirq.LineQubit.range(n_qubits)
+
+    circuit1 = cirq.Circuit.from_ops(
+            bogoliubov_transform(qubits, u),
+            bogoliubov_transform(qubits, v))
+
+    circuit2 = cirq.Circuit.from_ops(
+            bogoliubov_transform(qubits, u.dot(v)))
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+            circuit1.to_unitary_matrix(),
+            circuit2.to_unitary_matrix(),
+            atol=atol)
 
 
 def test_bogoliubov_transform_bad_shape_raises_error():
