@@ -19,8 +19,8 @@ Getting started
 ===============
 
 Installing OpenFermion-Cirq requires pip. Make sure that you are using an up-to-date version of it.
-Once installation is complete, be sure to take a look at the
-`ipython notebook demo <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/examples/tutorial.ipynb>`__.
+Once installation is complete, be sure to take a look at our ipython notebook tutorials
+`here <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/examples>`__.
 
 Developer install
 -----------------
