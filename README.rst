@@ -1,13 +1,13 @@
 .. image:: https://github.com/quantumlib/openfermion-cirq/blob/master/dev_tools/logo.svg
 
-`OpenFermion <http://openfermion.org>`_ is an open source library for
+**Alpha Release**. `OpenFermion <http://openfermion.org>`_ is an open source library for
 obtaining and manipulating representations of fermionic systems (including
 quantum chemistry) for simulation on quantum computers.
 `Cirq <https://github.com/quantumlib/Cirq>`_ is an open source library for
 writing, manipulating, and optimizing quantum circuits and running them
-against quantum computers and simulators. OpenFermion-Cirq is a plugin
-library which uses OpenFermion to compile and compose quantum simulation
-circuits in Cirq.
+against quantum computers and simulators. OpenFermion-Cirq extends the functionality of
+OpenFermion by providing routines and tools for using Cirq to compile and compose circuits
+for quantum simulation algorithms.
 
 .. image:: https://travis-ci.com/quantumlib/OpenFermion-Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
   :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
