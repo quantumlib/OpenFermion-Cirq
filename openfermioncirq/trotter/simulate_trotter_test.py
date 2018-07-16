@@ -134,15 +134,13 @@ def test_simulate_trotter_simulate(
 
     n_qubits = openfermion.count_qubits(hamiltonian)
     qubits = cirq.LineQubit.range(n_qubits)
-    simulator = cirq.google.XmonSimulator()
+
+    start_state = initial_state
 
     circuit = cirq.Circuit.from_ops(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm))
-    start_state = initial_state.astype(numpy.complex64, copy=False)
-    result = simulator.simulate(circuit,
-                                qubit_order=qubits,
-                                initial_state=start_state)
-    final_state = result.final_state
+
+    final_state = circuit.apply_unitary_effect_to_state(start_state)
     correct_state = exact_state
     assert fidelity(final_state, correct_state) > result_fidelity
     # Make sure the time wasn't too small
@@ -175,21 +173,17 @@ def test_simulate_trotter_simulate_controlled(
 
     n_qubits = openfermion.count_qubits(hamiltonian)
     qubits = cirq.LineQubit.range(n_qubits)
-    simulator = cirq.google.XmonSimulator()
 
     control = cirq.LineQubit(-1)
     zero = [1, 0]
     one = [0, 1]
     start_state = (numpy.kron(zero, initial_state)
                    + numpy.kron(one, initial_state)) / numpy.sqrt(2)
-    start_state = start_state.astype(numpy.complex64, copy=False)
 
     circuit = cirq.Circuit.from_ops(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm, control))
-    result = simulator.simulate(circuit,
-                                qubit_order=[control] + qubits,
-                                initial_state=start_state)
-    final_state = result.final_state
+
+    final_state = circuit.apply_unitary_effect_to_state(start_state)
     correct_state = (numpy.kron(zero, initial_state)
                      + numpy.kron(one, exact_state)) / numpy.sqrt(2)
     assert fidelity(final_state, correct_state) > result_fidelity
