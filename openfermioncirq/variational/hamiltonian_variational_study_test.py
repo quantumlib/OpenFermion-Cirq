@@ -202,14 +202,7 @@ def test_trotter_ansatzes_evaluate_order_1(
     simulator = cirq.google.XmonSimulator()
 
     # Compute value using ansatz
-    circuit = study.circuit
-    result = simulator.simulate(
-            circuit,
-            param_resolver=ansatz.param_resolver(
-                study.default_initial_params()),
-            qubit_order = ansatz.qubit_permutation(qubits)
-    )
-    val = study.value(result)
+    val = study.evaluate(study.default_initial_params())
 
     # Compute value by simulating time evolution
     half_way_hamiltonian = openfermion.DiagonalCoulombHamiltonian(
@@ -260,14 +253,7 @@ def test_trotter_ansatzes_evaluate_order_2(
     simulator = cirq.google.XmonSimulator()
 
     # Compute value using ansatz
-    circuit = study.circuit
-    result = simulator.simulate(
-            circuit,
-            param_resolver=ansatz.param_resolver(
-                study.default_initial_params()),
-            qubit_order = ansatz.qubit_permutation(qubits)
-    )
-    val = study.value(result)
+    val = study.evaluate(study.default_initial_params())
 
     # Compute value by simulating time evolution
     quarter_way_hamiltonian = openfermion.DiagonalCoulombHamiltonian(

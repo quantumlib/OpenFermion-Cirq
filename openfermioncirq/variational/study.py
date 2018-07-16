@@ -126,8 +126,9 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         # Default: evaluate using Xmon simulator
         simulator = cirq.google.XmonSimulator()
         result = simulator.simulate(
-                     self.circuit,
-                     param_resolver=self._ansatz.param_resolver(param_values))
+                self.circuit,
+                param_resolver=self._ansatz.param_resolver(param_values),
+                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
         return self.value(result)
 
     def evaluate_with_cost(self,
