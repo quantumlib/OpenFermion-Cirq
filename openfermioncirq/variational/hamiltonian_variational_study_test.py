@@ -212,7 +212,7 @@ def test_trotter_ansatzes_evaluate_order_1(
             simulate_trotter(
                 qubits,
                 half_way_hamiltonian,
-                time=100.,
+                time=ansatz.adiabatic_evolution_time,
                 n_steps=1,
                 order=1,
                 algorithm=trotter_algorithm)
@@ -266,14 +266,14 @@ def test_trotter_ansatzes_evaluate_order_2(
             simulate_trotter(
                 qubits,
                 quarter_way_hamiltonian,
-                time=50.,
+                time=0.5 * ansatz.adiabatic_evolution_time,
                 n_steps=1,
                 order=1,
                 algorithm=trotter_algorithm),
             simulate_trotter(
                 qubits,
                 three_quarters_way_hamiltonian,
-                time=50.,
+                time=0.5 * ansatz.adiabatic_evolution_time,
                 n_steps=1,
                 order=1,
                 algorithm=trotter_algorithm)
