@@ -13,19 +13,19 @@
 """Gates useful for simulating fermions."""
 
 from openfermioncirq.gates.common_gates import (
-        FSWAP,
-        FermionicSwapGate,
-        XXYY,
-        XXYYGate,
-        YXXY,
-        YXXYGate,
-        ZZ,
-        ZZGate)
+    FSWAP,
+    FermionicSwapGate,
+    XXYY,
+    XXYYGate,
+    YXXY,
+    YXXYGate,
+    ZZ,
+    ZZGate)
 
 from openfermioncirq.gates.three_qubit_gates import (
-        CCZ,
-        CXXYY,
-        CYXXY,
-        ControlledXXYYGate,
-        ControlledYXXYGate,
-        Rot111Gate)
+    CCZ,
+    CXXYY,
+    CYXXY,
+    ControlledXXYYGate,
+    ControlledYXXYGate,
+    Rot111Gate)

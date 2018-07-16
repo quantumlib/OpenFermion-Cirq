@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Container, Iterable, Sequence, Set, Tuple, Union, cast
+from typing import Iterable, Sequence, Set, Tuple, Union, cast
 
 import numpy
 
@@ -26,7 +26,7 @@ from openfermioncirq import YXXY
 def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
                            quadratic_hamiltonian: QuadraticHamiltonian,
                            occupied_orbitals: Sequence[int]=None,
-                           initial_state: Union[int, Container[int]]=0
+                           initial_state: Union[int, Sequence[int]]=0
                            ) -> cirq.OP_TREE:
     """Prepare a fermionic Gaussian state from a computational basis state.
 
@@ -44,13 +44,13 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
             The default behavior is to fill the orbitals with negative energy,
             i.e., prepare the ground state.
         initial_state: The computational basis state that the qubits start in.
-            This can be either an integer or a container of integers.
+            This can be either an integer or a sequence of integers.
             If an integer, it is mapped to a computational basis state via
             "big endian" ordering of the binary representation of the integer.
             For example, the computational basis state on five qubits with
             the first and second qubits set to one is 0b11000, which is 24
             in decimal.
-            If a container of integers, then it contains the indices of the
+            If a sequence of integers, then it contains the indices of the
             qubits that are set to one (indexing starts from 0). For
             example, the list [2, 3] represents qubits 2 and 3 being set to one.
             Default is 0, the all zeros state.
@@ -75,7 +75,7 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
 
 def prepare_slater_determinant(qubits: Sequence[cirq.QubitId],
                                slater_determinant_matrix: numpy.ndarray,
-                               initial_state: Union[int, Container[int]]=0
+                               initial_state: Union[int, Sequence[int]]=0
                                ) -> cirq.OP_TREE:
     r"""Prepare a Slater determinant from a computational basis state.
 

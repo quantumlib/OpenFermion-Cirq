@@ -11,24 +11,24 @@
 # limitations under the License.
 
 from openfermioncirq.gates import (
-        CCZ,
-        CXXYY,
-        CYXXY,
-        ControlledXXYYGate,
-        ControlledYXXYGate,
-        FSWAP,
-        FermionicSwapGate,
-        Rot111Gate,
-        XXYY,
-        XXYYGate,
-        YXXY,
-        YXXYGate,
-        ZZ,
-        ZZGate)
+    CCZ,
+    CXXYY,
+    CYXXY,
+    ControlledXXYYGate,
+    ControlledYXXYGate,
+    FSWAP,
+    FermionicSwapGate,
+    Rot111Gate,
+    XXYY,
+    XXYYGate,
+    YXXY,
+    YXXYGate,
+    ZZ,
+    ZZGate)
 
 from openfermioncirq.primitives import (
-        prepare_gaussian_state,
-        prepare_slater_determinant)
+    prepare_gaussian_state,
+    prepare_slater_determinant)
 
 from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
 
@@ -37,16 +37,16 @@ from openfermioncirq.primitives.swap_network import swap_network
 from openfermioncirq.trotter import simulate_trotter
 
 from openfermioncirq.variational import (
-        SplitOperatorTrotterAnsatz,
-        SwapNetworkTrotterAnsatz,
-        VariationalAnsatz,
-        VariationalStudy)
+    SplitOperatorTrotterAnsatz,
+    SwapNetworkTrotterAnsatz,
+    VariationalAnsatz,
+    VariationalStudy)
 
 from openfermioncirq.variational import (
-        HamiltonianVariationalStudy,
-        OptimizationParams,
-        SwapNetworkTrotterAnsatz,
-        VariationalAnsatz,
-        VariationalStudy)
+    HamiltonianVariationalStudy,
+    OptimizationParams,
+    SwapNetworkTrotterAnsatz,
+    VariationalAnsatz,
+    VariationalStudy)
 
 from ._version import __version__

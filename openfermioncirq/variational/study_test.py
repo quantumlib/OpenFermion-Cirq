@@ -106,9 +106,9 @@ test_algorithm = ExampleAlgorithm()
 
 def test_variational_study_circuit():
     assert (test_study.circuit.to_text_diagram().strip() == """
-0: ───X───X^theta0───@───X^theta0───M───
+0: ───X───X^theta0───@───X^theta0───M('all')───
                      │              │
-1: ───────X^theta1───@───X^theta1───M───
+1: ───────X^theta1───@───X^theta1───M──────────
 """.strip())
 
 

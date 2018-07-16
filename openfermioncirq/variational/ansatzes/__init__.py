@@ -11,7 +11,7 @@
 # limitations under the License.
 
 from openfermioncirq.variational.ansatzes.split_operator_trotter import (
-        SplitOperatorTrotterAnsatz)
+    SplitOperatorTrotterAnsatz)
 
 from openfermioncirq.variational.ansatzes.swap_network_trotter import (
-        SwapNetworkTrotterAnsatz)
+    SwapNetworkTrotterAnsatz)

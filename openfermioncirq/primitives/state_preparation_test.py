@@ -10,8 +10,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Container
-
 import numpy
 import pytest
 
@@ -56,7 +54,7 @@ def test_prepare_gaussian_state(n_qubits,
             prepare_gaussian_state(
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
-    if isinstance(initial_state, Container):
+    if isinstance(initial_state, list):
         initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
     result = simulator.simulate(circuit, initial_state=initial_state)
     state = result.final_state
@@ -100,7 +98,7 @@ def test_prepare_slater_determinant(slater_determinant_matrix,
             prepare_slater_determinant(
                 qubits, slater_determinant_matrix,
                 initial_state=initial_state))
-    if isinstance(initial_state, Container):
+    if isinstance(initial_state, list):
         initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
     result = simulator.simulate(circuit, initial_state=initial_state)
     state = result.final_state

@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from typing import Container
+
 import numpy
 import pytest
 
@@ -32,7 +34,7 @@ def fourier_transform_matrix(n_modes):
         'transformation_matrix, initial_state, correct_state',
         [(fourier_transform_matrix(3), 4, numpy.array(
             [0, 1, 1, 0, 1, 0, 0, 0]) / numpy.sqrt(3)),
-         (fourier_transform_matrix(3), 3, numpy.array(
+         (fourier_transform_matrix(3), [1, 2], numpy.array(
             [0, 0, 0, numpy.exp(2j * numpy.pi / 3) - 1,
                 0, 1 - numpy.exp(2j * numpy.pi / 3),
                 numpy.exp(2j * numpy.pi / 3) - 1, 0]) / 3),
@@ -47,6 +49,9 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
 
     circuit = cirq.Circuit.from_ops(bogoliubov_transform(
         qubits, transformation_matrix, initial_state=initial_state))
+
+    if isinstance(initial_state, Container):
+        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
     result = simulator.simulate(circuit, initial_state=initial_state)
     state = result.final_state
 

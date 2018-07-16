@@ -11,15 +11,15 @@
 # limitations under the License.
 
 from openfermioncirq.variational.ansatz import (
-        VariationalAnsatz)
+    VariationalAnsatz)
 
 from openfermioncirq.variational.ansatzes import (
-        SplitOperatorTrotterAnsatz,
-        SwapNetworkTrotterAnsatz)
+    SplitOperatorTrotterAnsatz,
+    SwapNetworkTrotterAnsatz)
 
 from openfermioncirq.variational.hamiltonian_variational_study import (
-        HamiltonianVariationalStudy)
+    HamiltonianVariationalStudy)
 
 from openfermioncirq.variational.study import (
-        OptimizationParams,
-        VariationalStudy)
+    OptimizationParams,
+    VariationalStudy)

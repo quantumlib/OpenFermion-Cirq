@@ -11,18 +11,18 @@
 #   limitations under the License.
 
 from openfermioncirq.optimization.algorithm import (
-        OptimizationAlgorithm,
-        OptimizationParams)
+    OptimizationAlgorithm,
+    OptimizationParams)
 
 from openfermioncirq.optimization.black_box import BlackBox
 
 from openfermioncirq.optimization.result import (
-        OptimizationResult,
-        OptimizationTrialResult)
+    OptimizationResult,
+    OptimizationTrialResult)
 
 from openfermioncirq.optimization.scipy import (
-        COBYLA,
-        L_BFGS_B,
-        NELDER_MEAD,
-        SLSQP,
-        ScipyOptimizationAlgorithm)
+    COBYLA,
+    L_BFGS_B,
+    NELDER_MEAD,
+    SLSQP,
+    ScipyOptimizationAlgorithm)

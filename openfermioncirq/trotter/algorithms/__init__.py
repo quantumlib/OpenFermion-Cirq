@@ -11,11 +11,11 @@
 # limitations under the License.
 
 from openfermioncirq.trotter.algorithms.linear_swap_network import (
-        LINEAR_SWAP_NETWORK)
+    LINEAR_SWAP_NETWORK)
 
 from openfermioncirq.trotter.algorithms.low_rank import (
-        LOW_RANK,
-        LowRankTrotterAlgorithm)
+    LOW_RANK,
+    LowRankTrotterAlgorithm)
 
 from openfermioncirq.trotter.algorithms.split_operator import (
-        SPLIT_OPERATOR)
+    SPLIT_OPERATOR)
