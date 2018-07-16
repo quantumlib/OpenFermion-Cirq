@@ -21,13 +21,24 @@ from dev_tools import all_checks, prepared_env
 
 
 def main():
+    args = sys.argv
     verbose = True
+    only = [e.split('--only=')[1]
+            for e in args
+            if e.startswith('--only=')]
     checks = [
         all_checks.pylint,
         all_checks.typecheck,
         all_checks.pytest,
         all_checks.incremental_coverage,
     ]
+    if only:
+        checks = [e for e in checks if e.command_line_switch() in only]
+        if len(checks) != len(only):
+            print('Bad --only argument. Allowed values {!r}.'.format(
+                      [e.command_line_switch() for e in all_checks.ALL_CHECKS]),
+                  file=sys.stderr)
+            sys.exit(1)
 
     env = prepared_env.PreparedEnv(
         github_repo=None,
