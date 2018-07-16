@@ -25,10 +25,12 @@ requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 setup(
-    name='OpenFermion-Cirq',
+    name='openfermioncirq',
     version=__version__,
     url='https://github.com/quantumlib/OpenFermion-Cirq',
     author='The OpenFermion Developers',
+    author_email='openfermioncirq@googlegroups.com',
+    python_requires='>=3.5',
     install_requires=requirements,
     license='Apache 2',
     packages=find_packages())

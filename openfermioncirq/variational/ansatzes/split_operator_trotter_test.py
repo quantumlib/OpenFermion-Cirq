@@ -37,14 +37,14 @@ def test_split_operator_trotter_ansatz_parameters():
 
     ansatz = SplitOperatorTrotterAnsatz(hubbard_hamiltonian)
     assert (set(ansatz.param_names()) ==
-            ansatz.params.keys() ==
+            set(ansatz.params.keys()) ==
             {symbol.name for symbol in ansatz.params.values()} ==
             {'U0', 'U1', 'U6', 'U7',
              'V0_1', 'V2_3', 'V4_5', 'V6_7'})
 
     ansatz = SplitOperatorTrotterAnsatz(hubbard_hamiltonian, iterations=2)
     assert (set(ansatz.param_names()) ==
-            ansatz.params.keys() ==
+            set(ansatz.params.keys()) ==
             {symbol.name for symbol in ansatz.params.values()} ==
             {'U0-0', 'U1-0', 'U6-0', 'U7-0',
              'V0_1-0', 'V2_3-0', 'V4_5-0', 'V6_7-0',

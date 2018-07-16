@@ -32,7 +32,7 @@ def test_swap_network_trotter_ansatz_parameters():
 
     ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
     assert (set(ansatz.param_names()) ==
-            ansatz.params.keys() ==
+            set(ansatz.params.keys()) ==
             {symbol.name for symbol in ansatz.params.values()} ==
             {'T0_2', 'T4_6', 'T1_3', 'T5_7',
              'T0_4', 'T2_6', 'T1_5', 'T3_7',
@@ -40,7 +40,7 @@ def test_swap_network_trotter_ansatz_parameters():
 
     ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian, iterations=2)
     assert (set(ansatz.param_names()) ==
-            ansatz.params.keys() ==
+            set(ansatz.params.keys()) ==
             {symbol.name for symbol in ansatz.params.values()} ==
             {'T0_2-0', 'T4_6-0', 'T1_3-0', 'T5_7-0',
              'T0_4-0', 'T2_6-0', 'T1_5-0', 'T3_7-0',

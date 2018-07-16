@@ -157,13 +157,13 @@ def derive_temporary_python2_environment(
                         conversion_script_path,
                         destination_directory,
                         input_directory,
+                        python3_environment.virtual_env_path,
                         out=sys.stderr)
     os.chdir(destination_directory)
 
     # Create virtual environment.
     env_path = os.path.join(destination_directory, env_name)
-    req_path = os.path.join(destination_directory,
-                            'python2.7-dev-requirements.txt')
+    req_path = os.path.join(destination_directory, 'dev-requirements.txt')
     create_virtual_env(venv_path=env_path,
                        python_path=python_path,
                        requirements_path=req_path,

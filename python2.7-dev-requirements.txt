@@ -1,11 +1,9 @@
 cirq~=0.0.2.dev
-mypy~=0.610.0
 nbformat
 numpy
 pandas
-pylint~=1.9.0
-pytest~=3.6.0
-pytest-cov~=2.5.0
+pytest
 scipy
 3to2
 git+ssh://git@github.com/quantumlib/openfermion.git#egg=openfermion
+typing~=3.6

@@ -40,8 +40,7 @@ class BlackBox(metaclass=abc.ABCMeta):
             should be equal to the dimension of the black box.
     """
 
-    @property  # type: ignore
-    @abc.abstractmethod
+    @abc.abstractproperty
     def dimension(self) -> int:
         """The dimension of the array accepted by the objective function."""
         pass

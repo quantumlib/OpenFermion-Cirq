@@ -276,14 +276,22 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             if use_multiprocessing:
                 if num_processes is None:
                     num_processes = multiprocessing.cpu_count()
-                with multiprocessing.Pool(num_processes) as pool:
-                    result_list = pool.starmap(
-                            self._run_optimization,
-                            ((optimization_params,
-                              reevaluate_final_params,
-                              seeds[i] if seeds is not None
-                                  else numpy.random.randint(4294967296))
-                              for i in range(repetitions)))
+                pool = multiprocessing.Pool(num_processes)
+                try:
+                    arg_tuples = (
+                        (
+                            self,
+                            optimization_params,
+                            reevaluate_final_params,
+                            seeds[i] if seeds is not None
+                            else numpy.random.randint(4294967296)
+                        )
+                        for i in range(repetitions)
+                    )
+                    result_list = pool.map(_serializable_run_optimization,
+                                           arg_tuples)
+                finally:
+                    pool.terminate()
             else:
                 result_list = []
                 for i in range(repetitions):
@@ -518,3 +526,7 @@ class VariationalStudyBlackBox(BlackBox):
                      ) -> Tuple[float, float]:
         """Exact or approximate bounds on noise in the objective function."""
         return self.study.noise_bounds(cost, confidence)
+
+
+def _serializable_run_optimization(args):
+    return args[0]._run_optimization(*args[1:])  # coverage: ignore

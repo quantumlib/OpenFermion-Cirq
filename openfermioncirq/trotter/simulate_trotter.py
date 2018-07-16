@@ -84,7 +84,7 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
     if algorithm is None:
         algorithm = _select_trotter_algorithm(hamiltonian)
 
-    if type(hamiltonian) not in algorithm.supported_types:
+    if not isinstance(hamiltonian, tuple(algorithm.supported_types)):
         raise TypeError(
                 'The input Hamiltonian was a {} but the chosen Trotter step '
                 'algorithm only supports Hamiltonians of type {}'.format(

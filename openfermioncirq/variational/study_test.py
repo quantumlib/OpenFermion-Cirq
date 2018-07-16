@@ -197,7 +197,7 @@ def test_variational_study_optimize_and_summary():
                                                [3.6, 9.8]]))
     assert result.params.cost_of_evaluate == 1.0
 
-    assert study.summary.strip() == """
+    assert study.summary.replace("u'", "'").strip() == """
 This study contains 3 results.
 The optimal value found among all results is 0.
 It was found by the run with identifier 'run1'.

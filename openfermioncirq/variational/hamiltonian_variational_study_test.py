@@ -69,8 +69,8 @@ def test_hamiltonian_variational_study_init_qubit_operator():
 
     ansatz = SwapNetworkTrotterAnsatz(test_hamiltonian)
     study = HamiltonianVariationalStudy(
-            'study', ansatz, openfermion.QubitOperator('X0'))
-    assert study.hamiltonian == openfermion.QubitOperator('X0')
+            'study', ansatz, openfermion.QubitOperator((0, 'X')))
+    assert study.hamiltonian == openfermion.QubitOperator((0, 'X'))
 
 
 def test_hamiltonian_variational_study_noise():
