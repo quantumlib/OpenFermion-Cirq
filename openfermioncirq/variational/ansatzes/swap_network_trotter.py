@@ -217,11 +217,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
-    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
-        """Produce the ansatz circuit."""
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+        """Produce the operations of the ansatz circuit."""
         # TODO implement asymmetric ansatzes?
-
-        circuit = cirq.Circuit()
 
         for i in range(self.iterations):
 
@@ -239,19 +237,15 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if 'V{}_{}'.format(p, q) + suffix in self.params:
                     yield cirq.Rot11Gate(half_turns=self.params[
                               'V{}_{}'.format(p, q) + suffix]).on(a, b)
-            circuit.append(
-                    swap_network(
-                        qubits, one_and_two_body_interaction, fermionic=True),
-                    strategy=cirq.InsertStrategy.EARLIEST)
+            yield swap_network(
+                    qubits, one_and_two_body_interaction, fermionic=True)
             qubits = qubits[::-1]
 
             # Apply one-body potential
-            circuit.append(
-                    (cirq.RotZGate(half_turns=
-                        self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                     for p in range(len(qubits))
-                     if 'U{}'.format(p) + suffix in self.params),
-                    strategy=cirq.InsertStrategy.EARLIEST)
+            yield (cirq.RotZGate(half_turns=
+                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
+                   for p in range(len(qubits))
+                   if 'U{}'.format(p) + suffix in self.params)
 
             # Apply one- and two-body interactions again. This time, reorder
             # them so that the entire iteration is symmetric
@@ -266,14 +260,10 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if 'T{}_{}'.format(p, q) + suffix in self.params:
                     yield XXYYGate(half_turns=self.params[
                               'T{}_{}'.format(p, q) + suffix]).on(a, b)
-            circuit.append(
-                    swap_network(
-                        qubits, one_and_two_body_interaction_reversed_order,
-                        fermionic=True, offset=True),
-                    strategy=cirq.InsertStrategy.EARLIEST)
+            yield swap_network(
+                    qubits, one_and_two_body_interaction_reversed_order,
+                    fermionic=True, offset=True)
             qubits = qubits[::-1]
-
-        return circuit
 
     def default_initial_params(self) -> numpy.ndarray:
         """Approximate evolution by H(t) = T + (t/A)V.

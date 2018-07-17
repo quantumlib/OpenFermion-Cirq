@@ -28,15 +28,14 @@ class ExampleAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
 
-    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         a, b = qubits
-        return cirq.Circuit.from_ops(
-                cirq.RotXGate(half_turns=self.params['theta0']).on(a),
-                cirq.RotXGate(half_turns=self.params['theta1']).on(b),
-                cirq.CZ(a, b),
-                cirq.RotXGate(half_turns=self.params['theta0']).on(a),
-                cirq.RotXGate(half_turns=self.params['theta1']).on(b),
-                cirq.MeasurementGate('all').on(a, b))
+        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
+        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
+        yield cirq.CZ(a, b)
+        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
+        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
+        yield cirq.MeasurementGate('all').on(a, b)
 
 
 def test_variational_ansatz_circuit():
@@ -80,10 +79,10 @@ def test_variational_ansatz_is_abstract_must_implement():
     class Missing2(VariationalAnsatz):
         def _generate_qubits(self):
             pass
-        def generate_circuit(self, qubits):
+        def operations(self, qubits):
             pass
     class Missing3(VariationalAnsatz):
-        def generate_circuit(self, qubits):
+        def operations(self, qubits):
             pass
         def param_names(self):
             return []  # coverage: ignore
@@ -102,7 +101,7 @@ def test_variational_ansatz_is_abstract_can_implement():
             return []  # coverage: ignore
         def _generate_qubits(self):
             pass
-        def generate_circuit(self, qubits):
-            pass
+        def operations(self, qubits):
+            return ()
 
     assert isinstance(Included(), VariationalAnsatz)

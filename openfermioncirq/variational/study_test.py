@@ -40,15 +40,14 @@ class ExampleAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
 
-    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         a, b = qubits
-        return cirq.Circuit.from_ops(
-                cirq.RotXGate(half_turns=self.params['theta0']).on(a),
-                cirq.RotXGate(half_turns=self.params['theta1']).on(b),
-                cirq.CZ(a, b),
-                cirq.RotXGate(half_turns=self.params['theta0']).on(a),
-                cirq.RotXGate(half_turns=self.params['theta1']).on(b),
-                cirq.MeasurementGate('all').on(a, b))
+        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
+        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
+        yield cirq.CZ(a, b)
+        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
+        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
+        yield cirq.MeasurementGate('all').on(a, b)
 
 
 class ExampleStudy(VariationalStudy):

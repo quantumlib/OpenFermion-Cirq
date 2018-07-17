@@ -213,30 +213,26 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
-    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
-        """Produce the ansatz circuit."""
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+        """Produce the operations of the ansatz circuit."""
         # TODO implement asymmetric ansatz
 
-        circuit = cirq.Circuit()
-
         # Change to the basis in which the one-body term is diagonal
-        circuit.append(cirq.inverse(
-            bogoliubov_transform(qubits, self.basis_change_matrix)))
+        yield cirq.inverse(
+                bogoliubov_transform(qubits, self.basis_change_matrix))
 
         for i in range(self.iterations):
 
             suffix = '-{}'.format(i) if self.iterations > 1 else ''
 
             # Simulate one-body terms
-            circuit.append(
-                    (cirq.RotZGate(half_turns=
-                        self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                     for p in range(len(qubits))
-                     if 'U{}'.format(p) + suffix in self.params))
+            yield (cirq.RotZGate(half_turns=
+                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
+                   for p in range(len(qubits))
+                   if 'U{}'.format(p) + suffix in self.params)
 
             # Rotate to the computational basis
-            circuit.append(
-                    bogoliubov_transform(qubits, self.basis_change_matrix))
+            yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
             # Simulate the two-body terms
             def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
@@ -244,27 +240,21 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
                     yield cirq.Rot11Gate(half_turns=
                             self.params['V{}_{}'.format(p, q) + suffix]
                             ).on(a, b)
-            circuit.append(
-                    swap_network(qubits, two_body_interaction),
-                    strategy=cirq.InsertStrategy.EARLIEST)
+            yield swap_network(qubits, two_body_interaction)
             qubits = qubits[::-1]
 
             # Rotate back to the basis in which the one-body term is diagonal
-            circuit.append(cirq.inverse(
-                bogoliubov_transform(qubits, self.basis_change_matrix)))
+            yield cirq.inverse(
+                    bogoliubov_transform(qubits, self.basis_change_matrix))
 
             # Simulate one-body terms again
-            circuit.append(
-                    (cirq.RotZGate(half_turns=
-                        self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                     for p in range(len(qubits))
-                     if 'U{}'.format(p) + suffix in self.params))
+            yield (cirq.RotZGate(half_turns=
+                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
+                   for p in range(len(qubits))
+                   if 'U{}'.format(p) + suffix in self.params)
 
         # Rotate to the computational basis
-        circuit.append(
-                bogoliubov_transform(qubits, self.basis_change_matrix))
-
-        return circuit
+        yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
     def qubit_permutation(self, qubits: Sequence[cirq.QubitId]
                           ) -> Sequence[cirq.QubitId]:

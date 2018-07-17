@@ -51,7 +51,9 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
                        for param_name in self.param_names()}
 
         # Generate the ansatz circuit
-        self.circuit = self.generate_circuit(self.qubits)
+        self.circuit = cirq.Circuit.from_ops(
+                self.operations(self.qubits),
+                strategy=cirq.InsertStrategy.EARLIEST)
 
     @abc.abstractmethod
     def param_names(self) -> Sequence[str]:
@@ -79,18 +81,18 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         return numpy.zeros(len(self.params))
 
     @abc.abstractmethod
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
-        """Produce qubits that can be used by the ansatz circuit."""
+    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+        """Produce the operations of the ansatz circuit.
+
+        The operations should use Symbols stored in `self.params`. To access
+        the Symbol associated with the parameter named 'some_parameter_name',
+        use the expression `self.params['some_parameter_name']`.
+        """
         pass
 
     @abc.abstractmethod
-    def generate_circuit(self, qubits: Sequence[cirq.QubitId]) -> cirq.Circuit:
-        """Produce the ansatz circuit.
-
-        The circuit should use Symbols stored in `self.params`. To access the
-        Symbol associated with the parameter named 'some_parameter_name', use
-        the expression `self.params['some_parameter_name']`.
-        """
+    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+        """Produce qubits that can be used by the ansatz circuit."""
         pass
 
     # TODO also need to consider mode permutation
