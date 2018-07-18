@@ -12,26 +12,10 @@ openfermioncirq.variational.ansatzes.split\_operator\_trotter module
     :undoc-members:
     :show-inheritance:
 
-openfermioncirq.variational.ansatzes.split\_operator\_trotter\_test module
---------------------------------------------------------------------------
-
-.. automodule:: openfermioncirq.variational.ansatzes.split_operator_trotter_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 openfermioncirq.variational.ansatzes.swap\_network\_trotter module
 ------------------------------------------------------------------
 
 .. automodule:: openfermioncirq.variational.ansatzes.swap_network_trotter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-openfermioncirq.variational.ansatzes.swap\_network\_trotter\_test module
-------------------------------------------------------------------------
-
-.. automodule:: openfermioncirq.variational.ansatzes.swap_network_trotter_test
     :members:
     :undoc-members:
     :show-inheritance:

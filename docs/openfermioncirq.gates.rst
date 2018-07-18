@@ -12,26 +12,10 @@ openfermioncirq.gates.common\_gates module
     :undoc-members:
     :show-inheritance:
 
-openfermioncirq.gates.common\_gates\_test module
-------------------------------------------------
-
-.. automodule:: openfermioncirq.gates.common_gates_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 openfermioncirq.gates.three\_qubit\_gates module
 ------------------------------------------------
 
 .. automodule:: openfermioncirq.gates.three_qubit_gates
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-openfermioncirq.gates.three\_qubit\_gates\_test module
-------------------------------------------------------
-
-.. automodule:: openfermioncirq.gates.three_qubit_gates_test
     :members:
     :undoc-members:
     :show-inheritance:

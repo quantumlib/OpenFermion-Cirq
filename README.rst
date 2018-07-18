@@ -13,6 +13,9 @@ for quantum simulation algorithms.
   :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
   :alt: Build Status
 
+.. image:: https://badge.fury.io/py/openfermioncirq.svg
+    :target: https://badge.fury.io/py/openfermioncirq
+
 .. image:: https://img.shields.io/badge/python-2.7%2C%203.5-brightgreen.svg
 
 Getting started
@@ -24,7 +27,17 @@ Once installation is complete, be sure to take a look at our
 <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/examples>`__
 and
 `code documentation
-<http://openfermion-cirq.readthedocs.io/en/latest/openfermion-cirq.html>`__.
+<https://openfermion-cirq.readthedocs.io/en/latest/>`__.
+
+Installation
+------------
+
+To install the latest PyPI releases as libraries (in user mode):
+
+.. code-block:: bash
+
+  python -m pip install --user openfermioncirq
+
 
 Developer install
 -----------------
@@ -36,15 +49,6 @@ To install the latest versions of OpenFermion, Cirq and OpenFermion-Cirq (in dev
   git clone https://github.com/quantumlib/OpenFermion-Cirq
   cd OpenFermion-Cirq
   python -m pip install -e .
-
-Library install
----------------
-
-To install the latest PyPI releases as libraries (in user mode):
-
-.. code-block:: bash
-
-  python -m pip install --user openfermioncirq
 
 
 How to contribute

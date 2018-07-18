@@ -3,4 +3,3 @@ numpy
 openfermion>=0.8
 pandas
 scipy
-openfermion
