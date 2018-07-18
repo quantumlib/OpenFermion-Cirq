@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Types for constructing and optimizing variational quantum algorithms."""
+
 from openfermioncirq.variational.ansatz import (
     VariationalAnsatz)
 

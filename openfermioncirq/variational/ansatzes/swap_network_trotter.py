@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""A variational ansatz based on a linear swap network Trotter step."""
+
 from typing import Match, Optional, Sequence, Tuple, cast
 
 import itertools

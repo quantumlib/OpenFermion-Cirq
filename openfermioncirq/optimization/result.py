@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Classes for storing the results of running an optimization algorithm."""
+
 from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 import numpy

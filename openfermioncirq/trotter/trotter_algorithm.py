@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Classes for representing algorithms for performing Trotter steps."""
+
 from typing import Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
 import cirq

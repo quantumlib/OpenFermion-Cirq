@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Defines the interface for black box optimization algorithms."""
+
 from typing import Any, Optional
 
 import numpy

@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Variational ansatzes."""
+
 from openfermioncirq.variational.ansatzes.split_operator_trotter import (
     SplitOperatorTrotterAnsatz)
 

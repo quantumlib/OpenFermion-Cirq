@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Optimization algorithms and related classes."""
+
 from openfermioncirq.optimization.algorithm import (
     OptimizationAlgorithm,
     OptimizationParams)

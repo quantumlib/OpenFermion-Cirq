@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Algorithms for performing Trotter steps."""
+
 from openfermioncirq.trotter.algorithms.linear_swap_network import (
     LINEAR_SWAP_NETWORK)
 

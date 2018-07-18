@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""The Bogoliubov transformation."""
+
 from typing import (
         Iterable, List, Optional, Sequence, Tuple, Union, cast)
 

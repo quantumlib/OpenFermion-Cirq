@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""A Trotter algorithm using a split-operator approach."""
+
 from typing import Optional, Sequence, Tuple
 
 import cirq

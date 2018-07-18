@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Operations for preparing useful quantum states."""
+
 from typing import Iterable, Sequence, Set, Tuple, Union, cast
 
 import numpy

@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""A wrapper around the local optimization routines implemented in Scipy."""
+
 from typing import Dict, Optional
 
 import numpy

@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""A Trotter algorithm using the low rank decomposition strategy."""
+
 from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 
 import numpy

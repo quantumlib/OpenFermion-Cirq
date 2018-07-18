@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Perform Hamiltonian simulation via a Trotter-Suzuki product formula."""
+
 from typing import Optional, Sequence
 
 import cirq

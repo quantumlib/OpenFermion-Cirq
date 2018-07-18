@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Building blocks of algorithms for quantum simulation."""
+
 from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
 
 from openfermioncirq.primitives.state_preparation import (

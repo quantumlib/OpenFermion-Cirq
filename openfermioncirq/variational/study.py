@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""The variational study class."""
+
 from typing import (Any, Dict, Hashable, Iterable, List, Optional, Sequence,
                     Tuple, Union, cast)
 

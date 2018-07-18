@@ -49,4 +49,12 @@ from openfermioncirq.variational import (
     VariationalAnsatz,
     VariationalStudy)
 
+# Import modules last to avoid circular dependencies
+from openfermioncirq import (
+    gates,
+    optimization,
+    primitives,
+    trotter,
+    variational)
+
 from ._version import __version__

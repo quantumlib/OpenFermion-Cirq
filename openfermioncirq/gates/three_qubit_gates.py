@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+"""Common gates that target three qubits."""
+
 from typing import Optional, Union
 
 import numpy
