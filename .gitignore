@@ -24,3 +24,6 @@ __pycache__
 
 # ignore Vim swap files
 *.swp
+
+# ignore Sphinx build
+docs/_build

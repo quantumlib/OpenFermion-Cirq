@@ -52,7 +52,35 @@ class XXYYGate(cirq.EigenGate,
                cirq.InterchangeableQubitsGate,
                cirq.TextDiagrammable,
                cirq.TwoQubitGate):
-    """XX + YY interaction."""
+    """XX + YY interaction.
+
+    There are two ways to instantiate this gate.
+
+    The first is to provide an angle in units of either half-turns,
+    radians, or degrees. In this case, the gate's matrix is defined
+    as follows::
+
+        XXYY**h ≡ exp(-i π h (X⊗X + Y⊗Y) / 4)
+                ≡ exp(-i rads (X⊗X + Y⊗Y) / 4)
+                ≡ exp(-i π (degs / 180) (X⊗X + Y⊗Y) / 4)
+                ≡ [1 0             0             0]
+                  [0 cos(π·h/2)    -i·sin(π·h/2) 0]
+                  [0 -i·sin(π·h/2) cos(π·h/2)    0]
+                  [0 0             0             1]
+
+    where h is the angle in half-turns.
+
+    The second way is to provide a duration of time. In this case, the gate
+    implements the unitary::
+
+        exp(-i t (X⊗X + Y⊗Y) / 2) ≡ [1 0         0         0]
+                                    [0 cos(t)    -i·sin(t) 0]
+                                    [0 -i·sin(t) cos(t)    0]
+                                    [0 0         0         1]
+
+    where t is the duration. This corresponds to evolving under the
+    Hamiltonian (X⊗X + Y⊗Y) / 2 for that duration of time.
+    """
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -60,33 +88,6 @@ class XXYYGate(cirq.EigenGate,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
-
-        There are two ways to instantiate this gate.
-
-        The first is to provide an angle in units of either half-turns,
-        radians, or degrees. In this case, the gate's matrix is defined
-        as follows:
-
-            XXYY**h ≡ exp(-i π h (X⊗X + Y⊗Y) / 4)
-                    ≡ exp(-i rads (X⊗X + Y⊗Y) / 4)
-                    ≡ exp(-i π (degs / 180) (X⊗X + Y⊗Y) / 4)
-                    ≡ [1 0             0             0]
-                      [0 cos(π·h/2)    -i·sin(π·h/2) 0]
-                      [0 -i·sin(π·h/2) cos(π·h/2)    0]
-                      [0 0             0             1]
-
-        where h is the angle in half-turns.
-
-        The second way is to provide a duration of time. In this case, the gate
-        implements the unitary
-
-            exp(-i t (X⊗X + Y⊗Y) / 2) ≡ [1 0         0         0]
-                                        [0 cos(t)    -i·sin(t) 0]
-                                        [0 -i·sin(t) cos(t)    0]
-                                        [0 0         0         1]
-
-        where t is the duration. This corresponds to evolving under the
-        Hamiltonian (X⊗X + Y⊗Y) / 2 for that duration of time.
 
         At most one of half_turns, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
@@ -159,7 +160,35 @@ class YXXYGate(cirq.EigenGate,
                cirq.CompositeGate,
                cirq.TextDiagrammable,
                cirq.TwoQubitGate):
-    """YX - XY interaction."""
+    """YX - XY interaction.
+
+    There are two ways to instantiate this gate.
+
+    The first is to provide an angle in units of either half-turns,
+    radians, or degrees. In this case, the gate's matrix is defined
+    as follows::
+
+        YXXY**h ≡ exp(-i π h (Y⊗X - X⊗Y) / 4)
+                ≡ exp(-i rads (Y⊗X - X⊗Y) / 4)
+                ≡ exp(-i π (degs / 180) (Y⊗X - X⊗Y) / 4)
+                ≡ [1 0          0           0]
+                  [0 cos(π·h/2) -sin(π·h/2) 0]
+                  [0 sin(π·h/2) cos(π·h/2)  0]
+                  [0 0          0           1]
+
+    where h is the angle in half-turns.
+
+    The second way is to provide a duration of time. In this case, the gate
+    implements the unitary::
+
+        exp(-i t (Y⊗X - X⊗Y) / 2) ≡ [1 0      0       0]
+                                    [0 cos(t) -sin(t) 0]
+                                    [0 sin(t) cos(t)  0]
+                                    [0 0      0       1]
+
+    where t is the duration. This corresponds to evolving under the
+    Hamiltonian (Y⊗X - X⊗Y) / 2 for that duration of time.
+    """
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -167,33 +196,6 @@ class YXXYGate(cirq.EigenGate,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
-
-        There are two ways to instantiate this gate.
-
-        The first is to provide an angle in units of either half-turns,
-        radians, or degrees. In this case, the gate's matrix is defined
-        as follows:
-
-            YXXY**h ≡ exp(-i π h (Y⊗X - X⊗Y) / 4)
-                    ≡ exp(-i rads (Y⊗X - X⊗Y) / 4)
-                    ≡ exp(-i π (degs / 180) (Y⊗X - X⊗Y) / 4)
-                    ≡ [1 0          0           0]
-                      [0 cos(π·h/2) -sin(π·h/2) 0]
-                      [0 sin(π·h/2) cos(π·h/2)  0]
-                      [0 0          0           1]
-
-        where h is the angle in half-turns.
-
-        The second way is to provide a duration of time. In this case, the gate
-        implements the unitary
-
-            exp(-i t (Y⊗X - X⊗Y) / 2) ≡ [1 0      0       0]
-                                        [0 cos(t) -sin(t) 0]
-                                        [0 sin(t) cos(t)  0]
-                                        [0 0      0       1]
-
-        where t is the duration. This corresponds to evolving under the
-        Hamiltonian (Y⊗X - X⊗Y) / 2 for that duration of time.
 
         At most one of half_turns, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
@@ -266,7 +268,38 @@ class ZZGate(cirq.EigenGate,
              cirq.TwoQubitGate,
              cirq.TextDiagrammable,
              cirq.InterchangeableQubitsGate):
-    """ZZ interaction."""
+    """ZZ interaction.
+
+    There are two ways to instantiate this gate.
+
+    The first is to provide an angle in units of either half-turns,
+    radians, or degrees. In this case, the gate's matrix is defined
+    as follows::
+
+        ZZ**h ≡ exp(-i π h (Z⊗Z) / 2)
+              ≡ exp(-i rads (Z⊗Z) / 2)
+              ≡ exp(-i π (degs / 180) (Z⊗Z) / 2)
+              ≡ [exp(-i·π·h/2) 0             0                         0]
+                [0             exp(+i·π·h/2) 0                         0]
+                [0             0             exp(+i·π·h/2)             0]
+                [0             0             0             exp(-i·π·h/2)]
+
+    where h is the angle in half-turns. At a value of one half-turn, this
+    gate is equivalent to Z⊗Z = diag(1, -1, -1, 1) up to a global phase.
+    More generally, ZZ**h is equivalent to diag(1, (-1)**h, (-1)**h, 1)
+    up to a global phase.
+
+    The second way to instantiate this gate is to provide a duration
+    of time. In this case, the gate implements the unitary::
+
+        exp(-i t Z⊗Z) ≡ [exp(-it) 0          0               0]
+                        [0          exp(+it) 0               0]
+                        [0          0        exp(+it)        0]
+                        [0          0        0        exp(-it)]
+
+    where t is the duration. This corresponds to evolving under the
+    Hamiltonian Z⊗Z for that duration of time.
+    """
 
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -274,36 +307,6 @@ class ZZGate(cirq.EigenGate,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
-
-        There are two ways to instantiate this gate.
-
-        The first is to provide an angle in units of either half-turns,
-        radians, or degrees. In this case, the gate's matrix is defined
-        as follows:
-
-            ZZ**h ≡ exp(-i π h (Z⊗Z) / 2)
-                  ≡ exp(-i rads (Z⊗Z) / 2)
-                  ≡ exp(-i π (degs / 180) (Z⊗Z) / 2)
-                  ≡ [exp(-i·π·h/2) 0             0                         0]
-                    [0             exp(+i·π·h/2) 0                         0]
-                    [0             0             exp(+i·π·h/2)             0]
-                    [0             0             0             exp(-i·π·h/2)]
-
-        where h is the angle in half-turns. At a value of one half-turn, this
-        gate is equivalent to Z⊗Z = diag(1, -1, -1, 1) up to a global phase.
-        More generally, ZZ**h is equivalent to diag(1, (-1)**h, (-1)**h, 1)
-        up to a global phase.
-
-        The second way to instantiate this gate is to provide a duration
-        of time. In this case, the gate implements the unitary
-
-            exp(-i t Z⊗Z) ≡ [exp(-it) 0          0               0]
-                            [0          exp(+it) 0               0]
-                            [0          0        exp(+it)        0]
-                            [0          0        0        exp(-it)]
-
-        where t is the duration. This corresponds to evolving under the
-        Hamiltonian Z⊗Z for that duration of time.
 
         At most one of half_turns, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
