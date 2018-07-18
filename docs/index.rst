@@ -9,9 +9,7 @@ Welcome to OpenFermion-Cirq's documentation!
 .. toctree::
    :maxdepth: 2
 
-   modules
-
-
+   api
 
 Indices and tables
 ==================

@@ -23,5 +23,4 @@ from openfermioncirq.variational.hamiltonian_variational_study import (
     HamiltonianVariationalStudy)
 
 from openfermioncirq.variational.study import (
-    OptimizationParams,
     VariationalStudy)

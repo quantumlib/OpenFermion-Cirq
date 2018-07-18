@@ -20,12 +20,12 @@ import pytest
 import cirq
 
 from openfermioncirq import (
-        OptimizationParams,
         VariationalAnsatz,
         VariationalStudy)
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
+        OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult,
         ScipyOptimizationAlgorithm)

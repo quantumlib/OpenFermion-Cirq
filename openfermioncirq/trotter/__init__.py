@@ -16,9 +16,11 @@ from openfermioncirq.trotter.simulate_trotter import simulate_trotter
 
 from openfermioncirq.trotter.algorithms import (
     LINEAR_SWAP_NETWORK,
+    LinearSwapNetworkTrotterAlgorithm,
     LOW_RANK,
     LowRankTrotterAlgorithm,
-    SPLIT_OPERATOR)
+    SPLIT_OPERATOR,
+    SplitOperatorTrotterAlgorithm)
 
 from openfermioncirq.trotter.trotter_algorithm import (
     TrotterStep,

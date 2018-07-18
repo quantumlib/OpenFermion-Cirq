@@ -24,7 +24,6 @@ from openfermion.utils._testing_utils import (
 
 from openfermioncirq import (
         HamiltonianVariationalStudy,
-        OptimizationParams,
         SplitOperatorTrotterAnsatz,
         SwapNetworkTrotterAnsatz,
         prepare_gaussian_state,
@@ -32,6 +31,7 @@ from openfermioncirq import (
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationAlgorithm,
+        OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult)
 from openfermioncirq.trotter import LINEAR_SWAP_NETWORK, SPLIT_OPERATOR

@@ -41,9 +41,9 @@ release = '0.1a0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
 ]
 
@@ -73,9 +73,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
-
-add_module_names = False
-modindex_common_prefix = ['openfermioncirq.']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -165,3 +162,4 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+autosummary_generate = True
