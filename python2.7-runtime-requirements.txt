@@ -1,6 +1,6 @@
-cirq~=0.0.2.dev
+cirq>=0.3
 numpy
+openfermion>=0.8
 pandas
 scipy
-openfermion
 typing~=3.6
