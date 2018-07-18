@@ -14,8 +14,6 @@ branches:
     - master
 
 before_install:
-  - chmod 400 continuous-integration/private-deploy-key-for-pulling-from-cirq
-  - ssh-add continuous-integration/private-deploy-key-for-pulling-from-cirq
   - pip install --upgrade pip setuptools wheel
 
 install:

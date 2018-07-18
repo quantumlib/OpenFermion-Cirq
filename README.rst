@@ -29,6 +29,16 @@ and
 `code documentation
 <https://openfermion-cirq.readthedocs.io/en/latest/>`__.
 
+Installation
+------------
+
+To install the latest PyPI releases as libraries (in user mode):
+
+.. code-block:: bash
+
+  python -m pip install --user openfermioncirq
+
+
 Developer install
 -----------------
 
@@ -39,15 +49,6 @@ To install the latest versions of OpenFermion, Cirq and OpenFermion-Cirq (in dev
   git clone https://github.com/quantumlib/OpenFermion-Cirq
   cd OpenFermion-Cirq
   python -m pip install -e .
-
-Library install
----------------
-
-To install the latest PyPI releases as libraries (in user mode):
-
-.. code-block:: bash
-
-  python -m pip install --user openfermioncirq
 
 
 How to contribute
