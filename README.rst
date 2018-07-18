@@ -13,10 +13,6 @@ for quantum simulation algorithms.
   :target: https://travis-ci.com/quantumlib/OpenFermion-Cirq
   :alt: Build Status
 
-.. image:: https://readthedocs.org/projects/openfermion-cirq/badge/?version=latest
-    :target: http://openfermion-cirq.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
 .. image:: https://badge.fury.io/py/openfermioncirq.svg
     :target: https://badge.fury.io/py/openfermioncirq
 
