@@ -24,6 +24,11 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 requirements = open('runtime-requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
+openfermioncirq_packages = ['openfermioncirq'] + [
+    'openfermioncirq.' + package
+    for package in find_packages(where='openfermioncirq')
+]
+
 setup(
     name='openfermioncirq',
     version=__version__,
@@ -33,4 +38,4 @@ setup(
     python_requires='>=3.5',
     install_requires=requirements,
     license='Apache 2',
-    packages=find_packages())
+    packages=openfermioncirq_packages)
