@@ -30,13 +30,17 @@ def test_can_run_examples_jupyter_notebook(path):
     state = {}  # type: Dict[str, Any]
 
     for cell in notebook.cells:
-        if cell.cell_type == 'code':
+        if cell.cell_type == 'code' and not is_matplotlib_cell(cell):
             try:
                 exec(strip_magics_and_shows(cell.source), state)
             # coverage: ignore
             except:
                 print('Failed to run {}.'.format(path))
                 raise
+
+
+def is_matplotlib_cell(cell: nbformat.NotebookNode):
+    return "%matplotlib" in cell.source
 
 
 def strip_magics_and_shows(text: str) -> str:
