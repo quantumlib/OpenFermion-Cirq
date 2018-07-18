@@ -18,7 +18,14 @@ __version__ = None
 exec(open('openfermioncirq/_version.py').read())
 
 # Readme file as long_description:
-long_description = io.open('README.rst', encoding='utf-8').read()
+long_description = ('================\n' +
+                    'OpenFermion-Cirq\n' +
+                    '================\n')
+stream = io.open('README.rst', encoding='utf-8')
+stream.readline()
+long_description += stream.read()
+description = ('Quantum circuits for simulations ' +
+               'of quantum chemistry and materials.')
 
 # Read in runtime-requirements.txt
 requirements = open('runtime-requirements.txt').readlines()
@@ -38,4 +45,6 @@ setup(
     python_requires='>=3.5',
     install_requires=requirements,
     license='Apache 2',
+    description=description,
+    long_description=long_description,
     packages=openfermioncirq_packages)
