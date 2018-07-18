@@ -27,7 +27,7 @@ Once installation is complete, be sure to take a look at our
 <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/examples>`__
 and
 `code documentation
-<http://openfermion-cirq.readthedocs.io/en/latest/openfermion-cirq.html>`__.
+<https://openfermion-cirq.readthedocs.io/en/latest/>`__.
 
 Developer install
 -----------------
