@@ -19,14 +19,6 @@ openfermioncirq.variational.ansatz module
     :undoc-members:
     :show-inheritance:
 
-openfermioncirq.variational.ansatz\_test module
------------------------------------------------
-
-.. automodule:: openfermioncirq.variational.ansatz_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 openfermioncirq.variational.hamiltonian\_variational\_study module
 ------------------------------------------------------------------
 
@@ -35,26 +27,10 @@ openfermioncirq.variational.hamiltonian\_variational\_study module
     :undoc-members:
     :show-inheritance:
 
-openfermioncirq.variational.hamiltonian\_variational\_study\_test module
-------------------------------------------------------------------------
-
-.. automodule:: openfermioncirq.variational.hamiltonian_variational_study_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 openfermioncirq.variational.study module
 ----------------------------------------
 
 .. automodule:: openfermioncirq.variational.study
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-openfermioncirq.variational.study\_test module
-----------------------------------------------
-
-.. automodule:: openfermioncirq.variational.study_test
     :members:
     :undoc-members:
     :show-inheritance:

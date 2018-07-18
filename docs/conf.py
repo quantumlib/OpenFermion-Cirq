@@ -74,6 +74,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+add_module_names = False
+modindex_common_prefix = ['openfermioncirq.']
+
 
 # -- Options for HTML output -------------------------------------------------
 
