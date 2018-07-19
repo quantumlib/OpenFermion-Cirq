@@ -34,11 +34,83 @@ def swap_network(qubits: Sequence[cirq.QubitId],
     or modes become adjacent. For fermionic modes, this assumes the
     Jordan-Wigner Transform.
 
+    Examples
+    --------
+
+    Input:
+
+    .. testcode::
+
+        import cirq
+        from openfermioncirq import swap_network
+
+        qubits = cirq.LineQubit.range(4)
+        circuit = cirq.Circuit.from_ops(swap_network(qubits))
+        print(circuit)
+
+    Output:
+
+    .. testoutput::
+
+        0: ───×───────×───────
+              │       │
+        1: ───×───×───×───×───
+                  │       │
+        2: ───×───×───×───×───
+              │       │
+        3: ───×───────×───────
+
+    Input:
+
+    .. testcode::
+
+        circuit = cirq.Circuit.from_ops(swap_network(qubits, offset=True))
+        print(circuit)
+
+    Output:
+
+    .. testoutput::
+
+        0: ───────×───────×───
+                  │       │
+        1: ───×───×───×───×───
+              │       │
+        2: ───×───×───×───×───
+                  │       │
+        3: ───────×───────×───
+
+    Input:
+
+    .. testcode::
+
+        from openfermioncirq import XXYY
+
+        circuit = cirq.Circuit.from_ops(
+            swap_network(
+                qubits,
+                lambda p, q, a, b: XXYY(a, b) if abs(p - q) == 1
+                                   else cirq.CZ(a, b),
+                fermionic=True),
+            strategy=cirq.InsertStrategy.EARLIEST)
+        print(circuit)
+
+    Output:
+
+    .. testoutput::
+
+        0: ───XXYY───×ᶠ────────────@───×ᶠ───────────────
+              │      │             │   │
+        1: ───XXYY───×ᶠ───@───×ᶠ───@───×ᶠ───XXYY───×ᶠ───
+                          │   │             │      │
+        2: ───XXYY───×ᶠ───@───×ᶠ───@───×ᶠ───XXYY───×ᶠ───
+              │      │             │   │
+        3: ───XXYY───×ᶠ────────────@───×ᶠ───────────────
+
     Args:
         qubits: The qubits sorted so that the j-th qubit in the Sequence
-            represents the j-th qubit or fermionic mode
+            represents the j-th qubit or fermionic mode.
         operation: A call to this function takes the form
-                operation(p, q, p_qubit, q_qubit)
+            ``operation(p, q, p_qubit, q_qubit)``
             where p and q are indices reprenting either qubits or fermionic
             modes, and p_qubit and q_qubit are the qubits which represent them.
             It returns the gate that should be applied to these qubits.

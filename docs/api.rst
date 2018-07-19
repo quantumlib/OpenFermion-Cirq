@@ -1,4 +1,5 @@
 .. currentmodule:: openfermioncirq
+
 API Reference
 =============
 
