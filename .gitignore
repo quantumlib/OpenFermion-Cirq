@@ -26,4 +26,4 @@ __pycache__
 *.swp
 
 # ignore Sphinx build
-docs/_build
+docs/generated

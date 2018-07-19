@@ -5,8 +5,8 @@ API Reference
 Gates
 --------
 
-Single-Qubit Gates
-^^^^^^^^^^^^^^^^^^
+Two-Qubit Gates
+^^^^^^^^^^^^^^^
 
 .. autosummary::
     :toctree: generated/
@@ -46,8 +46,8 @@ Primitives
     swap_network
 
 
-Trotter
--------
+Hamiltonian Simulation
+----------------------
 
 .. autosummary::
     :toctree: generated/
