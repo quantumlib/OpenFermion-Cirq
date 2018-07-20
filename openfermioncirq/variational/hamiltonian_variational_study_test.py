@@ -10,8 +10,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional
-
 import os
 
 import numpy
@@ -29,35 +27,10 @@ from openfermioncirq import (
         prepare_gaussian_state,
         simulate_trotter)
 from openfermioncirq.optimization import (
-        BlackBox,
-        OptimizationAlgorithm,
         OptimizationParams,
-        OptimizationResult,
         OptimizationTrialResult)
 from openfermioncirq.trotter import LINEAR_SWAP_NETWORK, SPLIT_OPERATOR
-
-
-class ExampleAlgorithm(OptimizationAlgorithm):
-
-    def optimize(self,
-                 black_box: BlackBox,
-                 initial_guess: Optional[numpy.ndarray]=None,
-                 initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> OptimizationResult:
-        if initial_guess is None:
-            # coverage: ignore
-            initial_guess = numpy.ones(black_box.dimension)
-        if initial_guess_array is None:
-            # coverage: ignore
-            initial_guess_array = numpy.ones((3, black_box.dimension))
-        a = black_box.evaluate(initial_guess)
-        b = black_box.evaluate_with_cost(initial_guess_array[0], 1.0)
-        return OptimizationResult(optimal_value=min(a, b),
-                                  optimal_parameters=initial_guess,
-                                  num_evaluations=1,
-                                  cost_spent=0.0,
-                                  status=0,
-                                  message='success')
+from openfermioncirq.testing import ExampleAlgorithm
 
 
 # Construct a Hamiltonian for testing

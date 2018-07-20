@@ -10,8 +10,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional, Sequence, Union, cast
-
 import os
 
 import numpy
@@ -19,74 +17,17 @@ import pytest
 
 import cirq
 
-from openfermioncirq import (
-        VariationalAnsatz,
-        VariationalStudy)
+from openfermioncirq import VariationalStudy
 from openfermioncirq.optimization import (
-        BlackBox,
-        OptimizationAlgorithm,
         OptimizationParams,
-        OptimizationResult,
         OptimizationTrialResult,
         ScipyOptimizationAlgorithm)
 from openfermioncirq.variational.study import VariationalStudyBlackBox
-
-
-class ExampleAnsatz(VariationalAnsatz):
-
-    def param_names(self) -> Sequence[str]:
-        return ['theta{}'.format(i) for i in range(2)]
-
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
-        return cirq.LineQubit.range(2)
-
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
-        a, b = qubits
-        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
-        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
-        yield cirq.CZ(a, b)
-        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
-        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
-        yield cirq.MeasurementGate('all').on(a, b)
-
-
-class ExampleStudy(VariationalStudy):
-
-    def value(self,
-              trial_result: Union[cirq.TrialResult,
-                                  cirq.google.XmonSimulateTrialResult]
-              ) -> float:
-        measurements = trial_result.measurements['all']
-        return numpy.sum(measurements)
-
-
-class ExampleStudyNoisy(ExampleStudy):
-
-    def noise(self, cost: Optional[float]=None) -> float:
-        return numpy.exp(-cast(float, cost))
-
-
-class ExampleAlgorithm(OptimizationAlgorithm):
-
-    def optimize(self,
-                 black_box: BlackBox,
-                 initial_guess: Optional[numpy.ndarray]=None,
-                 initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> OptimizationResult:
-        if initial_guess is None:
-            # coverage: ignore
-            initial_guess = numpy.ones(black_box.dimension)
-        if initial_guess_array is None:
-            # coverage: ignore
-            initial_guess_array = numpy.ones((3, black_box.dimension))
-        a = black_box.evaluate(initial_guess)
-        b = black_box.evaluate_with_cost(initial_guess_array[0], 1.0)
-        return OptimizationResult(optimal_value=min(a, b),
-                                  optimal_parameters=initial_guess,
-                                  num_evaluations=1,
-                                  cost_spent=0.0,
-                                  status=0,
-                                  message='success')
+from openfermioncirq.testing import (
+        ExampleAlgorithm,
+        ExampleAnsatz,
+        ExampleStudy,
+        ExampleStudyNoisy)
 
 
 test_ansatz = ExampleAnsatz()
@@ -131,7 +72,9 @@ def test_variational_study_value():
 
 def test_variational_study_noise():
     numpy.testing.assert_allclose(test_study.noise(2.0), 0.0)
-    numpy.testing.assert_allclose(test_study_noisy.noise(2.0), numpy.exp(-2.0))
+
+    numpy.random.seed(26347)
+    assert -0.6 < test_study_noisy.noise(2.0) < 0.6
 
 
 def test_variational_study_evaluate():
@@ -144,10 +87,11 @@ def test_variational_study_evaluate_with_cost():
             test_study.evaluate_with_cost(
                 test_study.default_initial_params(), 2.0),
             1)
-    numpy.testing.assert_allclose(
-            test_study_noisy.evaluate_with_cost(
-                test_study.default_initial_params(), 2.0),
-            1 + numpy.exp(-2.0))
+
+    numpy.random.seed(33534)
+    noisy_val = test_study_noisy.evaluate_with_cost(
+            test_study.default_initial_params(), 10.0)
+    assert 0.8 < noisy_val < 1.2
 
 
 def test_variational_study_noise_bounds():
@@ -207,27 +151,27 @@ Result details:
         Optimal value 1st, 2nd, 3rd quartiles:
             [0.0, 0.0, 0.0]
         Num evaluations 1st, 2nd, 3rd quartiles:
-            [2.0, 2.0, 2.0]
+            [5.0, 5.0, 5.0]
         Cost spent 1st, 2nd, 3rd quartiles:
-            [1.0, 1.0, 1.0]
+            [0.0, 0.0, 0.0]
     Identifier: 0
         Optimal value: 0
         Number of repetitions: 2
         Optimal value 1st, 2nd, 3rd quartiles:
             [0.0, 0.0, 0.0]
         Num evaluations 1st, 2nd, 3rd quartiles:
-            [2.0, 2.0, 2.0]
+            [5.0, 5.0, 5.0]
         Cost spent 1st, 2nd, 3rd quartiles:
-            [1.0, 1.0, 1.0]
+            [0.0, 0.0, 0.0]
     Identifier: 1
         Optimal value: 0
         Number of repetitions: 1
         Optimal value 1st, 2nd, 3rd quartiles:
             [0.0, 0.0, 0.0]
         Num evaluations 1st, 2nd, 3rd quartiles:
-            [2.0, 2.0, 2.0]
+            [5.0, 5.0, 5.0]
         Cost spent 1st, 2nd, 3rd quartiles:
-            [2.0, 2.0, 2.0]
+            [5.0, 5.0, 5.0]
 """.strip()
 
 

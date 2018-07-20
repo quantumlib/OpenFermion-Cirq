@@ -14,25 +14,7 @@ import numpy
 import pytest
 
 from openfermioncirq.optimization.black_box import BlackBox
-
-
-class ExampleBlackBox(BlackBox):
-
-    @property
-    def dimension(self) -> int:
-        return 2
-
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
-        return numpy.sum(x**2)
-
-
-class ExampleBlackBoxNoisy(ExampleBlackBox):
-
-    def evaluate_with_cost(self,
-                           x: numpy.ndarray,
-                           cost: float) -> float:
-        return numpy.sum(x**2) + 1 / cost
+from openfermioncirq.testing import ExampleBlackBox, ExampleBlackBoxNoisy
 
 
 def test_black_box_dimension():
@@ -47,10 +29,13 @@ def test_black_box_evaluate():
 
 def test_black_box_evaluate_with_cost():
     black_box = ExampleBlackBox()
-    black_box_noisy = ExampleBlackBoxNoisy()
     assert black_box.evaluate_with_cost(numpy.array([1.0, 2.0]), 1.0) == 5.0
-    assert black_box_noisy.evaluate_with_cost(
-            numpy.array([1.0, 2.0]), 2.0) == 5.5
+
+    numpy.random.seed(14536)
+    black_box_noisy = ExampleBlackBoxNoisy()
+    noisy_val = black_box_noisy.evaluate_with_cost(
+            numpy.array([1.0, 2.0]), 10.0)
+    assert 5.0 < noisy_val < 6.0
 
 
 def test_black_box_noise_bounds():

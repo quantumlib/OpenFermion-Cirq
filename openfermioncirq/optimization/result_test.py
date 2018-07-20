@@ -10,26 +10,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Optional
-
 import numpy
 
 from openfermioncirq.optimization import (
-        BlackBox,
-        OptimizationAlgorithm,
         OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult)
-
-
-class ExampleAlgorithm(OptimizationAlgorithm):
-
-    def optimize(self,
-                 black_box: BlackBox,
-                 initial_guess: Optional[numpy.ndarray]=None,
-                 initial_guess_array: Optional[numpy.ndarray]=None
-                 ) -> OptimizationResult:
-        pass
+from openfermioncirq.testing import ExampleAlgorithm
 
 
 def test_optimization_result_init():

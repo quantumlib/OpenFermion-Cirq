@@ -10,32 +10,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Sequence
-
 import numpy
 import pytest
 
-import cirq
-
-from openfermioncirq.variational.ansatz import VariationalAnsatz
-
-
-class ExampleAnsatz(VariationalAnsatz):
-
-    def param_names(self) -> Sequence[str]:
-        return ['theta{}'.format(i) for i in range(2)]
-
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
-        return cirq.LineQubit.range(2)
-
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
-        a, b = qubits
-        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
-        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
-        yield cirq.CZ(a, b)
-        yield cirq.RotXGate(half_turns=self.params['theta0']).on(a)
-        yield cirq.RotXGate(half_turns=self.params['theta1']).on(b)
-        yield cirq.MeasurementGate('all').on(a, b)
+from openfermioncirq import VariationalAnsatz
+from openfermioncirq.testing import ExampleAnsatz
 
 
 def test_variational_ansatz_circuit():

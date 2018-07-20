@@ -176,7 +176,8 @@ def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
 
     cirq.testing.assert_allclose_up_to_global_phase(
             circuit1.to_unitary_matrix(),
-            circuit2.to_unitary_matrix())
+            circuit2.to_unitary_matrix(),
+            atol=1e-7)
 
 
 @pytest.mark.parametrize('n_qubits, atol', [
