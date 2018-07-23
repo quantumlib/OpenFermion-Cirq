@@ -21,7 +21,8 @@ from openfermioncirq import VariationalStudy
 from openfermioncirq.optimization import (
         OptimizationParams,
         OptimizationTrialResult,
-        ScipyOptimizationAlgorithm)
+        ScipyOptimizationAlgorithm,
+        StatefulBlackBox)
 from openfermioncirq.variational.study import VariationalStudyBlackBox
 from openfermioncirq.testing import (
         ExampleAlgorithm,
@@ -133,46 +134,9 @@ def test_variational_study_optimize_and_summary():
     assert result.repetitions == 1
     assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
                result.data_frame['optimal_value'])
-    numpy.testing.assert_allclose(result.params.initial_guess,
-                                  numpy.array([4.5, 8.8]))
-    numpy.testing.assert_allclose(result.params.initial_guess_array,
-                                  numpy.array([[7.2, 6.3],
-                                               [3.6, 9.8]]))
-    assert result.params.cost_of_evaluate == 1.0
+    assert isinstance(result.results[0].black_box, StatefulBlackBox)
 
-    assert study.summary.replace("u'", "'").strip() == """
-This study contains 3 results.
-The optimal value found among all results is 0.
-It was found by the run with identifier 'run1'.
-Result details:
-    Identifier: run1
-        Optimal value: 0
-        Number of repetitions: 1
-        Optimal value 1st, 2nd, 3rd quartiles:
-            [0.0, 0.0, 0.0]
-        Num evaluations 1st, 2nd, 3rd quartiles:
-            [5.0, 5.0, 5.0]
-        Cost spent 1st, 2nd, 3rd quartiles:
-            [0.0, 0.0, 0.0]
-    Identifier: 0
-        Optimal value: 0
-        Number of repetitions: 2
-        Optimal value 1st, 2nd, 3rd quartiles:
-            [0.0, 0.0, 0.0]
-        Num evaluations 1st, 2nd, 3rd quartiles:
-            [5.0, 5.0, 5.0]
-        Cost spent 1st, 2nd, 3rd quartiles:
-            [0.0, 0.0, 0.0]
-    Identifier: 1
-        Optimal value: 0
-        Number of repetitions: 1
-        Optimal value 1st, 2nd, 3rd quartiles:
-            [0.0, 0.0, 0.0]
-        Num evaluations 1st, 2nd, 3rd quartiles:
-            [5.0, 5.0, 5.0]
-        Cost spent 1st, 2nd, 3rd quartiles:
-            [5.0, 5.0, 5.0]
-""".strip()
+    assert isinstance(study.summary, str)
 
 
 def test_variational_study_run_too_few_seeds_raises_error():
@@ -195,7 +159,7 @@ def test_variational_study_save_load():
             OptimizationParams(
                 ScipyOptimizationAlgorithm(
                     kwargs={'method': 'COBYLA'},
-                    options={'maxiter': 1}),
+                    options={'maxiter': 2}),
                 initial_guess=numpy.array([7.9, 3.9]),
                 initial_guess_array=numpy.array([[7.5, 7.6],
                                                  [8.8, 1.1]]),
@@ -215,7 +179,7 @@ def test_variational_study_save_load():
     assert result.repetitions == 1
     assert isinstance(result.params.algorithm, ScipyOptimizationAlgorithm)
     assert result.params.algorithm.kwargs == {'method': 'COBYLA'}
-    assert result.params.algorithm.options == {'maxiter': 1}
+    assert result.params.algorithm.options == {'maxiter': 2}
     assert result.params.cost_of_evaluate == 1.0
 
     loaded_study = VariationalStudy.load('{}.study'.format(study_name),

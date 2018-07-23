@@ -19,7 +19,7 @@ import numpy
 import cirq
 
 from openfermioncirq.optimization.algorithm import OptimizationAlgorithm
-from openfermioncirq.optimization.black_box import BlackBox
+from openfermioncirq.optimization.black_box import BlackBox, StatefulBlackBox
 from openfermioncirq.optimization.result import OptimizationResult
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.study import VariationalStudy
@@ -73,6 +73,18 @@ class ExampleBlackBoxNoisy(ExampleBlackBox):
                            x: numpy.ndarray,
                            cost: float) -> float:
         return numpy.sum(x**2) + numpy.random.randn() / cost
+
+
+class ExampleStatefulBlackBox(StatefulBlackBox):
+    """Returns the sum of the squares of the inputs."""
+
+    @property
+    def dimension(self) -> int:
+        return 2  # coverage: ignore
+
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
+        return numpy.sum(x**2)
 
 
 class ExampleAnsatz(VariationalAnsatz):

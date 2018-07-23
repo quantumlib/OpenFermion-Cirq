@@ -17,6 +17,8 @@ from typing import Iterable, Optional, TYPE_CHECKING, Union
 import numpy
 import pandas
 
+from openfermioncirq.optimization.black_box import BlackBox, StatefulBlackBox
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from openfermioncirq.optimization.algorithm import OptimizationParams
@@ -37,6 +39,7 @@ class OptimizationResult:
         seed: A random number generator seed used to produce the result.
         status: A status flag set by the optimizer.
         message: A message returned by the optimizer.
+        time: The time, in seconds, it took to obtain the result.
     """
 
     def __init__(self,
@@ -46,7 +49,9 @@ class OptimizationResult:
                  cost_spent: Optional[float]=None,
                  seed: Optional[int]=None,
                  status: Optional[int]=None,
-                 message: Optional[str]=None) -> None:
+                 message: Optional[str]=None,
+                 time: Optional[int]=None,
+                 black_box: Optional[BlackBox]=None) -> None:
         self.optimal_value = optimal_value
         self.optimal_parameters = optimal_parameters
         self.num_evaluations = num_evaluations
@@ -54,6 +59,8 @@ class OptimizationResult:
         self.seed = seed
         self.status = status
         self.message = message
+        self.time = time
+        self.black_box = black_box
 
 
 class OptimizationTrialResult:
@@ -71,6 +78,9 @@ class OptimizationTrialResult:
                 seed: A random number generator seed used by the repetition.
                 status: A status returned by the optimization algorithm.
                 message: A message returned by the optimization algorithm.
+                time: The time it took for the repetition to complete.
+                average_wait_time: The average time used by the optimizer to
+                    decide on the next evaluation point.
         params: An OptimizationParams object storing the optimization
             parameters used to obtain the results.
         repetitions: The number of times the optimization run was repeated.
@@ -82,6 +92,8 @@ class OptimizationTrialResult:
     def __init__(self,
                  results: Iterable[OptimizationResult],
                  params: 'OptimizationParams') -> None:
+        self.results = list(results)
+        self.params = params
         self.data_frame = pandas.DataFrame(
                 {'optimal_value': result.optimal_value,
                  'optimal_parameters': result.optimal_parameters,
@@ -89,9 +101,12 @@ class OptimizationTrialResult:
                  'cost_spent': result.cost_spent,
                  'seed': result.seed,
                  'status': result.status,
-                 'message': result.message}
+                 'message': result.message,
+                 'time': result.time,
+                 'average_wait_time': result.black_box.average_wait_time()
+                     if isinstance(result.black_box, StatefulBlackBox)
+                     else None}
                 for result in results)
-        self.params = params
 
     @property
     def repetitions(self):
@@ -134,4 +149,14 @@ class OptimizationTrialResult:
         This behaves like numpy.percentile.
         """
         return self.data_frame['cost_spent'].quantile(
+                q, interpolation=interpolation)
+
+    def time_spent_quantile(self,
+                            q: Union[float, numpy.ndarray]=0.5,
+                            interpolation='linear'):
+        """Return the cost spent at the given quantile.
+
+        This behaves like numpy.percentile.
+        """
+        return self.data_frame['time'].quantile(
                 q, interpolation=interpolation)

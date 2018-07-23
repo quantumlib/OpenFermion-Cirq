@@ -16,7 +16,9 @@ from openfermioncirq.optimization.algorithm import (
     OptimizationAlgorithm,
     OptimizationParams)
 
-from openfermioncirq.optimization.black_box import BlackBox
+from openfermioncirq.optimization.black_box import (
+        BlackBox,
+        StatefulBlackBox)
 
 from openfermioncirq.optimization.result import (
     OptimizationResult,

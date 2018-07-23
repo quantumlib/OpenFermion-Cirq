@@ -15,5 +15,6 @@ from openfermioncirq.testing.example_classes import (
     ExampleAnsatz,
     ExampleBlackBox,
     ExampleBlackBoxNoisy,
+    ExampleStatefulBlackBox,
     ExampleStudy,
     ExampleStudyNoisy)

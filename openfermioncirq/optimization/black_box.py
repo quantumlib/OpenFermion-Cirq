@@ -12,11 +12,17 @@
 
 """Defines the interface for a black box objective function."""
 
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, TYPE_CHECKING, Tuple
+
+import time
 
 import numpy
 
 from cirq import abc
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import List
 
 
 class BlackBox(metaclass=abc.ABCMeta):
@@ -93,3 +99,103 @@ class BlackBox(metaclass=abc.ABCMeta):
         return a value within the bounds.
         """
         return -numpy.inf, numpy.inf
+
+
+class StatefulBlackBox(BlackBox):
+    """A black box function with memory of evaluations.
+
+    This black box keeps track of the the points that have been evaluated,
+    the total cost spent on evaluations, and the time elapsed between
+    queries.
+
+    Attributes:
+        num_evaluations: The number of times the objective function has been
+            evaluated, including noisy evaluations.
+        cost_spent: The total cost that has been spent on function evaluations.
+        cost_of_evaluate: An optional cost associated with the
+            ``evaluate`` method.
+        function_values: A list of tuples storing function values of evaluated
+            points. The tuples contain three objects. The first is a function
+            value, the second is the cost that was used for the evaluation
+            (or None if there was no cost), and the third is the point that
+            was evaluated (or None if the black box was initialized with
+            ``save_x_vals`` set to False.
+        wait_times: A list of floats. The i-th float float represents the time
+            elapsed between the i-th and (i+1)-th times that the black box
+            was queried. Time is recorded using ``time.time()``.
+    """
+
+    def __init__(self,
+                 cost_of_evaluate: Optional[float]=None,
+                 save_x_vals: bool=False) -> None:
+        """
+        Args:
+            cost_of_evaluate: An optional cost associated with the
+                ``evaluate`` method. If specified, the ``evaluate`` method
+                will defer to ``evaluate_with_cost`` with the specified cost.
+            save_x_vals: Whether to save all points (x values) that the
+                black box was queried at. Setting this to True will cause the
+                black box to consume a lot more memory. This does not affect
+                whether the function values (y values) are saved (they are
+                saved no matter what).
+        """
+        self.function_values = [] \
+            # type: List[Tuple[float, Optional[float], Optional[numpy.ndarray]]]
+        self.cost_of_evaluate = cost_of_evaluate
+        self.cost_spent = 0.0
+        self.wait_times = []  # type: List[float]
+        self._save_x_vals = save_x_vals
+        self._time_of_last_query = None  # type: Optional[float]
+
+    @property
+    def num_evaluations(self) -> float:
+        """The number of times the objective function has been evaluated."""
+        return len(self.function_values)
+
+    @abc.abstractmethod
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
+        """Evaluate the objective function."""
+        pass
+
+    def _evaluate_with_cost(self,
+                            x: numpy.ndarray,
+                            cost: float) -> float:
+        """Evaluate the objective function with a specified cost."""
+        # Default: defer to `_evaluate`
+        return self._evaluate(x)  # coverage: ignore
+
+    def evaluate(self,
+                 x: numpy.ndarray) -> float:
+        """Evaluate the objective function and update state."""
+        # If cost_of_evaluate is set, defer to evaluate_with_cost
+        if self.cost_of_evaluate is not None:
+            return self.evaluate_with_cost(x, self.cost_of_evaluate)
+
+        if self._time_of_last_query is not None:
+            self.wait_times.append(time.time() - self._time_of_last_query)
+
+        val = self._evaluate(x)
+        self.function_values.append(
+                (val, None, x if self._save_x_vals else None)
+        )
+        self._time_of_last_query = time.time()
+        return val
+
+    def evaluate_with_cost(self,
+                           x: numpy.ndarray,
+                           cost: float) -> float:
+        """Evaluate the objective function with a cost and update state."""
+        if self._time_of_last_query is not None:
+            self.wait_times.append(time.time() - self._time_of_last_query)
+
+        val = self._evaluate_with_cost(x, cost)
+        self.function_values.append(
+                (val, cost, x if self._save_x_vals else None)
+        )
+        self.cost_spent += cost
+        self._time_of_last_query = time.time()
+        return val
+
+    def average_wait_time(self) -> float:
+        return numpy.mean(self.wait_times)

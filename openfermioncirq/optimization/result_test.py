@@ -16,7 +16,7 @@ from openfermioncirq.optimization import (
         OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult)
-from openfermioncirq.testing import ExampleAlgorithm
+from openfermioncirq.testing import ExampleAlgorithm, ExampleBlackBox
 
 
 def test_optimization_result_init():
@@ -27,7 +27,9 @@ def test_optimization_result_init():
             cost_spent=1.426,
             seed=77,
             status=195,
-            message='fdjmolGSHM')
+            message='fdjmolGSHM',
+            time=0.423,
+            black_box=ExampleBlackBox())
     assert result.optimal_value == 0.339
     numpy.testing.assert_allclose(result.optimal_parameters,
                                   numpy.array([-1.899, -0.549]))
@@ -36,6 +38,8 @@ def test_optimization_result_init():
     assert result.seed == 77
     assert result.status == 195
     assert result.message == 'fdjmolGSHM'
+    assert result.time == 0.423
+    assert isinstance(result.black_box, ExampleBlackBox)
 
 
 def test_optimize_trial_result_init():
@@ -79,7 +83,8 @@ def test_optimize_trial_result_data_methods():
             cost_spent=3.1,
             seed=60,
             status=54,
-            message='ZibVTBNe8')
+            message='ZibVTBNe8',
+            time=0.1)
     result2 = OptimizationResult(
             optimal_value=4.7,
             optimal_parameters=numpy.array([1.7, 2.1]),
@@ -87,7 +92,8 @@ def test_optimize_trial_result_data_methods():
             cost_spent=9.3,
             seed=51,
             status=32,
-            message='cicCZ8iCg0D')
+            message='cicCZ8iCg0D',
+            time=0.2)
     trial = OptimizationTrialResult(
             [result1, result2],
             params=OptimizationParams(ExampleAlgorithm()))
@@ -96,6 +102,7 @@ def test_optimize_trial_result_data_methods():
     assert trial.optimal_value == 4.7
     numpy.testing.assert_allclose(trial.optimal_parameters,
                                   numpy.array([1.7, 2.1]))
-    assert trial.optimal_value_quantile() == 5.2
     assert trial.num_evaluations_quantile() == 58
-    assert trial.cost_spent_quantile() == 6.2
+    numpy.testing.assert_allclose(trial.optimal_value_quantile(), 5.2)
+    numpy.testing.assert_allclose(trial.cost_spent_quantile(), 6.2)
+    numpy.testing.assert_allclose(trial.time_spent_quantile(), 0.15)

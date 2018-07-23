@@ -20,6 +20,7 @@ import itertools
 import multiprocessing
 import os
 import pickle
+import time
 
 import numpy
 
@@ -28,10 +29,10 @@ from cirq import abc
 
 from openfermioncirq.variational import VariationalAnsatz
 from openfermioncirq.optimization import (
-        BlackBox,
         OptimizationParams,
         OptimizationResult,
-        OptimizationTrialResult)
+        OptimizationTrialResult,
+        StatefulBlackBox)
 
 
 class VariationalStudy(metaclass=abc.ABCMeta):
@@ -162,6 +163,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                  optimization_params: OptimizationParams,
                  identifier: Optional[Hashable]=None,
                  reevaluate_final_params: bool=False,
+                 save_x_vals: bool=False,
                  repetitions: int=1,
                  seeds: Optional[Sequence[int]]=None,
                  use_multiprocessing: bool=False,
@@ -193,6 +195,11 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
+            save_x_vals: Whether to save all parameters (x values) that the
+                optimization algorithm queries. Setting this to True will
+                cause the study to consume a lot more memory. This does not
+                affect whether the function values (y values) are saved
+                (they are saved no matter what).
             repetitions: The number of times to run the optimization.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
@@ -210,6 +217,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return self.optimize_sweep([optimization_params],
                                    [identifier] if identifier else None,
                                    reevaluate_final_params,
+                                   save_x_vals,
                                    repetitions,
                                    seeds,
                                    use_multiprocessing,
@@ -219,6 +227,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                        param_sweep: Iterable[OptimizationParams],
                        identifiers: Optional[Iterable[Hashable]]=None,
                        reevaluate_final_params: bool=False,
+                       save_x_vals: bool=False,
                        repetitions: int=1,
                        seeds: Optional[Sequence[int]]=None,
                        use_multiprocessing: bool=False,
@@ -243,6 +252,11 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
+            save_x_vals: Whether to save all parameters (x values) that the
+                optimization algorithm queries. Setting this to True will
+                cause the study to consume a lot more memory. This does not
+                affect whether the function values (y values) are saved
+                (they are saved no matter what).
             repetitions: The number of times to run the algorithm for each
                 inititial guess.
             seeds: Random number generator seeds to use for the repetitions.
@@ -286,6 +300,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                             self,
                             optimization_params,
                             reevaluate_final_params,
+                            save_x_vals,
                             seeds[i] if seeds is not None
                             else numpy.random.randint(4294967296)
                         )
@@ -301,6 +316,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                     result = self._run_optimization(
                             optimization_params,
                             reevaluate_final_params,
+                            save_x_vals,
                             seeds[i] if seeds is not None
                                 else numpy.random.randint(4294967296))
                     result_list.append(result)
@@ -318,6 +334,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             self,
             optimization_params: OptimizationParams,
             reevaluate_final_params: bool,
+            save_x_vals: bool,
             seed: int) -> OptimizationResult:
         """Perform an optimization run and return the result.
 
@@ -327,7 +344,8 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
         black_box = VariationalStudyBlackBox(
                 self,
-                cost_of_evaluate=optimization_params.cost_of_evaluate)
+                cost_of_evaluate=optimization_params.cost_of_evaluate,
+                save_x_vals=save_x_vals)
         initial_guess = optimization_params.initial_guess
         initial_guess_array = optimization_params.initial_guess_array
 
@@ -337,13 +355,17 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             initial_guess_array = numpy.array([self.default_initial_params()])
 
         numpy.random.seed(seed)
+        t0 = time.time()
         result = optimization_params.algorithm.optimize(black_box,
                                                         initial_guess,
                                                         initial_guess_array)
+        t1 = time.time()
 
         result.num_evaluations = black_box.num_evaluations
         result.cost_spent = black_box.cost_spent
         result.seed = seed
+        result.time = t1 - t0
+        result.black_box = black_box
         if reevaluate_final_params:
             result.optimal_value = self.evaluate(result.optimal_parameters)
 
@@ -383,6 +405,11 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             details.append(
                     '            {}'.format(
                         list(result.cost_spent_quantile([.25, .5, .75]))))
+            details.append(
+                    '        Time spent 1st, 2nd, 3rd quartiles:')
+            details.append(
+                    '            {}'.format(
+                        list(result.time_spent_quantile([.25, .5, .75]))))
 
         header.append(
                 'This study contains {} results.'.format(len(self.results)))
@@ -413,7 +440,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
     def default_initial_params(self) -> numpy.ndarray:
         """Suggested initial parameter settings."""
-        return self._ansatz.default_initial_params()
+        return self.ansatz.default_initial_params()
 
     def _init_kwargs(self) -> Dict[str, Any]:
         """Arguments to pass to __init__ when re-loading the study.
@@ -422,7 +449,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         saving and loading to work properly.
         """
         return {'name': self.name,
-                'ansatz': self._ansatz,
+                'ansatz': self.ansatz,
                 'preparation_circuit': self._preparation_circuit}
 
     def save(self) -> None:
@@ -457,7 +484,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return study
 
 
-class VariationalStudyBlackBox(BlackBox):
+class VariationalStudyBlackBox(StatefulBlackBox):
     """A black box for evaluations in a variational study.
 
     This black box keeps track of the number of times it has been evaluated as
@@ -466,22 +493,15 @@ class VariationalStudyBlackBox(BlackBox):
 
     Attributes:
         study: The variational study whose evaluation functions are being
-            encapsulated by the black box
-        num_evaluations: The number of times the objective function has been
-            evaluated, including noisy evaluations.
-        cost_spent: The total cost that has been spent on function evaluations.
-        cost_of_evaluate: An optional cost to be used by the `evaluate` method.
+            encapsulated by the black box.
     """
-    # TODO implement cost budget
-    # TODO save the points that were evaluated
 
     def __init__(self,
                  study: VariationalStudy,
-                 cost_of_evaluate: Optional[float]=None) -> None:
+                 cost_of_evaluate: Optional[float]=None,
+                 save_x_vals: bool=False) -> None:
         self.study = study
-        self.num_evaluations = 0
-        self.cost_spent = 0.0
-        self.cost_of_evaluate = cost_of_evaluate
+        super().__init__(cost_of_evaluate, save_x_vals)
 
     @property
     def dimension(self) -> int:
@@ -493,34 +513,15 @@ class VariationalStudyBlackBox(BlackBox):
         """Optional bounds on the inputs to the objective function."""
         return self.study.ansatz.param_bounds()
 
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
-        """Evaluate the objective function.
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
+        """Evaluate the objective function."""
+        return self.study.evaluate(x)
 
-        If `cost_of_evaluate` is None, then this just calls `study.evaluate`.
-        Otherwise, it calls `study.evaluate_with_cost` with with that cost.
-
-        Side effects: Increments self.num_evaluations by one.
-            If cost_of_evaluate is not None, then its value is added to
-            self.cost_spent.
-        """
-        self.num_evaluations += 1
-        if self.cost_of_evaluate is None:
-            return self.study.evaluate(x)
-        else:
-            self.cost_spent += self.cost_of_evaluate
-            return self.study.evaluate_with_cost(x, self.cost_of_evaluate)
-
-    def evaluate_with_cost(self,
-                           x: numpy.ndarray,
-                           cost: float) -> float:
-        """Evaluate the objective function with a specified cost.
-
-        Side effects: Increments self.num_evaluations by one and adds the cost
-            spent to self.cost_spent.
-        """
-        self.num_evaluations += 1
-        self.cost_spent += cost
+    def _evaluate_with_cost(self,
+                            x: numpy.ndarray,
+                            cost: float) -> float:
+        """Evaluate the objective function with a specified cost."""
         return self.study.evaluate_with_cost(x, cost)
 
     def noise_bounds(self,
