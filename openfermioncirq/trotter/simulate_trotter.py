@@ -51,11 +51,11 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
             j-th fermionic mode.
         hamiltonian: The Hamiltonian to simulate.
         time: The evolution time.
-        n_steps: The number of Trotter steps to use. Default is 0.
+        n_steps: The number of Trotter steps to use. Default is 1.
         order: The order of the product formula. The value indexes symmetric
             formulae, e.g., a value of 2 indicates a second-order symmetric,
             sometimes known as a fourth-order, Trotter formula. A value of 0
-            indicates an asymmetric Trotter formula. Default is 1.
+            indicates an asymmetric Trotter formula. Default is 0.
         algorithm: The algorithm to use to simulate a single Trotter step.
             This is a constant exposed in the openfermioncirq.trotter module.
             If not specified, a default option will be chosen based on the
