@@ -29,6 +29,7 @@ from cirq import abc
 
 from openfermioncirq.variational import VariationalAnsatz
 from openfermioncirq.optimization import (
+        BlackBox,
         OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult,
@@ -163,6 +164,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                  optimization_params: OptimizationParams,
                  identifier: Optional[Hashable]=None,
                  reevaluate_final_params: bool=False,
+                 stateful: bool=False,
                  save_x_vals: bool=False,
                  repetitions: int=1,
                  seeds: Optional[Sequence[int]]=None,
@@ -195,11 +197,14 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
-            save_x_vals: Whether to save all parameters (x values) that the
-                optimization algorithm queries. Setting this to True will
-                cause the study to consume a lot more memory. This does not
-                affect whether the function values (y values) are saved
-                (they are saved no matter what).
+            stateful: Whether the optimizer should use a StatefulBlackBox.
+                If True, then the black box will keep track of all points
+                evaluated by the optimizer, the total cost spent, and the time
+                between queries.
+            save_x_vals: Whether to save all points (x values) that the
+                black box was queried at. Only used if `stateful` is set to
+                True. Setting this to True will cause the black box to consume
+                a lot more memory.
             repetitions: The number of times to run the optimization.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
@@ -217,6 +222,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return self.optimize_sweep([optimization_params],
                                    [identifier] if identifier else None,
                                    reevaluate_final_params,
+                                   stateful,
                                    save_x_vals,
                                    repetitions,
                                    seeds,
@@ -227,6 +233,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                        param_sweep: Iterable[OptimizationParams],
                        identifiers: Optional[Iterable[Hashable]]=None,
                        reevaluate_final_params: bool=False,
+                       stateful: bool=False,
                        save_x_vals: bool=False,
                        repetitions: int=1,
                        seeds: Optional[Sequence[int]]=None,
@@ -252,13 +259,16 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
-            save_x_vals: Whether to save all parameters (x values) that the
-                optimization algorithm queries. Setting this to True will
-                cause the study to consume a lot more memory. This does not
-                affect whether the function values (y values) are saved
-                (they are saved no matter what).
+            stateful: Whether the optimizer should use a StatefulBlackBox.
+                If True, then the black box will track of all points evaluated
+                by the optimizer, the total cost spent, and the time between
+                queries.
+            save_x_vals: Whether to save all points (x values) that the
+                black box was queried at. Only used if `stateful` is set to
+                True. Setting this to True will cause the black box to consume
+                a lot more memory.
             repetitions: The number of times to run the algorithm for each
-                inititial guess.
+                set of optimization parameters.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
                 for each repetition.
@@ -300,6 +310,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                             self,
                             optimization_params,
                             reevaluate_final_params,
+                            stateful,
                             save_x_vals,
                             seeds[i] if seeds is not None
                             else numpy.random.randint(4294967296)
@@ -316,9 +327,10 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                     result = self._run_optimization(
                             optimization_params,
                             reevaluate_final_params,
+                            stateful,
                             save_x_vals,
                             seeds[i] if seeds is not None
-                                else numpy.random.randint(4294967296))
+                            else numpy.random.randint(4294967296))
                     result_list.append(result)
 
             trial_result = OptimizationTrialResult(result_list,
@@ -334,6 +346,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             self,
             optimization_params: OptimizationParams,
             reevaluate_final_params: bool,
+            stateful: bool,
             save_x_vals: bool,
             seed: int) -> OptimizationResult:
         """Perform an optimization run and return the result.
@@ -342,13 +355,18 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         study are used.
         """
 
-        black_box = VariationalStudyBlackBox(
-                self,
-                cost_of_evaluate=optimization_params.cost_of_evaluate,
-                save_x_vals=save_x_vals)
+        if stateful:
+            black_box = VariationalStudyStatefulBlackBox(
+                    self,
+                    cost_of_evaluate=optimization_params.cost_of_evaluate,
+                    save_x_vals=save_x_vals)
+        else:
+            black_box = VariationalStudyBlackBox(  # type: ignore
+                    self,
+                    cost_of_evaluate=optimization_params.cost_of_evaluate)
+
         initial_guess = optimization_params.initial_guess
         initial_guess_array = optimization_params.initial_guess_array
-
         if initial_guess is None:
             initial_guess = self.default_initial_params()
         if initial_guess_array is None:
@@ -361,11 +379,10 @@ class VariationalStudy(metaclass=abc.ABCMeta):
                                                         initial_guess_array)
         t1 = time.time()
 
-        result.num_evaluations = black_box.num_evaluations
-        result.cost_spent = black_box.cost_spent
         result.seed = seed
         result.time = t1 - t0
-        result.black_box = black_box
+        if stateful:
+            result.black_box = black_box
         if reevaluate_final_params:
             result.optimal_value = self.evaluate(result.optimal_parameters)
 
@@ -501,7 +518,54 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return study
 
 
-class VariationalStudyBlackBox(StatefulBlackBox):
+class VariationalStudyBlackBox(BlackBox):
+    """A black box for evaluations in a variational study.
+
+    Attributes:
+        study: The variational study whose evaluation functions are being
+            encapsulated by the black box.
+        cost_of_evaluate: The cost to be used by the ``evaluate`` method of
+            the black box.
+    """
+
+    def __init__(self,
+                 study: VariationalStudy,
+                 cost_of_evaluate: Optional[float]=None) -> None:
+        self.study = study
+        self.cost_of_evaluate = cost_of_evaluate
+
+    @property
+    def dimension(self) -> int:
+        """The dimension of the array accepted by the objective function."""
+        return self.study.num_params
+
+    @property
+    def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
+        """Optional bounds on the inputs to the objective function."""
+        return self.study.ansatz.param_bounds()
+
+    def evaluate(self,
+                 x: numpy.ndarray) -> float:
+        """Evaluate the objective function."""
+        if self.cost_of_evaluate is not None:
+            return self.evaluate_with_cost(x, self.cost_of_evaluate)
+        return self.study.evaluate(x)
+
+    def evaluate_with_cost(self,
+                           x: numpy.ndarray,
+                           cost: float) -> float:
+        """Evaluate the objective function with a specified cost."""
+        return self.study.evaluate_with_cost(x, cost)
+
+    def noise_bounds(self,
+                     cost: float,
+                     confidence: Optional[float]=None
+                     ) -> Tuple[float, float]:
+        """Exact or approximate bounds on noise in the objective function."""
+        return self.study.noise_bounds(cost, confidence)
+
+
+class VariationalStudyStatefulBlackBox(StatefulBlackBox):
     """A black box for evaluations in a variational study.
 
     This black box keeps track of the number of times it has been evaluated as

@@ -105,6 +105,7 @@ def test_variational_study_optimize_and_summary():
     study = ExampleStudy('study', test_ansatz)
     assert len(study.results) == 0
 
+    # Optimization run 1
     result = study.optimize(
             OptimizationParams(test_algorithm),
             'run1')
@@ -112,6 +113,7 @@ def test_variational_study_optimize_and_summary():
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 1
 
+    # Optimization run 2
     study.optimize(OptimizationParams(test_algorithm),
                    repetitions=2,
                    use_multiprocessing=True)
@@ -120,6 +122,7 @@ def test_variational_study_optimize_and_summary():
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 2
 
+    # Optimization run 3
     study.optimize(
             OptimizationParams(
                 test_algorithm,
@@ -127,7 +130,9 @@ def test_variational_study_optimize_and_summary():
                 initial_guess_array=numpy.array([[7.2, 6.3],
                                                  [3.6, 9.8]]),
                 cost_of_evaluate=1.0),
-            reevaluate_final_params=True)
+            reevaluate_final_params=True,
+            stateful=True,
+            save_x_vals=True)
     result = study.results[1]
     assert len(study.results) == 3
     assert isinstance(result, OptimizationTrialResult)
@@ -136,6 +141,7 @@ def test_variational_study_optimize_and_summary():
                result.data_frame['optimal_value'])
     assert isinstance(result.results[0].black_box, StatefulBlackBox)
 
+    # Check that getting a summary works
     assert isinstance(study.summary, str)
 
 
