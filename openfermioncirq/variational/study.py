@@ -379,37 +379,54 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         optimal_identifier = None  # type: Optional[Hashable]
 
         for identifier, result in self.results.items():
+
             result_opt = result.optimal_value
             if result_opt < optimal_value:
                 optimal_value = result_opt
                 optimal_identifier = identifier
+
             details.append(
-                    '    Identifier: {}'.format(identifier))
+                    '    Identifier: {}'.format(
+                        identifier)
+            )
             details.append(
-                    '        Optimal value: {}'.format(result_opt))
+                    '        Optimal value: {}'.format(
+                        result_opt)
+            )
             details.append(
                     '        Number of repetitions: {}'.format(
-                        result.repetitions))
+                        result.repetitions)
+            )
             details.append(
-                    '        Optimal value 1st, 2nd, 3rd quartiles:')
+                    '        Optimal value 1st, 2nd, 3rd quartiles:'
+            )
             details.append(
                     '            {}'.format(
-                        list(result.optimal_value_quantile([.25, .5, .75]))))
+                        list(result.data_frame['optimal_value'].quantile(
+                            [.25, .5, .75])))
+            )
             details.append(
                     '        Num evaluations 1st, 2nd, 3rd quartiles:')
             details.append(
                     '            {}'.format(
-                        list(result.num_evaluations_quantile([.25, .5, .75]))))
+                        list(result.data_frame['num_evaluations'].quantile(
+                            [.25, .5, .75]))))
             details.append(
-                    '        Cost spent 1st, 2nd, 3rd quartiles:')
-            details.append(
-                    '            {}'.format(
-                        list(result.cost_spent_quantile([.25, .5, .75]))))
-            details.append(
-                    '        Time spent 1st, 2nd, 3rd quartiles:')
+                    '        Cost spent 1st, 2nd, 3rd quartiles:'
+            )
             details.append(
                     '            {}'.format(
-                        list(result.time_spent_quantile([.25, .5, .75]))))
+                        list(result.data_frame['cost_spent'].quantile(
+                            [.25, .5, .75])))
+            )
+            details.append(
+                    '        Time spent 1st, 2nd, 3rd quartiles:'
+            )
+            details.append(
+                    '            {}'.format(
+                        list(result.data_frame['time'].quantile(
+                            [.25, .5, .75])))
+            )
 
         header.append(
                 'This study contains {} results.'.format(len(self.results)))

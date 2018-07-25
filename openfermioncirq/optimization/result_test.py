@@ -102,7 +102,3 @@ def test_optimize_trial_result_data_methods():
     assert trial.optimal_value == 4.7
     numpy.testing.assert_allclose(trial.optimal_parameters,
                                   numpy.array([1.7, 2.1]))
-    assert trial.num_evaluations_quantile() == 58
-    numpy.testing.assert_allclose(trial.optimal_value_quantile(), 5.2)
-    numpy.testing.assert_allclose(trial.cost_spent_quantile(), 6.2)
-    numpy.testing.assert_allclose(trial.time_spent_quantile(), 0.15)

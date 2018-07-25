@@ -12,7 +12,7 @@
 
 """Classes for storing the results of running an optimization algorithm."""
 
-from typing import Iterable, Optional, TYPE_CHECKING, Union
+from typing import Iterable, Optional, TYPE_CHECKING
 
 import numpy
 import pandas
@@ -120,43 +120,3 @@ class OptimizationTrialResult:
     def optimal_parameters(self):
         return self.data_frame['optimal_parameters'][
                 self.data_frame['optimal_value'].idxmin()]
-
-    def optimal_value_quantile(self,
-                               q: Union[float, numpy.ndarray]=0.5,
-                               interpolation='linear'):
-        """Return the optimal value at the given quantile.
-
-        This behaves like numpy.percentile.
-        """
-        return self.data_frame['optimal_value'].quantile(
-                q, interpolation=interpolation)
-
-    def num_evaluations_quantile(self,
-                                 q: Union[float, numpy.ndarray]=0.5,
-                                 interpolation='linear'):
-        """Return the number of evaluations used at the given quantile.
-
-        This behaves like numpy.percentile.
-        """
-        return self.data_frame['num_evaluations'].quantile(
-                q, interpolation=interpolation)
-
-    def cost_spent_quantile(self,
-                            q: Union[float, numpy.ndarray]=0.5,
-                            interpolation='linear'):
-        """Return the cost spent at the given quantile.
-
-        This behaves like numpy.percentile.
-        """
-        return self.data_frame['cost_spent'].quantile(
-                q, interpolation=interpolation)
-
-    def time_spent_quantile(self,
-                            q: Union[float, numpy.ndarray]=0.5,
-                            interpolation='linear'):
-        """Return the cost spent at the given quantile.
-
-        This behaves like numpy.percentile.
-        """
-        return self.data_frame['time'].quantile(
-                q, interpolation=interpolation)
