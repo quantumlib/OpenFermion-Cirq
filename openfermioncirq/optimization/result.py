@@ -17,7 +17,7 @@ from typing import Iterable, Optional, TYPE_CHECKING
 import numpy
 import pandas
 
-from openfermioncirq.optimization.black_box import BlackBox, StatefulBlackBox
+from openfermioncirq.optimization.black_box import BlackBox
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -102,21 +102,33 @@ class OptimizationTrialResult:
                  'seed': result.seed,
                  'status': result.status,
                  'message': result.message,
-                 'time': result.time,
-                 'average_wait_time': result.black_box.average_wait_time()
-                     if isinstance(result.black_box, StatefulBlackBox)
-                     else None}
+                 'time': result.time}
                 for result in results)
 
     @property
-    def repetitions(self):
+    def repetitions(self) -> int:
         return len(self.data_frame)
 
     @property
-    def optimal_value(self):
+    def optimal_value(self) -> float:
         return self.data_frame['optimal_value'].min()
 
     @property
-    def optimal_parameters(self):
+    def optimal_parameters(self) -> numpy.ndarray:
         return self.data_frame['optimal_parameters'][
                 self.data_frame['optimal_value'].idxmin()]
+
+    def extend(self,
+               results: Iterable[OptimizationResult]) -> None:
+        new_data_frame = pandas.DataFrame(
+                {'optimal_value': result.optimal_value,
+                 'optimal_parameters': result.optimal_parameters,
+                 'num_evaluations': result.num_evaluations,
+                 'cost_spent': result.cost_spent,
+                 'seed': result.seed,
+                 'status': result.status,
+                 'message': result.message,
+                 'time': result.time}
+                for result in results)
+        self.data_frame = pandas.concat([self.data_frame, new_data_frame])
+        self.results.extend(results)

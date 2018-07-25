@@ -42,7 +42,7 @@ def test_optimization_result_init():
     assert isinstance(result.black_box, ExampleBlackBox)
 
 
-def test_optimize_trial_result_init():
+def test_optimization_trial_result_init():
     result1 = OptimizationResult(
             optimal_value=5.7,
             optimal_parameters=numpy.array([1.3, 8.7]),
@@ -75,7 +75,38 @@ def test_optimize_trial_result_init():
     assert all(trial.data_frame['message'] == ['ZibVTBNe8', 'cicCZ8iCg0D'])
 
 
-def test_optimize_trial_result_data_methods():
+def test_optimization_trial_result_extend():
+    result1 = OptimizationResult(
+            optimal_value=4.7,
+            optimal_parameters=numpy.array([2.3, 2.7]),
+            num_evaluations=39,
+            cost_spent=3.9,
+            seed=63,
+            status=44,
+            message='di382j2f')
+    result2 = OptimizationResult(
+            optimal_value=3.7,
+            optimal_parameters=numpy.array([1.2, 3.1]),
+            num_evaluations=47,
+            cost_spent=9.9,
+            seed=21,
+            status=22,
+            message='i328d8ie3')
+
+    trial = OptimizationTrialResult(
+            [result1],
+            params=OptimizationParams(ExampleAlgorithm()))
+
+    assert len(trial.results) == 1
+    assert trial.repetitions == 1
+
+    trial.extend([result2])
+
+    assert len(trial.results) == 2
+    assert trial.repetitions == 2
+
+
+def test_optimization_trial_result_data_methods():
     result1 = OptimizationResult(
             optimal_value=5.7,
             optimal_parameters=numpy.array([1.3, 8.7]),
