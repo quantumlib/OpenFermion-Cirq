@@ -99,7 +99,7 @@ def test_variational_study_noise_bounds():
     assert test_study.noise_bounds(100) == (-numpy.inf, numpy.inf)
 
 
-def test_variational_study_optimize_and_summary():
+def test_variational_study_optimize_and_extend_and_summary():
     numpy.random.seed(63351)
 
     study = ExampleStudy('study', test_ansatz)
@@ -112,6 +112,11 @@ def test_variational_study_optimize_and_summary():
     assert len(study.results) == 1
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 1
+
+    # Extend optimization run 1
+    study.extend_result('run1',
+                        repetitions=2)
+    assert study.results['run1'].repetitions == 3
 
     # Optimization run 2
     study.optimize(OptimizationParams(test_algorithm),
@@ -140,6 +145,10 @@ def test_variational_study_optimize_and_summary():
     assert all(result.data_frame['optimal_parameters'].apply(study.evaluate) ==
                result.data_frame['optimal_value'])
     assert isinstance(result.results[0].black_box, StatefulBlackBox)
+
+    # Try extending non-existent run
+    with pytest.raises(KeyError):
+        study.extend_result('run100')
 
     # Check that getting a summary works
     assert isinstance(study.summary, str)

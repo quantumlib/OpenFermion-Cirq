@@ -300,38 +300,15 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
         for identifier, optimization_params in zip(identifiers, param_sweep):
 
-            if use_multiprocessing:
-                if num_processes is None:
-                    num_processes = multiprocessing.cpu_count()
-                pool = multiprocessing.Pool(num_processes)
-                try:
-                    arg_tuples = (
-                        (
-                            self,
-                            optimization_params,
-                            reevaluate_final_params,
-                            stateful,
-                            save_x_vals,
-                            seeds[i] if seeds is not None
-                            else numpy.random.randint(4294967296)
-                        )
-                        for i in range(repetitions)
-                    )
-                    result_list = pool.map(_serializable_run_optimization,
-                                           arg_tuples)
-                finally:
-                    pool.terminate()
-            else:
-                result_list = []
-                for i in range(repetitions):
-                    result = self._run_optimization(
-                            optimization_params,
-                            reevaluate_final_params,
-                            stateful,
-                            save_x_vals,
-                            seeds[i] if seeds is not None
-                            else numpy.random.randint(4294967296))
-                    result_list.append(result)
+            result_list = self._get_result_list(
+                    optimization_params,
+                    reevaluate_final_params,
+                    stateful,
+                    save_x_vals,
+                    repetitions,
+                    seeds,
+                    use_multiprocessing,
+                    num_processes)
 
             trial_result = OptimizationTrialResult(result_list,
                                                    optimization_params)
@@ -341,6 +318,123 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             self.results[identifier] = trial_result
 
         return trial_results
+
+
+    def extend_result(self,
+                      identifier: Hashable,
+                      reevaluate_final_params: bool=False,
+                      stateful: bool=False,
+                      save_x_vals: bool=False,
+                      repetitions: int=1,
+                      seeds: Optional[Sequence[int]]=None,
+                      use_multiprocessing: bool=False,
+                      num_processes: Optional[int]=None
+                      ) -> None:
+        """Extend a result by repeating the run with the same parameters.
+
+        The provided identifier is used as a key to the `results` dictionary
+        to retrieve an OptimizationTrialResult. The OptimizationParams
+        associated with this trial result are used to perform additional
+        repetitions of the optimization run. The results of these repetitions
+        are appended to the stored OptimizationTrialResult.
+
+        If there is no OptimizationTrialResult associated with the given
+        identifier, an error is raised.
+
+        Args:
+            identifier: The identifier of the result to extend.
+            reevaluate_final_params: Whether the optimal parameters returned
+                by the optimization algorithm should be reevaluated using the
+                `evaluate` method of the study and the optimal value adjusted
+                accordingly. This is useful when the optimizer only has access
+                to the noisy `evaluate_with_cost` method of the study (because
+                `cost_of_evaluate` is set), but you are interested in the true
+                noiseless value of the returned parameters.
+            stateful: Whether the optimizer should use a StatefulBlackBox.
+                If True, then the black box will track of all points evaluated
+                by the optimizer, the total cost spent, and the time between
+                queries.
+            save_x_vals: Whether to save all points (x values) that the
+                black box was queried at. Only used if `stateful` is set to
+                True. Setting this to True will cause the black box to consume
+                a lot more memory.
+            repetitions: The number of repetitions to perform.
+            seeds: Random number generator seeds to use for the repetitions.
+                The default behavior is to randomly generate an independent seed
+                for each repetition.
+            use_multiprocessing: Whether to use multiprocessing to run
+                repetitions in different processes.
+            num_processes: The number of processes to use for multiprocessing.
+                The default behavior is to use the output of
+                `multiprocessing.cpu_count()`.
+
+        Raises:
+            KeyError: There was no existing result with the given identifier.
+        """
+        if identifier not in self.results:
+            raise KeyError('Could not find an existing result with the '
+                           'identifier {}.'.format(identifier))
+
+        optimization_params = self.results[identifier].params
+
+        result_list = self._get_result_list(
+                optimization_params,
+                reevaluate_final_params,
+                stateful,
+                save_x_vals,
+                repetitions,
+                seeds,
+                use_multiprocessing,
+                num_processes)
+
+        self.results[identifier].extend(result_list)
+
+    def _get_result_list(
+            self,
+            optimization_params,
+            reevaluate_final_params: bool,
+            stateful: bool,
+            save_x_vals: bool,
+            repetitions: int=1,
+            seeds: Optional[Sequence[int]]=None,
+            use_multiprocessing: bool=False,
+            num_processes: Optional[int]=None
+            ) -> List[OptimizationResult]:
+
+        if use_multiprocessing:
+            if num_processes is None:
+                num_processes = multiprocessing.cpu_count()
+            pool = multiprocessing.Pool(num_processes)
+            try:
+                arg_tuples = (
+                    (
+                        self,
+                        optimization_params,
+                        reevaluate_final_params,
+                        stateful,
+                        save_x_vals,
+                        seeds[i] if seeds is not None
+                        else numpy.random.randint(4294967296)
+                    )
+                    for i in range(repetitions)
+                )
+                result_list = pool.map(_serializable_run_optimization,
+                                       arg_tuples)
+            finally:
+                pool.terminate()
+        else:
+            result_list = []
+            for i in range(repetitions):
+                result = self._run_optimization(
+                        optimization_params,
+                        reevaluate_final_params,
+                        stateful,
+                        save_x_vals,
+                        seeds[i] if seeds is not None
+                        else numpy.random.randint(4294967296))
+                result_list.append(result)
+
+        return result_list
 
     def _run_optimization(
             self,
@@ -387,6 +481,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             result.optimal_value = self.evaluate(result.optimal_parameters)
 
         return result
+
 
     @property
     def summary(self) -> str:
