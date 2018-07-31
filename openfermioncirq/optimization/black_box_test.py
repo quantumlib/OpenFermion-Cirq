@@ -77,8 +77,6 @@ def test_stateful_black_box():
     for t in stateful_black_box.wait_times:
         assert isinstance(t, float)
 
-    assert isinstance(stateful_black_box.average_wait_time(), float)
-
 
 def test_stateful_black_box_save_x_vals():
     stateful_black_box = ExampleStatefulBlackBox(save_x_vals=True)
@@ -100,7 +98,7 @@ def test_black_box_is_abstract_must_implement():
         def dimension(self):
             pass
     class Missing2(BlackBox):
-        def evaluate(self):
+        def _evaluate(self):
             pass
 
     with pytest.raises(TypeError):
@@ -114,7 +112,7 @@ def test_black_box_is_abstract_can_implement():
         @property
         def dimension(self):
             pass
-        def evaluate(self):
+        def _evaluate(self):
             pass
 
     assert isinstance(Included(), BlackBox)

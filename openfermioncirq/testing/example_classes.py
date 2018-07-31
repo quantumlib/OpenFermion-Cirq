@@ -57,34 +57,26 @@ class ExampleBlackBox(BlackBox):
     def dimension(self) -> int:
         return 2
 
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
         return numpy.sum(x**2)
 
 
 class ExampleBlackBoxNoisy(ExampleBlackBox):
     """Returns the sum of the squares of the inputs plus some noise.
-
     The noise is drawn from the standard normal distribution, then divided
     by the cost provided.
     """
 
-    def evaluate_with_cost(self,
-                           x: numpy.ndarray,
-                           cost: float) -> float:
+    def _evaluate_with_cost(self,
+                            x: numpy.ndarray,
+                            cost: float) -> float:
         return numpy.sum(x**2) + numpy.random.randn() / cost
 
 
-class ExampleStatefulBlackBox(StatefulBlackBox):
+class ExampleStatefulBlackBox(ExampleBlackBox, StatefulBlackBox):
     """Returns the sum of the squares of the inputs."""
-
-    @property
-    def dimension(self) -> int:
-        return 2  # coverage: ignore
-
-    def _evaluate(self,
-                  x: numpy.ndarray) -> float:
-        return numpy.sum(x**2)
+    pass
 
 
 class ExampleAnsatz(VariationalAnsatz):

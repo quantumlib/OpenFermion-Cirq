@@ -13,24 +13,12 @@
 import numpy
 import pytest
 
-from openfermioncirq.optimization import BlackBox
-
 from openfermioncirq.optimization.scipy import (
         COBYLA,
         L_BFGS_B,
         NELDER_MEAD,
         SLSQP)
-
-
-class ExampleBlackBox(BlackBox):
-
-    @property
-    def dimension(self) -> int:
-        return 2
-
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
-        return numpy.sum(x**2)
+from openfermioncirq.testing import ExampleBlackBox
 
 
 @pytest.mark.parametrize('algorithm', [COBYLA, L_BFGS_B, NELDER_MEAD, SLSQP])

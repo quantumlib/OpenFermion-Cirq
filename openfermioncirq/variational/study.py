@@ -451,12 +451,12 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
         if stateful:
             black_box = VariationalStudyStatefulBlackBox(
-                    self,
+                    study=self,
                     cost_of_evaluate=optimization_params.cost_of_evaluate,
                     save_x_vals=save_x_vals)
         else:
             black_box = VariationalStudyBlackBox(  # type: ignore
-                    self,
+                    study=self,
                     cost_of_evaluate=optimization_params.cost_of_evaluate)
 
         initial_guess = optimization_params.initial_guess
@@ -615,58 +615,6 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
 class VariationalStudyBlackBox(BlackBox):
     """A black box for evaluations in a variational study.
-
-    Attributes:
-        study: The variational study whose evaluation functions are being
-            encapsulated by the black box.
-        cost_of_evaluate: The cost to be used by the ``evaluate`` method of
-            the black box.
-    """
-
-    def __init__(self,
-                 study: VariationalStudy,
-                 cost_of_evaluate: Optional[float]=None) -> None:
-        self.study = study
-        self.cost_of_evaluate = cost_of_evaluate
-
-    @property
-    def dimension(self) -> int:
-        """The dimension of the array accepted by the objective function."""
-        return self.study.num_params
-
-    @property
-    def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
-        """Optional bounds on the inputs to the objective function."""
-        return self.study.ansatz.param_bounds()
-
-    def evaluate(self,
-                 x: numpy.ndarray) -> float:
-        """Evaluate the objective function."""
-        if self.cost_of_evaluate is not None:
-            return self.evaluate_with_cost(x, self.cost_of_evaluate)
-        return self.study.evaluate(x)
-
-    def evaluate_with_cost(self,
-                           x: numpy.ndarray,
-                           cost: float) -> float:
-        """Evaluate the objective function with a specified cost."""
-        return self.study.evaluate_with_cost(x, cost)
-
-    def noise_bounds(self,
-                     cost: float,
-                     confidence: Optional[float]=None
-                     ) -> Tuple[float, float]:
-        """Exact or approximate bounds on noise in the objective function."""
-        return self.study.noise_bounds(cost, confidence)
-
-
-class VariationalStudyStatefulBlackBox(StatefulBlackBox):
-    """A black box for evaluations in a variational study.
-
-    This black box keeps track of the number of times it has been evaluated as
-    well as the total cost that has been spent on evaluations according to the
-    noise and cost model of the study.
-
     Attributes:
         study: The variational study whose evaluation functions are being
             encapsulated by the black box.
@@ -674,10 +622,9 @@ class VariationalStudyStatefulBlackBox(StatefulBlackBox):
 
     def __init__(self,
                  study: VariationalStudy,
-                 cost_of_evaluate: Optional[float]=None,
-                 save_x_vals: bool=False) -> None:
+                 **kwargs) -> None:
         self.study = study
-        super().__init__(cost_of_evaluate, save_x_vals)
+        super().__init__(**kwargs)
 
     @property
     def dimension(self) -> int:
@@ -706,6 +653,12 @@ class VariationalStudyStatefulBlackBox(StatefulBlackBox):
                      ) -> Tuple[float, float]:
         """Exact or approximate bounds on noise in the objective function."""
         return self.study.noise_bounds(cost, confidence)
+
+
+class VariationalStudyStatefulBlackBox(
+        VariationalStudyBlackBox, StatefulBlackBox):
+    """A stateful black box encapsulating a variational objective function."""
+    pass
 
 
 def _serializable_run_optimization(args):

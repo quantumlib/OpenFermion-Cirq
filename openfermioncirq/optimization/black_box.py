@@ -46,7 +46,20 @@ class BlackBox(metaclass=abc.ABCMeta):
             a list of tuples of the form (low, high), where low and high are
             lower and upper bounds on a parameter. The number of tuples
             should be equal to the dimension of the black box.
+        cost_of_evaluate: If specified, then calls to `evaluate` will be
+            redirected to `evaluate_with_cost` with the specified cost.
     """
+
+    def __init__(self,
+                 cost_of_evaluate: Optional[float]=None,
+                 **kwargs) -> None:
+        """
+        Args:
+            cost_of_evaluate: An optional cost associated with the
+                `evaluate` method. If specified, the `evaluate` method
+                will defer to `evaluate_with_cost` with the specified cost.
+        """
+        self.cost_of_evaluate = cost_of_evaluate
 
     @abc.abstractproperty
     def dimension(self) -> int:
@@ -64,10 +77,30 @@ class BlackBox(metaclass=abc.ABCMeta):
         return None
 
     @abc.abstractmethod
+    def _evaluate(self,
+                  x: numpy.ndarray) -> float:
+        """Evaluate the objective function.
+
+        Implement this method when defining a BlackBox.
+        """
+        pass
+
+    def _evaluate_with_cost(self,
+                            x: numpy.ndarray,
+                            cost: float) -> float:
+        """Evaluate the objective function with a specified cost.
+
+        Implement this method when defining a BlackBox with a cost model.
+        """
+        # Default: defer to `_evaluate`
+        return self._evaluate(x)
+
     def evaluate(self,
                  x: numpy.ndarray) -> float:
         """Evaluate the objective function."""
-        pass
+        if self.cost_of_evaluate is not None:
+            return self.evaluate_with_cost(x, self.cost_of_evaluate)
+        return self._evaluate(x)
 
     def evaluate_with_cost(self,
                            x: numpy.ndarray,
@@ -77,8 +110,7 @@ class BlackBox(metaclass=abc.ABCMeta):
         This is used to model situations in which it is possible to reduce the
         magnitude of the noise at some cost.
         """
-        # Default: defer to `evaluate`
-        return self.evaluate(x)
+        return self._evaluate_with_cost(x, cost)
 
     def noise_bounds(self,
                      cost: float,
@@ -126,8 +158,8 @@ class StatefulBlackBox(BlackBox):
     """
 
     def __init__(self,
-                 cost_of_evaluate: Optional[float]=None,
-                 save_x_vals: bool=False) -> None:
+                 save_x_vals: bool=False,
+                 **kwargs) -> None:
         """
         Args:
             cost_of_evaluate: An optional cost associated with the
@@ -141,29 +173,16 @@ class StatefulBlackBox(BlackBox):
         """
         self.function_values = [] \
             # type: List[Tuple[float, Optional[float], Optional[numpy.ndarray]]]
-        self.cost_of_evaluate = cost_of_evaluate
         self.cost_spent = 0.0
         self.wait_times = []  # type: List[float]
         self._save_x_vals = save_x_vals
         self._time_of_last_query = None  # type: Optional[float]
+        super().__init__(**kwargs)
 
     @property
     def num_evaluations(self) -> float:
         """The number of times the objective function has been evaluated."""
         return len(self.function_values)
-
-    @abc.abstractmethod
-    def _evaluate(self,
-                  x: numpy.ndarray) -> float:
-        """Evaluate the objective function."""
-        pass
-
-    def _evaluate_with_cost(self,
-                            x: numpy.ndarray,
-                            cost: float) -> float:
-        """Evaluate the objective function with a specified cost."""
-        # Default: defer to `_evaluate`
-        return self._evaluate(x)  # coverage: ignore
 
     def evaluate(self,
                  x: numpy.ndarray) -> float:
@@ -196,6 +215,3 @@ class StatefulBlackBox(BlackBox):
         self.cost_spent += cost
         self._time_of_last_query = time.time()
         return val
-
-    def average_wait_time(self) -> float:
-        return numpy.mean(self.wait_times)
