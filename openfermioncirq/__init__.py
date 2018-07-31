@@ -37,15 +37,12 @@ from openfermioncirq.primitives.swap_network import swap_network
 from openfermioncirq.trotter import simulate_trotter
 
 from openfermioncirq.variational import (
+    HamiltonianObjective,
+    HamiltonianVariationalStudy,
     SplitOperatorTrotterAnsatz,
     SwapNetworkTrotterAnsatz,
     VariationalAnsatz,
-    VariationalStudy)
-
-from openfermioncirq.variational import (
-    HamiltonianVariationalStudy,
-    SwapNetworkTrotterAnsatz,
-    VariationalAnsatz,
+    VariationalObjective,
     VariationalStudy)
 
 # Import modules last to avoid circular dependencies

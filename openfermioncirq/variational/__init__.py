@@ -12,15 +12,18 @@
 
 """Types for constructing and optimizing variational quantum algorithms."""
 
-from openfermioncirq.variational.ansatz import (
-    VariationalAnsatz)
+from openfermioncirq.variational.ansatz import VariationalAnsatz
 
 from openfermioncirq.variational.ansatzes import (
     SplitOperatorTrotterAnsatz,
     SwapNetworkTrotterAnsatz)
 
+from openfermioncirq.variational.hamiltonian_objective import (
+    HamiltonianObjective)
+
 from openfermioncirq.variational.hamiltonian_variational_study import (
     HamiltonianVariationalStudy)
 
-from openfermioncirq.variational.study import (
-    VariationalStudy)
+from openfermioncirq.variational.objective import VariationalObjective
+
+from openfermioncirq.variational.study import VariationalStudy

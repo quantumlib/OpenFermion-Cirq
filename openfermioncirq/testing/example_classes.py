@@ -22,6 +22,7 @@ from openfermioncirq.optimization.algorithm import OptimizationAlgorithm
 from openfermioncirq.optimization.black_box import BlackBox, StatefulBlackBox
 from openfermioncirq.optimization.result import OptimizationResult
 from openfermioncirq.variational.ansatz import VariationalAnsatz
+from openfermioncirq.variational.objective import VariationalObjective
 from openfermioncirq.variational.study import VariationalStudy
 
 
@@ -121,6 +122,33 @@ class ExampleStudy(VariationalStudy):
 
 class ExampleStudyNoisy(ExampleStudy):
     """An example study with a noise model.
+
+    The noise is drawn from the standard normal distribution, then divided
+    by the cost provided. If a cost is not specified, the noise is 0.
+    """
+
+    def noise(self, cost: Optional[float]=None) -> float:
+        if cost is None:
+            return 0.0  # coverage: ignore
+        return numpy.random.randn() / cost
+
+
+class ExampleVariationalObjective(VariationalObjective):
+    """An example variational objective.
+
+    The value of the study is the number of qubits that were measured to be 1.
+    """
+
+    def value(self,
+              trial_result: Union[cirq.TrialResult,
+                                  cirq.google.XmonSimulateTrialResult]
+              ) -> float:
+        measurements = trial_result.measurements['all']
+        return numpy.sum(measurements)
+
+
+class ExampleVariationalObjectiveNoisy(ExampleVariationalObjective):
+    """An example variational objective with a noise model.
 
     The noise is drawn from the standard normal distribution, then divided
     by the cost provided. If a cost is not specified, the noise is 0.
