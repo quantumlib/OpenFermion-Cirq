@@ -35,14 +35,15 @@ class HamiltonianObjective(VariationalObjective):
             samples.
 
     Attributes:
-        hamiltonian: The Hamiltonian associated with the ansatz, represented
+        hamiltonian: The Hamiltonian of interest, represented
             as a FermionOperator, QubitOperator, InteractionOperator, or
             DiagonalCoulombHamiltonian. If the input is not a QubitOperator,
             then the Jordan-Wigner transform is used.
-        use_linear_op: Whether to use a LinearOperator instead of a sparse
-            matrix to compute expectation values. Using a LinearOperator
-            is more memory-efficient but results in much slower expectation
-            value computation.
+        variance_bound: The squared one-norm of the coefficients of
+            the Pauli terms in the Jordan-Wigner transformed Hamiltonian.
+            This gives an estimate of the variance of an energy measurement
+            with a certain measurement strategy; see arXiv:1801.03524 for
+            a derivation.
     """
 
     def __init__(self,
@@ -52,6 +53,14 @@ class HamiltonianObjective(VariationalObjective):
                      openfermion.InteractionOperator,
                      openfermion.QubitOperator],
                  use_linear_op: bool=False) -> None:
+        """
+        Args:
+            hamiltonian: The Hamiltonian.
+            use_linear_op: Whether to use a LinearOperator instead of a sparse
+                matrix to compute expectation values. Using a LinearOperator
+                is more memory-efficient but results in much slower expectation
+                value computation.
+        """
         self.hamiltonian = hamiltonian
 
         if isinstance(hamiltonian, openfermion.QubitOperator):
@@ -59,7 +68,7 @@ class HamiltonianObjective(VariationalObjective):
         else:
             hamiltonian_qubit_op = openfermion.jordan_wigner(hamiltonian)
 
-        self._variance_bound = hamiltonian_qubit_op.induced_norm(order=1)**2
+        self.variance_bound = hamiltonian_qubit_op.induced_norm(order=1)**2
 
         if use_linear_op:
             self._hamiltonian_linear_op = openfermion.LinearQubitOperator(
@@ -85,7 +94,7 @@ class HamiltonianObjective(VariationalObjective):
         """A sample from a normal distribution with mean 0.
 
         The variance of the distribution is equal to L^2 / cost, where L is the
-        sum of the absolute values of the coefficients of the Pauli terms in the
+        squared one-norm of the coefficients of the Pauli terms in the
         Jordan-Wigner transformed Hamiltonian. This gives an estimate of the
         variance of an energy measurement with a certain measurement strategy;
         see arXiv:1801.03524 for a derivation.
@@ -93,7 +102,7 @@ class HamiltonianObjective(VariationalObjective):
         if cost is None:
             return 0.0
         return numpy.random.normal(
-                loc=0.0, scale=numpy.sqrt(self._variance_bound / cost))
+                loc=0.0, scale=numpy.sqrt(self.variance_bound / cost))
 
     def noise_bounds(self,
                      cost: float,
@@ -117,5 +126,5 @@ class HamiltonianObjective(VariationalObjective):
                              'between 0 and 1.')
 
         sigmas = scipy.special.erfinv(confidence) * numpy.sqrt(2)
-        magnitude_bound = sigmas * numpy.sqrt(self._variance_bound / cost)
+        magnitude_bound = sigmas * numpy.sqrt(self.variance_bound / cost)
         return -magnitude_bound, magnitude_bound

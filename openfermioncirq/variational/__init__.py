@@ -21,9 +21,6 @@ from openfermioncirq.variational.ansatzes import (
 from openfermioncirq.variational.hamiltonian_objective import (
     HamiltonianObjective)
 
-from openfermioncirq.variational.hamiltonian_variational_study import (
-    HamiltonianVariationalStudy)
-
 from openfermioncirq.variational.objective import VariationalObjective
 
 from openfermioncirq.variational.study import VariationalStudy

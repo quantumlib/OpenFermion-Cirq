@@ -12,12 +12,10 @@
 
 """Classes for storing the results of running an optimization algorithm."""
 
-from typing import Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, List, Optional, TYPE_CHECKING, Tuple
 
 import numpy
 import pandas
-
-from openfermioncirq.optimization.black_box import BlackBox
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -36,31 +34,44 @@ class OptimizationResult:
             evaluated in the course of the optimization.
         cost_spent: For objective functions with a cost model, the total cost
             spent on function evaluations.
+        function_values: A list of tuples storing function values of evaluated
+            points. The tuples contain three objects. The first is a function
+            value, the second is the cost that was used for the evaluation
+            (or None if there was no cost), and the third is the point that
+            was evaluated (or None if the black box was initialized with
+            `save_x_vals` set to False).
+        wait_times: A list of floats. The i-th float float represents the time
+            elapsed between the i-th and (i+1)-th times that the black box
+            was queried. Time is recorded using ``time.time()``.
+        time: The time, in seconds, it took to obtain the result.
         seed: A random number generator seed used to produce the result.
         status: A status flag set by the optimizer.
         message: A message returned by the optimizer.
-        time: The time, in seconds, it took to obtain the result.
     """
 
     def __init__(self,
                  optimal_value: float,
                  optimal_parameters: numpy.ndarray,
-                 num_evaluations: int,
+                 num_evaluations: Optional[int]=None,
                  cost_spent: Optional[float]=None,
+                 function_values: Optional[List[Tuple[
+                     float, Optional[float], Optional[numpy.ndarray]
+                     ]]]=None,
+                 wait_times: Optional[List[float]]=None,
+                 time: Optional[int]=None,
                  seed: Optional[int]=None,
                  status: Optional[int]=None,
-                 message: Optional[str]=None,
-                 time: Optional[int]=None,
-                 black_box: Optional[BlackBox]=None) -> None:
+                 message: Optional[str]=None) -> None:
         self.optimal_value = optimal_value
         self.optimal_parameters = optimal_parameters
         self.num_evaluations = num_evaluations
         self.cost_spent = cost_spent
+        self.function_values = function_values
+        self.wait_times = wait_times
+        self.time = time
         self.seed = seed
         self.status = status
         self.message = message
-        self.time = time
-        self.black_box = black_box
 
 
 class OptimizationTrialResult:
@@ -99,10 +110,10 @@ class OptimizationTrialResult:
                  'optimal_parameters': result.optimal_parameters,
                  'num_evaluations': result.num_evaluations,
                  'cost_spent': result.cost_spent,
+                 'time': result.time,
                  'seed': result.seed,
                  'status': result.status,
-                 'message': result.message,
-                 'time': result.time}
+                 'message': result.message}
                 for result in results)
 
     @property
@@ -125,10 +136,10 @@ class OptimizationTrialResult:
                  'optimal_parameters': result.optimal_parameters,
                  'num_evaluations': result.num_evaluations,
                  'cost_spent': result.cost_spent,
+                 'time': result.time,
                  'seed': result.seed,
                  'status': result.status,
-                 'message': result.message,
-                 'time': result.time}
+                 'message': result.message}
                 for result in results)
         self.data_frame = pandas.concat([self.data_frame, new_data_frame])
         self.results.extend(results)

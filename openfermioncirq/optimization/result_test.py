@@ -16,7 +16,7 @@ from openfermioncirq.optimization import (
         OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult)
-from openfermioncirq.testing import ExampleAlgorithm, ExampleBlackBox
+from openfermioncirq.testing import ExampleAlgorithm
 
 
 def test_optimization_result_init():
@@ -25,21 +25,24 @@ def test_optimization_result_init():
             optimal_parameters=numpy.array([-1.899, -0.549]),
             num_evaluations=121,
             cost_spent=1.426,
+            function_values=[(1.235, 4.119, None), (-2.452, 3.244, None)],
+            wait_times=[5.329],
+            time=0.423,
             seed=77,
             status=195,
-            message='fdjmolGSHM',
-            time=0.423,
-            black_box=ExampleBlackBox())
+            message='fdjmolGSHM')
     assert result.optimal_value == 0.339
     numpy.testing.assert_allclose(result.optimal_parameters,
                                   numpy.array([-1.899, -0.549]))
     assert result.num_evaluations == 121
     assert result.cost_spent == 1.426
+    assert result.function_values == [(1.235, 4.119, None),
+                                      (-2.452, 3.244, None)]
+    assert result.wait_times == [5.329]
+    assert result.time == 0.423
     assert result.seed == 77
     assert result.status == 195
     assert result.message == 'fdjmolGSHM'
-    assert result.time == 0.423
-    assert isinstance(result.black_box, ExampleBlackBox)
 
 
 def test_optimization_trial_result_init():

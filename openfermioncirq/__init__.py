@@ -38,7 +38,6 @@ from openfermioncirq.trotter import simulate_trotter
 
 from openfermioncirq.variational import (
     HamiltonianObjective,
-    HamiltonianVariationalStudy,
     SplitOperatorTrotterAnsatz,
     SwapNetworkTrotterAnsatz,
     VariationalAnsatz,

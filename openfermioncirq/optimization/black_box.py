@@ -162,9 +162,6 @@ class StatefulBlackBox(BlackBox):
                  **kwargs) -> None:
         """
         Args:
-            cost_of_evaluate: An optional cost associated with the
-                ``evaluate`` method. If specified, the ``evaluate`` method
-                will defer to ``evaluate_with_cost`` with the specified cost.
             save_x_vals: Whether to save all points (x values) that the
                 black box was queried at. Setting this to True will cause the
                 black box to consume a lot more memory. This does not affect

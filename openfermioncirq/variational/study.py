@@ -12,8 +12,8 @@
 
 """The variational study class."""
 
-from typing import (Any, Dict, Hashable, Iterable, List, Optional, Sequence,
-                    Tuple, Union, cast)
+from typing import (
+        Any, Dict, Hashable, Iterable, List, Optional, Sequence, Tuple, cast)
 
 import collections
 import itertools
@@ -25,9 +25,9 @@ import time
 import numpy
 
 import cirq
-from cirq import abc
 
-from openfermioncirq.variational import VariationalAnsatz
+from openfermioncirq.variational.ansatz import VariationalAnsatz
+from openfermioncirq.variational.objective import VariationalObjective
 from openfermioncirq.optimization import (
         BlackBox,
         OptimizationParams,
@@ -36,7 +36,7 @@ from openfermioncirq.optimization import (
         StatefulBlackBox)
 
 
-class VariationalStudy(metaclass=abc.ABCMeta):
+class VariationalStudy:
     """The results from optimizing a variational ansatz.
 
     A variational study has a way of assigning a numerical value, or score, to
@@ -61,7 +61,8 @@ class VariationalStudy(metaclass=abc.ABCMeta):
 
     Example:
         ansatz = SomeVariationalAnsatz()
-        study = SomeVariationalStudy('my_study', ansatz)
+        objective = SomeVariationalObjective()
+        study = SomeVariationalStudy('my_study', ansatz, objective)
         optimization_params = OptimizationParams(
             algorithm=openfermioncirq.optimization.COBYLA,
             initial_guess=numpy.zeros(5))
@@ -74,7 +75,8 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         name: The name of the study.
         circuit: The circuit of the study, which is the preparation circuit, if
             any, followed by the ansatz circuit.
-        qubits: A list containing the qubits used by the circuit.
+        ansatz: The ansatz being studied.
+        objective: The objective function of interest.
         results: A dictionary of OptimizationTrialResults from optimization
             runs of the study. Key is the identifier used to label the run.
         num_params: The number of parameters in the circuit.
@@ -83,12 +85,14 @@ class VariationalStudy(metaclass=abc.ABCMeta):
     def __init__(self,
                  name: str,
                  ansatz: VariationalAnsatz,
+                 objective: VariationalObjective,
                  preparation_circuit: Optional[cirq.Circuit]=None,
                  datadir: Optional[str]=None) -> None:
         """
         Args:
             name: The name of the study.
             ansatz: The ansatz to study.
+            objective: The objective function.
             preparation_circuit: A circuit to apply prior to the ansatz circuit.
                 It should use the qubits belonging to the ansatz.
             datadir: The directory to use when saving the study. The default
@@ -99,66 +103,10 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         self.results = collections.OrderedDict() \
                 # type: Dict[Any, OptimizationTrialResult]
         self._ansatz = ansatz
+        self._objective = objective
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
         self._circuit = self._preparation_circuit + self._ansatz.circuit
         self.datadir = datadir
-
-    @abc.abstractmethod
-    def value(self,
-              trial_result: Union[cirq.TrialResult,
-                                  cirq.google.XmonSimulateTrialResult]
-              ) -> float:
-        """The evaluation function for a circuit output.
-
-        A variational quantum algorithm will attempt to minimize this value over
-        possible settings of the parameters.
-        """
-        pass
-
-    def noise(self, cost: Optional[float]=None) -> float:
-        """Artificial noise that may be added to the true ansatz value.
-
-        The `cost` argument is used to model situations in which it is possible
-        to reduce the magnitude of the noise at some cost.
-        """
-        # Default: no noise
-        return 0.0
-
-    def evaluate(self,
-                 param_values: numpy.ndarray) -> float:
-        """Determine the value of some parameters."""
-        # Default: evaluate using Xmon simulator
-        simulator = cirq.google.XmonSimulator()
-        result = simulator.simulate(
-                self.circuit,
-                param_resolver=self._ansatz.param_resolver(param_values),
-                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
-        return self.value(result)
-
-    def evaluate_with_cost(self,
-                           param_values: numpy.ndarray,
-                           cost: float) -> float:
-        """Evaluate parameters with a specified cost."""
-        # Default: add artifical noise with the specified cost
-        return self.evaluate(param_values) + self.noise(cost)
-
-    def noise_bounds(self,
-                     cost: float,
-                     confidence: Optional[float]=None
-                     ) -> Tuple[float, float]:
-        """Exact or approximate bounds on noise in the objective function.
-
-        Returns a tuple (a, b) such that when `evaluate_with_cost` is called
-        with the given cost and returns an approximate function value y, the
-        true function value lies in the interval [y + a, y + b]. Thus, it should
-        be the case that a <= 0 <= b.
-
-        This function takes an optional `confidence` parameter which is a real
-        number strictly between 0 and 1 that gives the probability of the bounds
-        being correct. This is used for situations in which exact bounds on the
-        noise cannot be guaranteed.
-        """
-        return -numpy.inf, numpy.inf
 
     def optimize(self,
                  optimization_params: OptimizationParams,
@@ -408,80 +356,42 @@ class VariationalStudy(metaclass=abc.ABCMeta):
             try:
                 arg_tuples = (
                     (
-                        self,
+                        self.ansatz,
+                        self.objective,
+                        self._preparation_circuit,
                         optimization_params,
                         reevaluate_final_params,
                         stateful,
                         save_x_vals,
                         seeds[i] if seeds is not None
-                        else numpy.random.randint(4294967296)
+                        else numpy.random.randint(4294967296),
+                        self.ansatz.default_initial_params()
                     )
                     for i in range(repetitions)
                 )
-                result_list = pool.map(_serializable_run_optimization,
-                                       arg_tuples)
+                result_list = pool.map(_run_optimization, arg_tuples)
             finally:
                 pool.terminate()
         else:
             result_list = []
             for i in range(repetitions):
-                result = self._run_optimization(
+                result = _run_optimization(
+                    (
+                        self.ansatz,
+                        self.objective,
+                        self._preparation_circuit,
                         optimization_params,
                         reevaluate_final_params,
                         stateful,
                         save_x_vals,
                         seeds[i] if seeds is not None
-                        else numpy.random.randint(4294967296))
+                        else numpy.random.randint(4294967296),
+                        self.ansatz.default_initial_params()
+                    )
+                )
                 result_list.append(result)
 
         return result_list
-
-    def _run_optimization(
-            self,
-            optimization_params: OptimizationParams,
-            reevaluate_final_params: bool,
-            stateful: bool,
-            save_x_vals: bool,
-            seed: int) -> OptimizationResult:
-        """Perform an optimization run and return the result.
-
-        If no initial guess is given, the default initial parameters of the
-        study are used.
-        """
-
-        if stateful:
-            black_box = VariationalStudyStatefulBlackBox(
-                    study=self,
-                    cost_of_evaluate=optimization_params.cost_of_evaluate,
-                    save_x_vals=save_x_vals)
-        else:
-            black_box = VariationalStudyBlackBox(  # type: ignore
-                    study=self,
-                    cost_of_evaluate=optimization_params.cost_of_evaluate)
-
-        initial_guess = optimization_params.initial_guess
-        initial_guess_array = optimization_params.initial_guess_array
-        if initial_guess is None:
-            initial_guess = self.default_initial_params()
-        if initial_guess_array is None:
-            initial_guess_array = numpy.array([self.default_initial_params()])
-
-        numpy.random.seed(seed)
-        t0 = time.time()
-        result = optimization_params.algorithm.optimize(black_box,
-                                                        initial_guess,
-                                                        initial_guess_array)
-        t1 = time.time()
-
-        result.seed = seed
-        result.time = t1 - t0
-        if stateful:
-            result.black_box = black_box
-        if reevaluate_final_params:
-            result.optimal_value = self.evaluate(result.optimal_parameters)
-
-        return result
-
 
     @property
     def summary(self) -> str:
@@ -563,13 +473,22 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return self._ansatz
 
     @property
+    def objective(self) -> VariationalObjective:
+        """The objective associated with the study."""
+        return self._objective
+
+    @property
     def num_params(self) -> int:
         """The number of parameters of the ansatz."""
         return len(self.ansatz.params)
 
-    def default_initial_params(self) -> numpy.ndarray:
-        """Suggested initial parameter settings."""
-        return self.ansatz.default_initial_params()
+    def value_of(self,
+                 params: numpy.ndarray) -> float:
+        """Determine the value of some parameters."""
+        return VariationalBlackBox(
+                self.ansatz,
+                self.objective,
+                self._preparation_circuit).evaluate_noiseless(params)
 
     def _init_kwargs(self) -> Dict[str, Any]:
         """Arguments to pass to __init__ when re-loading the study.
@@ -579,6 +498,7 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         """
         return {'name': self.name,
                 'ansatz': self.ansatz,
+                'objective': self.objective,
                 'preparation_circuit': self._preparation_circuit}
 
     def save(self) -> None:
@@ -613,53 +533,122 @@ class VariationalStudy(metaclass=abc.ABCMeta):
         return study
 
 
-class VariationalStudyBlackBox(BlackBox):
-    """A black box for evaluations in a variational study.
+def _run_optimization(args) -> OptimizationResult:
+    """Perform an optimization run and return the result."""
+    (
+            ansatz,
+            objective,
+            preparation_circuit,
+            optimization_params,
+            reevaluate_final_params,
+            stateful,
+            save_x_vals,
+            seed,
+            default_initial_params
+    ) = args
+
+    if stateful:
+        black_box = VariationalStatefulBlackBox(
+                ansatz=ansatz,
+                objective=objective,
+                preparation_circuit=preparation_circuit,
+                cost_of_evaluate=optimization_params.cost_of_evaluate,
+                save_x_vals=save_x_vals)
+    else:
+        black_box = VariationalBlackBox(  # type: ignore
+                ansatz=ansatz,
+                objective=objective,
+                preparation_circuit=preparation_circuit,
+                cost_of_evaluate=optimization_params.cost_of_evaluate)
+
+    initial_guess = optimization_params.initial_guess
+    initial_guess_array = optimization_params.initial_guess_array
+    if initial_guess is None:
+        initial_guess = default_initial_params
+    if initial_guess_array is None:
+        initial_guess_array = numpy.array([default_initial_params])
+
+    numpy.random.seed(seed)
+    t0 = time.time()
+    result = optimization_params.algorithm.optimize(black_box,
+                                                    initial_guess,
+                                                    initial_guess_array)
+    t1 = time.time()
+
+    result.seed = seed
+    result.time = t1 - t0
+    if stateful:
+        result.num_evaluations = black_box.num_evaluations
+        result.cost_spent = black_box.cost_spent
+        result.function_values = black_box.function_values
+        result.wait_times = black_box.wait_times
+    if reevaluate_final_params:
+        result.optimal_value = black_box.evaluate_noiseless(
+                result.optimal_parameters)
+
+    return result
+
+
+class VariationalBlackBox(BlackBox):
+    """A black box encapsulating a variational ansatz objective function.
+
     Attributes:
-        study: The variational study whose evaluation functions are being
-            encapsulated by the black box.
+        ansatz: The variational ansatz circuit.
+        objective: The objective function.
     """
 
     def __init__(self,
-                 study: VariationalStudy,
+                 ansatz: VariationalAnsatz,
+                 objective: VariationalObjective,
+                 preparation_circuit: Optional[cirq.Circuit]=None,
                  **kwargs) -> None:
-        self.study = study
+        self.ansatz = ansatz
+        self.objective = objective
+        self.preparation_circuit = preparation_circuit or cirq.Circuit()
         super().__init__(**kwargs)
 
     @property
     def dimension(self) -> int:
         """The dimension of the array accepted by the objective function."""
-        return self.study.num_params
+        return len(self.ansatz.params)
 
     @property
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Optional bounds on the inputs to the objective function."""
-        return self.study.ansatz.param_bounds()
+        return self.ansatz.param_bounds()
+
+    def evaluate_noiseless(self,
+                           x: numpy.ndarray) -> float:
+        """Evaluate parameters with a noiseless simulation."""
+        # Default: evaluate using Xmon simulator
+        simulator = cirq.google.XmonSimulator()
+        result = simulator.simulate(
+                self.preparation_circuit + self.ansatz.circuit,
+                param_resolver=self.ansatz.param_resolver(x),
+                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
+        return self.objective.value(result)
 
     def _evaluate(self,
                   x: numpy.ndarray) -> float:
-        """Evaluate the objective function."""
-        return self.study.evaluate(x)
+        """Determine the value of some parameters."""
+        # Default: defer to evaluate_noiseless
+        return self.evaluate_noiseless(x)
 
     def _evaluate_with_cost(self,
                             x: numpy.ndarray,
                             cost: float) -> float:
-        """Evaluate the objective function with a specified cost."""
-        return self.study.evaluate_with_cost(x, cost)
+        """Evaluate parameters with a specified cost."""
+        # Default: add artifical noise with the specified cost
+        return self._evaluate(x) + self.objective.noise(cost)
 
     def noise_bounds(self,
                      cost: float,
                      confidence: Optional[float]=None
                      ) -> Tuple[float, float]:
         """Exact or approximate bounds on noise in the objective function."""
-        return self.study.noise_bounds(cost, confidence)
+        return self.objective.noise_bounds(cost, confidence)
 
 
-class VariationalStudyStatefulBlackBox(
-        VariationalStudyBlackBox, StatefulBlackBox):
+class VariationalStatefulBlackBox(VariationalBlackBox, StatefulBlackBox):
     """A stateful black box encapsulating a variational objective function."""
     pass
-
-
-def _serializable_run_optimization(args):
-    return args[0]._run_optimization(*args[1:])  # coverage: ignore
