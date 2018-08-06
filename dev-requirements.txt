@@ -2,7 +2,6 @@ cirq>=0.3
 mypy~=0.610.0
 nbformat
 numpy
-openfermion>=0.8
 pandas
 pylint~=1.9.0
 pytest~=3.6.0
@@ -10,3 +9,4 @@ pytest-cov~=2.5.0
 scipy
 virtualenv
 3to2
+git+git://github.com/quantumlib/openfermion#egg=openfermion

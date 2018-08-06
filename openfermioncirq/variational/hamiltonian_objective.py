@@ -68,14 +68,19 @@ class HamiltonianObjective(VariationalObjective):
         else:
             hamiltonian_qubit_op = openfermion.jordan_wigner(hamiltonian)
 
-        self.variance_bound = hamiltonian_qubit_op.induced_norm(order=1)**2
-
         if use_linear_op:
             self._hamiltonian_linear_op = openfermion.LinearQubitOperator(
                     hamiltonian_qubit_op)
         else:
             self._hamiltonian_linear_op = openfermion.get_sparse_operator(
                     hamiltonian_qubit_op)
+
+        # The variance bound is the squared one-norm of the coefficients,
+        # omitting the constant term
+        one_norm_minus_constant = (
+                hamiltonian_qubit_op.induced_norm(order=1)
+                - abs(hamiltonian_qubit_op.constant))
+        self.variance_bound = one_norm_minus_constant**2
 
     def value(self,
               trial_result: Union[cirq.TrialResult,

@@ -1,9 +1,9 @@
 cirq>=0.3
 nbformat
 numpy
-openfermion>=0.8
 pandas
 pytest
 scipy
 3to2
 typing~=3.6
+git+git://github.com/quantumlib/openfermion#egg=openfermion
