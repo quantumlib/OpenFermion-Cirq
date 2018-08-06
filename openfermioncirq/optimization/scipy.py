@@ -39,7 +39,7 @@ class ScipyOptimizationAlgorithm(OptimizationAlgorithm):
                 variables. Set this to False to prevent scipy.optimize.minimize
                 from raising a warning if the chosen method does not use bounds.
         """
-        self.kwargs = kwargs
+        self.kwargs = kwargs or {}
         self.uses_bounds = uses_bounds
         super().__init__(options)
 
@@ -62,6 +62,10 @@ class ScipyOptimizationAlgorithm(OptimizationAlgorithm):
                                   num_evaluations=result.nfev,
                                   status=result.status,
                                   message=result.message)
+
+    @property
+    def name(self) -> str:
+        return self.kwargs.get('method', 'ScipyOptimizationAlgorithm')
 
 
 COBYLA = ScipyOptimizationAlgorithm(

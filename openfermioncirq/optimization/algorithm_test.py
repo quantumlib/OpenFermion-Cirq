@@ -31,6 +31,11 @@ def test_optimization_algorithm_optimize():
     assert isinstance(result.optimal_parameters, numpy.ndarray)
 
 
+def test_optimization_algorithm_name():
+    algorithm = ExampleAlgorithm()
+    assert algorithm.name == 'ExampleAlgorithm'
+
+
 def test_optimization_algorithm_is_abstract_cant_instantiate():
     with pytest.raises(TypeError):
         _ = OptimizationAlgorithm()

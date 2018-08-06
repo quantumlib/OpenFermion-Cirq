@@ -70,6 +70,11 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
         """
         pass
 
+    @property
+    def name(self) -> str:
+        """A name for the optimization algorithm."""
+        return type(self).__name__
+
 
 class OptimizationParams:
     """Parameters for an optimization run.

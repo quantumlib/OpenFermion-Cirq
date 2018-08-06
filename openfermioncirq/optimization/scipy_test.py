@@ -17,7 +17,8 @@ from openfermioncirq.optimization.scipy import (
         COBYLA,
         L_BFGS_B,
         NELDER_MEAD,
-        SLSQP)
+        SLSQP,
+        ScipyOptimizationAlgorithm)
 from openfermioncirq.testing import ExampleBlackBox
 
 
@@ -38,3 +39,10 @@ def test_scipy_algorithm_requires_initial_guess():
     black_box = ExampleBlackBox()
     with pytest.raises(ValueError):
         _ = COBYLA.optimize(black_box)
+
+def test_scipy_algorithm_name():
+    assert ScipyOptimizationAlgorithm().name == 'ScipyOptimizationAlgorithm'
+    assert COBYLA.name == 'COBYLA'
+    assert L_BFGS_B.name == 'L-BFGS-B'
+    assert NELDER_MEAD.name == 'Nelder-Mead'
+    assert SLSQP.name == 'SLSQP'
