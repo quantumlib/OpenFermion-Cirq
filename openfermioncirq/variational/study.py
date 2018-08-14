@@ -39,27 +39,11 @@ from openfermioncirq.optimization import (
 class VariationalStudy:
     """The results from optimizing a variational ansatz.
 
-    A variational study has a way of assigning a numerical value, or score, to
-    the output of its ansatz circuit. The goal of a variational quantum
-    algorithm is to find a setting of parameters that minimizes the value of the
-    resulting circuit output.
+    A VariationalStudy is used to facilitate optimizing the parameters
+    of a variational ansatz. It contains methods for performing optimizations
+    and saving and loading the results.
 
-    The VariationalStudy class supports the option to provide a noise and cost
-    model for evaluations. This is useful for modeling situations in which the
-    value of the ansatz can be determined only approximately and there is a
-    tradeoff between the accuracy of the evaluation and the cost of the
-    evaluation. As an example, suppose the value of the ansatz is equal to the
-    expectation value of a Hamiltonian on the final state output by the circuit,
-    and one estimates this value by measuring the Hamiltonian. The average value
-    of the measurements over multiple runs gives an estimate of the expectation
-    value, but it will not, in general, be the exact value. Rather, it can
-    usually be accurately modeled as a random value drawn from a normal
-    distribution centered at the true value and whose variance is inversely
-    proportional to the number of measurements taken. This can be simulated by
-    computing the true expectation value and adding artificial noise drawn from
-    a normal distribution with the desired variance.
-
-    Example:
+    Example::
         ansatz = SomeVariationalAnsatz()
         objective = SomeVariationalObjective()
         study = SomeVariationalStudy('my_study', ansatz, objective)
@@ -77,8 +61,11 @@ class VariationalStudy:
             any, followed by the ansatz circuit.
         ansatz: The ansatz being studied.
         objective: The objective function of interest.
-        results: A dictionary of OptimizationTrialResults from optimization
-            runs of the study. Key is the identifier used to label the run.
+        target: An optional target value one wants to achieve during
+            optimization.
+        trial_results: A dictionary of OptimizationTrialResults from
+            optimization runs of the study. Key is the identifier used to
+            label the run.
         num_params: The number of parameters in the circuit.
     """
 
@@ -86,6 +73,7 @@ class VariationalStudy:
                  name: str,
                  ansatz: VariationalAnsatz,
                  objective: VariationalObjective,
+                 target: Optional[float]=None,
                  preparation_circuit: Optional[cirq.Circuit]=None,
                  datadir: Optional[str]=None) -> None:
         """
@@ -93,6 +81,7 @@ class VariationalStudy:
             name: The name of the study.
             ansatz: The ansatz to study.
             objective: The objective function.
+            target: The target value one wants to achieve during optimization.
             preparation_circuit: A circuit to apply prior to the ansatz circuit.
                 It should use the qubits belonging to the ansatz.
             datadir: The directory to use when saving the study. The default
@@ -100,8 +89,9 @@ class VariationalStudy:
         """
         # TODO store results as a pandas DataFrame?
         self.name = name
-        self.results = collections.OrderedDict() \
+        self.trial_results = collections.OrderedDict() \
                 # type: Dict[Any, OptimizationTrialResult]
+        self.target = target
         self._ansatz = ansatz
         self._objective = objective
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
@@ -123,8 +113,9 @@ class VariationalStudy:
 
         Constructs a BlackBox that uses the study to perform function
         evaluations, then uses the given algorithm to optimize the BlackBox.
-        The result is saved into a list in the `results` dictionary of the study
-        under the key specified by `identifier`.
+        The result is saved as an OptimizationTrialResult in the
+        `trial_results` dictionary of the study under the key specified by
+        `identifier`.
 
         The `cost_of_evaluate` argument affects how the BlackBox is constructed.
         If it is None, then the `evaluate` method of the BlackBox will call the
@@ -164,7 +155,7 @@ class VariationalStudy:
                 `multiprocessing.cpu_count()`.
 
         Side effects:
-            Saves the returned OptimizationTrialResult into the `results`
+            Saves the returned OptimizationTrialResult into the `trial_results`
             dictionary
         """
         return self.optimize_sweep([optimization_params],
@@ -236,7 +227,7 @@ class VariationalStudy:
 
         if identifiers is None:
             # Choose a sequence of integers as identifiers
-            existing_integer_keys = {key for key in self.results
+            existing_integer_keys = {key for key in self.trial_results
                                      if isinstance(key, int)}
             if existing_integer_keys:
                 start = max(existing_integer_keys) + 1
@@ -262,8 +253,8 @@ class VariationalStudy:
                                                    optimization_params)
             trial_results.append(trial_result)
 
-            # Save the result into the results dictionary
-            self.results[identifier] = trial_result
+            # Save the result into the trial_results dictionary
+            self.trial_results[identifier] = trial_result
 
         return trial_results
 
@@ -280,11 +271,11 @@ class VariationalStudy:
                       ) -> None:
         """Extend a result by repeating the run with the same parameters.
 
-        The provided identifier is used as a key to the `results` dictionary
-        to retrieve an OptimizationTrialResult. The OptimizationParams
-        associated with this trial result are used to perform additional
-        repetitions of the optimization run. The results of these repetitions
-        are appended to the stored OptimizationTrialResult.
+        The provided identifier is used as a key to the `trial_results`
+        dictionary to retrieve an OptimizationTrialResult.
+        The OptimizationParams associated with this trial result are used to
+        perform additional repetitions of the optimization run. The results
+        of these repetitions are appended to the stored OptimizationTrialResult.
 
         If there is no OptimizationTrialResult associated with the given
         identifier, an error is raised.
@@ -319,11 +310,11 @@ class VariationalStudy:
         Raises:
             KeyError: There was no existing result with the given identifier.
         """
-        if identifier not in self.results:
+        if identifier not in self.trial_results:
             raise KeyError('Could not find an existing result with the '
                            'identifier {}.'.format(identifier))
 
-        optimization_params = self.results[identifier].params
+        optimization_params = self.trial_results[identifier].params
 
         result_list = self._get_result_list(
                 optimization_params,
@@ -335,7 +326,7 @@ class VariationalStudy:
                 use_multiprocessing,
                 num_processes)
 
-        self.results[identifier].extend(result_list)
+        self.trial_results[identifier].extend(result_list)
 
     def _get_result_list(
             self,
@@ -393,14 +384,13 @@ class VariationalStudy:
 
         return result_list
 
-    @property
-    def summary(self) -> str:
+    def __str__(self) -> str:
         header = []   # type: List[str]
         details = []  # type: List[str]
         optimal_value = numpy.inf
         optimal_identifier = None  # type: Optional[Hashable]
 
-        for identifier, result in self.results.items():
+        for identifier, result in self.trial_results.items():
 
             result_opt = result.optimal_value
             if result_opt < optimal_value:
@@ -451,9 +441,10 @@ class VariationalStudy:
             )
 
         header.append(
-                'This study contains {} results.'.format(len(self.results)))
+                'This study contains {} trial results.'.format(
+                    len(self.trial_results)))
         header.append(
-                'The optimal value found among all results is {}.'.format(
+                'The optimal value found among all trial results is {}.'.format(
                     optimal_value))
         header.append(
                 'It was found by the run with identifier {}.'.format(
@@ -509,7 +500,8 @@ class VariationalStudy:
             if not os.path.isdir(self.datadir):
                 os.mkdir(self.datadir)
         with open(filename, 'wb') as f:
-            pickle.dump((type(self), self._init_kwargs(), self.results), f)
+            pickle.dump(
+                    (type(self), self._init_kwargs(), self.trial_results), f)
 
     @staticmethod
     def load(name: str, datadir: Optional[str]=None) -> 'VariationalStudy':
@@ -526,10 +518,10 @@ class VariationalStudy:
         if datadir is not None:
             filename = os.path.join(datadir, filename)
         with open(filename, 'rb') as f:
-            cls, kwargs, results = pickle.load(f)
+            cls, kwargs, trial_results = pickle.load(f)
         study = cls(datadir=datadir, **kwargs)
-        for key, val in results.items():
-            study.results[key] = val
+        for key, val in trial_results.items():
+            study.trial_results[key] = val
         return study
 
 

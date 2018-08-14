@@ -19,6 +19,19 @@ from cirq import abc
 
 
 class VariationalObjective(metaclass=abc.ABCMeta):
+    """An objective function for a variational algorithm.
+
+    A variational objective is a way of assigning a numerical value, or score,
+    to the output from executing a circuit. The goal of a variational
+    algorithm is to find a setting of parameters that minimizes the value
+    of the resulting circuit output.
+
+    The VariationalObjective class supports the option to provide a noise
+    and cost model for the value. This is useful for modeling situations
+    in which the value can be determined only approximately and there is a
+    tradeoff between the accuracy of the evaluation and the cost of the
+    evaluation.
+    """
 
     @abc.abstractmethod
     def value(self,

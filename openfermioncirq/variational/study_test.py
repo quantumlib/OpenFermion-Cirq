@@ -60,28 +60,29 @@ def test_variational_study_circuit():
 def test_variational_study_optimize_and_extend_and_summary():
     numpy.random.seed(63351)
 
-    study = VariationalStudy('study', test_ansatz, test_objective)
-    assert len(study.results) == 0
+    study = VariationalStudy('study', test_ansatz, test_objective, target=-10.5)
+    assert len(study.trial_results) == 0
+    assert study.target == -10.5
 
     # Optimization run 1
     result = study.optimize(
             OptimizationParams(test_algorithm),
             'run1')
-    assert len(study.results) == 1
+    assert len(study.trial_results) == 1
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 1
 
     # Extend optimization run 1
     study.extend_result('run1',
                         repetitions=2)
-    assert study.results['run1'].repetitions == 3
+    assert study.trial_results['run1'].repetitions == 3
 
     # Optimization run 2
     study.optimize(OptimizationParams(test_algorithm),
                    repetitions=2,
                    use_multiprocessing=True)
-    result = study.results[0]
-    assert len(study.results) == 2
+    result = study.trial_results[0]
+    assert len(study.trial_results) == 2
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 2
 
@@ -96,8 +97,8 @@ def test_variational_study_optimize_and_extend_and_summary():
             reevaluate_final_params=True,
             stateful=True,
             save_x_vals=True)
-    result = study.results[1]
-    assert len(study.results) == 3
+    result = study.trial_results[1]
+    assert len(study.trial_results) == 3
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 1
     assert all(
@@ -112,7 +113,7 @@ def test_variational_study_optimize_and_extend_and_summary():
         study.extend_result('run100')
 
     # Check that getting a summary works
-    assert isinstance(study.summary, str)
+    assert str(study).startswith('This study contains')
 
 
 def test_variational_study_run_too_few_seeds_raises_error():
@@ -149,9 +150,9 @@ def test_variational_study_save_load():
     assert loaded_study.name == study.name
     assert str(loaded_study.circuit) == str(study.circuit)
     assert loaded_study.datadir == datadir
-    assert len(loaded_study.results) == 1
+    assert len(loaded_study.trial_results) == 1
 
-    result = loaded_study.results['example']
+    result = loaded_study.trial_results['example']
     assert isinstance(result, OptimizationTrialResult)
     assert result.repetitions == 1
     assert isinstance(result.params.algorithm, ScipyOptimizationAlgorithm)

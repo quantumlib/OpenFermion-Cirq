@@ -27,12 +27,12 @@ class HamiltonianObjective(VariationalObjective):
     """A variational objective associated with a Hamiltonian.
 
     The value of the objective is the expectation value of the Hamiltonian.
-
-    The noise and cost models are as follows:
-        Cost model: Cost corresponds to the number of measurement samples taken.
-        Noise model: Noise is sampled from a normal distribution with mean 0 and
-            variance inversely proportional to the number of measurement
-            samples.
+    The noise and cost model assume that one estimates the expectation value
+    by measuring individual Pauli terms of the Hamiltonian a finite number
+    of times. The resulting estimate is modeled as a random value drawn from
+    a normal distribution centered at the true expectation value and whose
+    variance is inversely proportional to the number of measurements taken.
+    The cost corresponds to the number of measurements performed.
 
     Attributes:
         hamiltonian: The Hamiltonian of interest, represented
