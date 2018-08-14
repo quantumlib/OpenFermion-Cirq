@@ -34,8 +34,10 @@ def test_prepare_gaussian_state(n_qubits,
                                 occupied_orbitals,
                                 initial_state,
                                 atol=1e-5):
-    simulator = cirq.google.XmonSimulator()
+
     qubits = LineQubit.range(n_qubits)
+    if isinstance(initial_state, list):
+        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
     # Initialize a random quadratic Hamiltonian
     quad_ham = random_quadratic_hamiltonian(
@@ -54,10 +56,7 @@ def test_prepare_gaussian_state(n_qubits,
             prepare_gaussian_state(
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
-    if isinstance(initial_state, list):
-        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    state = result.final_state
+    state = circuit.apply_unitary_effect_to_state(initial_state)
 
     # Check that the result is an eigenstate with the correct eigenvalue
     numpy.testing.assert_allclose(
@@ -90,17 +89,16 @@ def test_prepare_slater_determinant(slater_determinant_matrix,
                                     correct_state,
                                     initial_state,
                                     atol=1e-7):
-    simulator = cirq.google.XmonSimulator()
+
     n_qubits = slater_determinant_matrix.shape[1]
     qubits = LineQubit.range(n_qubits)
+    if isinstance(initial_state, list):
+        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
     circuit = cirq.Circuit.from_ops(
             prepare_slater_determinant(
                 qubits, slater_determinant_matrix,
                 initial_state=initial_state))
-    if isinstance(initial_state, list):
-        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    state = result.final_state
+    state = circuit.apply_unitary_effect_to_state(initial_state)
 
     assert cirq.allclose_up_to_global_phase(state, correct_state, atol=atol)

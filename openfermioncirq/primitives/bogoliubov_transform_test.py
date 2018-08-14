@@ -43,17 +43,14 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
                                                 initial_state,
                                                 correct_state,
                                                 atol=5e-6):
-    simulator = cirq.google.XmonSimulator()
     n_qubits = transformation_matrix.shape[0]
     qubits = LineQubit.range(n_qubits)
+    if isinstance(initial_state, Container):
+        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
     circuit = cirq.Circuit.from_ops(bogoliubov_transform(
         qubits, transformation_matrix, initial_state=initial_state))
-
-    if isinstance(initial_state, Container):
-        initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    state = result.final_state
+    state = circuit.apply_unitary_effect_to_state(initial_state)
 
     cirq.testing.assert_allclose_up_to_global_phase(
             state, correct_state, atol=atol)
@@ -65,7 +62,6 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
 def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                                                     conserves_particle_number,
                                                     atol=5e-5):
-    simulator = cirq.google.XmonSimulator()
     qubits = LineQubit.range(n_qubits)
 
     # Initialize a random quadratic Hamiltonian
@@ -99,20 +95,16 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
                             for i in occupied_orbitals)
 
         # Get the state using a circuit simulation
-        result = simulator.simulate(circuit,
-                                    qubit_order=qubits,
-                                    initial_state=initial_state)
-        state1 = result.final_state
+        state1 = circuit.apply_unitary_effect_to_state(initial_state)
 
         # Also test the option to start with a computational basis state
         special_circuit = cirq.Circuit.from_ops(bogoliubov_transform(
             qubits,
             transformation_matrix,
             initial_state=initial_state))
-        result = simulator.simulate(special_circuit,
-                                    qubit_order=qubits,
-                                    initial_state=initial_state)
-        state2 = result.final_state
+        state2 = special_circuit.apply_unitary_effect_to_state(
+                initial_state,
+                qubits_that_should_be_present=qubits)
 
         # Check that the result is an eigenstate with the correct eigenvalue
         numpy.testing.assert_allclose(
