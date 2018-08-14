@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import Callable, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy
 import pytest
@@ -27,6 +27,7 @@ from openfermioncirq.trotter import (
         SPLIT_OPERATOR,
         LINEAR_SWAP_NETWORK,
         LOW_RANK,
+        LowRankTrotterAlgorithm,
         TrotterAlgorithm)
 from openfermioncirq.trotter.trotter_algorithm import Hamiltonian
 
@@ -35,40 +36,49 @@ def fidelity(state1, state2):
     return abs(numpy.dot(state1, numpy.conjugate(state2)))**2
 
 
+def load_molecular_hamiltonian(
+        geometry,
+        basis,
+        multiplicity,
+        description,
+        n_active_electrons,
+        n_active_orbitals):
+
+    molecule = openfermion.MolecularData(
+            geometry, basis, multiplicity, description=description)
+    molecule.load()
+
+    n_core_orbitals = (molecule.n_electrons - n_active_electrons) // 2
+    occupied_indices = list(range(n_core_orbitals))
+    active_indices = list(range(n_core_orbitals,
+                                n_core_orbitals + n_active_orbitals))
+
+    return molecule.get_molecular_hamiltonian(
+            occupied_indices=occupied_indices,
+            active_indices=active_indices)
+
+
 def produce_simulation_test_parameters(
-        n_qubits: int,
+        hamiltonian: Hamiltonian,
         time: float,
-        hamiltonian_factory: Callable[[int, Optional[bool]], Hamiltonian],
-        real: bool,
         seed: Optional[int]=None
-        ) -> Tuple[Hamiltonian, numpy.ndarray, numpy.ndarray]:
+        ) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """Produce objects for testing Hamiltonian simulation.
 
-    Constructs a Hamiltonian with the given parameters, produces a random
-    initial state, and evolves the initial state for the specified amount of
-    time. Returns the constructed Hamiltonian, the initial state, and the
-    final state.
+    Produces a random initial state and evolves it under the given Hamiltonian
+    for the specified amount of time. Returns the initial state and final
+    state.
 
     Args:
-        n_qubits: The number of qubits of the Hamiltonian
+        hamiltonian: The Hamiltonian to evolve under.
         time: The time to evolve for
-        hamiltonian_factory: A Callable that takes a takes two arguments,
-            (n_qubits, real) giving the number of qubits and whether
-            to use only real numbers, and returns a Hamiltonian.
-        real: Whether the Hamiltonian should use only real numbers
-        seed: an RNG seed.
+        seed: An RNG seed.
     """
 
-    numpy.random.seed(seed)
+    n_qubits = openfermion.count_qubits(hamiltonian)
 
     # Construct a random initial state
-    initial_state = numpy.random.randn(2**n_qubits)
-    initial_state /= numpy.linalg.norm(initial_state)
-    initial_state = initial_state.astype(numpy.complex64, copy=False)
-    assert numpy.allclose(numpy.linalg.norm(initial_state), 1.0)
-
-    # Construct a Hamiltonian
-    hamiltonian = hamiltonian_factory(n_qubits, real=real)  # type: ignore
+    initial_state = openfermion.haar_random_vector(2**n_qubits, seed)
 
     # Simulate exact evolution
     hamiltonian_sparse = openfermion.get_sparse_operator(hamiltonian)
@@ -78,47 +88,83 @@ def produce_simulation_test_parameters(
     # Make sure the time is not too small
     assert fidelity(exact_state, initial_state) < .95
 
-    return hamiltonian, initial_state, exact_state
+    return initial_state, exact_state
 
 
+# Produce test objects
+
+bigger_time = 1.0
 big_time = 0.1
 small_time = 0.05
 
-diag_coul_hamiltonian, diag_coul_initial_state, diag_coul_exact_state = (
+# 5-qubit random DiagonalCoulombHamiltonian
+diag_coul_hamiltonian = random_diagonal_coulomb_hamiltonian(
+        5, real=False, seed=65233)
+diag_coul_initial_state, diag_coul_exact_state = (
         produce_simulation_test_parameters(
-            4, big_time, random_diagonal_coulomb_hamiltonian,
-            real=False, seed=49075))
+            diag_coul_hamiltonian, big_time, seed=49075)
+)
 
-interaction_op3, interaction_op_initial_state3, interaction_op_exact_state3 = (
-        produce_simulation_test_parameters(
-            3, big_time, random_interaction_operator,
-            real=True, seed=48565))
+# 4-qubit H2 2-2 with bond length 0.7414
+bond_length = 0.7414
+geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
+h2_hamiltonian = load_molecular_hamiltonian(
+        geometry, 'sto-3g', 1, format(bond_length), 2, 2)
+h2_initial_state, h2_exact_state = produce_simulation_test_parameters(
+        h2_hamiltonian, bigger_time, seed=44303)
 
-interaction_op4, interaction_op_initial_state4, interaction_op_exact_state4 = (
+# 4-qubit LiH 2-2 with bond length 1.45
+bond_length = 1.45
+geometry = [('Li', (0., 0., 0.)), ('H', (0., 0., bond_length))]
+lih_hamiltonian = load_molecular_hamiltonian(
+        geometry, 'sto-3g', 1, format(bond_length), 2, 2)
+lih_initial_state, lih_exact_state = produce_simulation_test_parameters(
+        lih_hamiltonian, bigger_time, seed=54458)
+
+# 3-qubit random InteractionOperator
+interaction_op3 = random_interaction_operator(
+        3, real=True, seed=53404)
+interaction_op_initial_state3, interaction_op_exact_state3 = (
         produce_simulation_test_parameters(
-            4, small_time, random_interaction_operator,
-            real=True, seed=19372))
+            interaction_op3, big_time, seed=48565)
+)
+
+# 4-qubit random InteractionOperator
+interaction_op4 = random_interaction_operator(
+        4, real=True, seed=60822)
+interaction_op_initial_state4, interaction_op_exact_state4 = (
+        produce_simulation_test_parameters(
+            interaction_op4, small_time, seed=19372)
+)
 
 
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 1, None, .98),
+                diag_coul_exact_state, 0, 5, None, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 2, None, .99),
+                diag_coul_exact_state, 0, 12, None, .999),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .999),
+                diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 2, 1, LINEAR_SWAP_NETWORK, .999999),
+                diag_coul_exact_state, 2, 1, LINEAR_SWAP_NETWORK, .99999),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 1, SPLIT_OPERATOR, .996),
+                diag_coul_exact_state, 0, 3, SPLIT_OPERATOR, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 2, SPLIT_OPERATOR, .999),
+                diag_coul_exact_state, 0, 6, SPLIT_OPERATOR, .999),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .9999),
+                diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .9999999),
+                diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .99999),
+            (h2_hamiltonian, bigger_time, h2_initial_state,
+                h2_exact_state, 0, 1, LOW_RANK, .99),
+            (h2_hamiltonian, bigger_time, h2_initial_state,
+                h2_exact_state, 0, 10, LOW_RANK, .9999),
+            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
+                0, 1, LowRankTrotterAlgorithm(final_rank=15), .999),
+            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
+                0, 10, LowRankTrotterAlgorithm(final_rank=15), .9999),
             (interaction_op3, big_time, interaction_op_initial_state3,
                 interaction_op_exact_state3, 0, 1, None, .998),
             (interaction_op3, big_time, interaction_op_initial_state3,
@@ -151,13 +197,29 @@ def test_simulate_trotter_simulate(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 1, LINEAR_SWAP_NETWORK, .993),
+                diag_coul_exact_state, 0, 5, None, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .999),
+                diag_coul_exact_state, 0, 12, None, .999),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 0, 1, SPLIT_OPERATOR, .998),
+                diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .99),
             (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
-                diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .9999),
+                diag_coul_exact_state, 2, 1, LINEAR_SWAP_NETWORK, .99999),
+            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+                diag_coul_exact_state, 0, 3, SPLIT_OPERATOR, .99),
+            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+                diag_coul_exact_state, 0, 6, SPLIT_OPERATOR, .999),
+            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+                diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .99),
+            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+                diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .99999),
+            (h2_hamiltonian, bigger_time, h2_initial_state,
+                h2_exact_state, 0, 1, LOW_RANK, .99),
+            (h2_hamiltonian, bigger_time, h2_initial_state,
+                h2_exact_state, 0, 10, LOW_RANK, .9999),
+            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
+                0, 1, LowRankTrotterAlgorithm(final_rank=15), .999),
+            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
+                0, 10, LowRankTrotterAlgorithm(final_rank=15), .9999),
             (interaction_op3, big_time, interaction_op_initial_state3,
                 interaction_op_exact_state3, 0, 1, LOW_RANK, .9991),
             (interaction_op3, big_time, interaction_op_initial_state3,
