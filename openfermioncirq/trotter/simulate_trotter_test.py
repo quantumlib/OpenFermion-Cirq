@@ -68,7 +68,7 @@ def produce_simulation_test_parameters(
     assert numpy.allclose(numpy.linalg.norm(initial_state), 1.0)
 
     # Construct a Hamiltonian
-    hamiltonian = hamiltonian_factory(n_qubits, real)
+    hamiltonian = hamiltonian_factory(n_qubits, real=real)  # type: ignore
 
     # Simulate exact evolution
     hamiltonian_sparse = openfermion.get_sparse_operator(hamiltonian)

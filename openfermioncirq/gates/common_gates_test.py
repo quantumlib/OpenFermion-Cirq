@@ -308,7 +308,7 @@ def test_zz_matrix():
                    numpy.array([1 / numpy.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
 
             (YXXY, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-8),
+                  numpy.array([0, 1, -1, 0]) / numpy.sqrt(2), 1e-7),
 
             (YXXY, 0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, 0, 1, 0]), 1e-7),
@@ -317,7 +317,7 @@ def test_zz_matrix():
                    numpy.array([0, 1, 0, 0]), 1e-7),
 
             (ZZ, 1.0, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
-                  numpy.array([0, -1, -1, 0]) / numpy.sqrt(2), 1e-8),
+                  numpy.array([0, -1, -1, 0]) / numpy.sqrt(2), 1e-7),
 
             (ZZ, 0.5, numpy.array([0, 1, 1, 0]) / numpy.sqrt(2),
                   numpy.array([0, 1, 1, 0]) / numpy.sqrt(2), 1e-7),
