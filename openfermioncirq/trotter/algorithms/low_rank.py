@@ -18,7 +18,7 @@ import numpy
 
 import cirq
 from openfermion.ops import InteractionOperator
-from openfermion.utils import (low_rank_spatial_two_body_decomposition,
+from openfermion.utils import (low_rank_two_body_decomposition,
                                prepare_one_body_squared_evolution)
 
 from openfermioncirq import (
@@ -66,7 +66,7 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
     supported_types = {InteractionOperator}
 
     def __init__(self,
-                 truncation_threshold: Optional[float]=None,
+                 truncation_threshold: Optional[float]=1e-8,
                  final_rank: Optional[int]=None,
                  spin_basis=True) -> None:
         """
@@ -105,7 +105,7 @@ class LowRankTrotterStep(TrotterStep):
 
     def __init__(self,
                  hamiltonian: InteractionOperator,
-                 truncation_threshold: Optional[float]=None,
+                 truncation_threshold: Optional[float]=1e-8,
                  final_rank: Optional[int]=None,
                  spin_basis=True) -> None:
 
@@ -113,8 +113,8 @@ class LowRankTrotterStep(TrotterStep):
         self.final_rank = final_rank
 
         # Perform the low rank decomposition of two-body operator.
-        self.eigenvalues, self.one_body_squares, _, one_body_correction = (
-            low_rank_spatial_two_body_decomposition(
+        self.eigenvalues, self.one_body_squares, one_body_correction, _ = (
+            low_rank_two_body_decomposition(
                 hamiltonian.two_body_tensor,
                 truncation_threshold=self.truncation_threshold,
                 final_rank=self.final_rank,
