@@ -18,9 +18,6 @@ import scipy.sparse.linalg
 
 import cirq
 import openfermion
-from openfermion.utils._testing_utils import (
-        random_diagonal_coulomb_hamiltonian,
-        random_interaction_operator)
 
 from openfermioncirq import simulate_trotter
 from openfermioncirq.trotter import (
@@ -91,88 +88,64 @@ def produce_simulation_test_parameters(
     return initial_state, exact_state
 
 
-# Produce test objects
+# Produce test parameters
 
-bigger_time = 1.0
-big_time = 0.1
-small_time = 0.05
+longer_time = 1.0
+long_time = 0.1
+short_time = 0.05
 
 # 5-qubit random DiagonalCoulombHamiltonian
-diag_coul_hamiltonian = random_diagonal_coulomb_hamiltonian(
+diag_coul_hamiltonian = openfermion.random_diagonal_coulomb_hamiltonian(
         5, real=False, seed=65233)
 diag_coul_initial_state, diag_coul_exact_state = (
         produce_simulation_test_parameters(
-            diag_coul_hamiltonian, big_time, seed=49075)
+            diag_coul_hamiltonian, long_time, seed=49075)
 )
 
 # 4-qubit H2 2-2 with bond length 0.7414
 bond_length = 0.7414
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
-h2_hamiltonian = load_molecular_hamiltonian(
+h2_hamiltonian = openfermion.load_molecular_hamiltonian(
         geometry, 'sto-3g', 1, format(bond_length), 2, 2)
 h2_initial_state, h2_exact_state = produce_simulation_test_parameters(
-        h2_hamiltonian, bigger_time, seed=44303)
+        h2_hamiltonian, longer_time, seed=44303)
 
 # 4-qubit LiH 2-2 with bond length 1.45
 bond_length = 1.45
 geometry = [('Li', (0., 0., 0.)), ('H', (0., 0., bond_length))]
-lih_hamiltonian = load_molecular_hamiltonian(
+lih_hamiltonian = openfermion.load_molecular_hamiltonian(
         geometry, 'sto-3g', 1, format(bond_length), 2, 2)
 lih_initial_state, lih_exact_state = produce_simulation_test_parameters(
-        lih_hamiltonian, bigger_time, seed=54458)
-
-# 3-qubit random InteractionOperator
-interaction_op3 = random_interaction_operator(
-        3, real=True, seed=53404)
-interaction_op_initial_state3, interaction_op_exact_state3 = (
-        produce_simulation_test_parameters(
-            interaction_op3, big_time, seed=48565)
-)
-
-# 4-qubit random InteractionOperator
-interaction_op4 = random_interaction_operator(
-        4, real=True, seed=60822)
-interaction_op_initial_state4, interaction_op_exact_state4 = (
-        produce_simulation_test_parameters(
-            interaction_op4, small_time, seed=19372)
-)
+        lih_hamiltonian, longer_time, seed=54458)
 
 
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 5, None, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 12, None, .999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 2, 1, LINEAR_SWAP_NETWORK, .99999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 3, SPLIT_OPERATOR, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 6, SPLIT_OPERATOR, .999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .99999),
-            (h2_hamiltonian, bigger_time, h2_initial_state,
+            (h2_hamiltonian, longer_time, h2_initial_state,
                 h2_exact_state, 0, 1, LOW_RANK, .99),
-            (h2_hamiltonian, bigger_time, h2_initial_state,
+            (h2_hamiltonian, longer_time, h2_initial_state,
                 h2_exact_state, 0, 10, LOW_RANK, .9999),
-            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
-                0, 1, LowRankTrotterAlgorithm(final_rank=15), .999),
-            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
-                0, 10, LowRankTrotterAlgorithm(final_rank=15), .9999),
-            (interaction_op3, big_time, interaction_op_initial_state3,
-                interaction_op_exact_state3, 0, 1, None, .998),
-            (interaction_op3, big_time, interaction_op_initial_state3,
-                interaction_op_exact_state3, 0, 2, LOW_RANK, .999),
-            (interaction_op4, small_time, interaction_op_initial_state4,
-                interaction_op_exact_state4, 0, 1, LOW_RANK, .991),
-            (interaction_op4, small_time, interaction_op_initial_state4,
-                interaction_op_exact_state4, 0, 2, LOW_RANK, .998),
+            (lih_hamiltonian, longer_time, lih_initial_state, lih_exact_state,
+                0, 1, LowRankTrotterAlgorithm(final_rank=2), .999),
+            (lih_hamiltonian, longer_time, lih_initial_state, lih_exact_state,
+                0, 10, LowRankTrotterAlgorithm(final_rank=2), .9999),
 ])
 def test_simulate_trotter_simulate(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
@@ -196,38 +169,30 @@ def test_simulate_trotter_simulate(
 @pytest.mark.parametrize(
         'hamiltonian, time, initial_state, exact_state, order, n_steps, '
         'algorithm, result_fidelity', [
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 5, None, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 12, None, .999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 1, 1, LINEAR_SWAP_NETWORK, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 2, 1, LINEAR_SWAP_NETWORK, .99999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 3, SPLIT_OPERATOR, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 0, 6, SPLIT_OPERATOR, .999),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .99),
-            (diag_coul_hamiltonian, big_time, diag_coul_initial_state,
+            (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .99999),
-            (h2_hamiltonian, bigger_time, h2_initial_state,
+            (h2_hamiltonian, longer_time, h2_initial_state,
                 h2_exact_state, 0, 1, LOW_RANK, .99),
-            (h2_hamiltonian, bigger_time, h2_initial_state,
+            (h2_hamiltonian, longer_time, h2_initial_state,
                 h2_exact_state, 0, 10, LOW_RANK, .9999),
-            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
-                0, 1, LowRankTrotterAlgorithm(final_rank=15), .999),
-            (lih_hamiltonian, bigger_time, lih_initial_state, lih_exact_state,
-                0, 10, LowRankTrotterAlgorithm(final_rank=15), .9999),
-            (interaction_op3, big_time, interaction_op_initial_state3,
-                interaction_op_exact_state3, 0, 1, LOW_RANK, .9991),
-            (interaction_op3, big_time, interaction_op_initial_state3,
-                interaction_op_exact_state3, 0, 2, LOW_RANK, .9998),
-            (interaction_op4, small_time, interaction_op_initial_state4,
-                interaction_op_exact_state4, 0, 1, LOW_RANK, .995),
-            (interaction_op4, small_time, interaction_op_initial_state4,
-                interaction_op_exact_state4, 0, 2, LOW_RANK, .998),
+            (lih_hamiltonian, longer_time, lih_initial_state, lih_exact_state,
+                0, 1, LowRankTrotterAlgorithm(final_rank=2), .999),
+            (lih_hamiltonian, longer_time, lih_initial_state, lih_exact_state,
+                0, 10, LowRankTrotterAlgorithm(final_rank=2), .9999),
 ])
 def test_simulate_trotter_simulate_controlled(
         hamiltonian, time, initial_state, exact_state, order, n_steps,
@@ -329,7 +294,8 @@ def test_simulate_trotter_omit_final_swaps():
 │         │           │           │            │
 """).strip())
 
-    hamiltonian = random_interaction_operator(n_qubits, seed=0)
+    hamiltonian = lih_hamiltonian
+    qubits = cirq.LineQubit.range(4)
     circuit_with_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
                 qubits, hamiltonian, time, order=0,
@@ -345,7 +311,7 @@ def test_simulate_trotter_omit_final_swaps():
 
 def test_simulate_trotter_bad_order_raises_error():
     qubits = cirq.LineQubit.range(2)
-    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
+    hamiltonian = openfermion.random_diagonal_coulomb_hamiltonian(2, seed=0)
     time = 1.0
     with pytest.raises(ValueError):
         _ = next(simulate_trotter(qubits, hamiltonian, time, order=-1))
@@ -366,7 +332,7 @@ def test_simulate_trotter_bad_hamiltonian_type_raises_error():
 def test_simulate_trotter_unsupported_trotter_step_raises_error():
     qubits = cirq.LineQubit.range(2)
     control = cirq.LineQubit(-1)
-    hamiltonian = random_diagonal_coulomb_hamiltonian(2, seed=0)
+    hamiltonian = openfermion.random_diagonal_coulomb_hamiltonian(2, seed=0)
     time = 1.0
     class EmptyTrotterAlgorithm(TrotterAlgorithm):
         supported_types = {openfermion.DiagonalCoulombHamiltonian}

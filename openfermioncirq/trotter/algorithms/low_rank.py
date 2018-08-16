@@ -18,8 +18,7 @@ import numpy
 
 import cirq
 from openfermion.ops import InteractionOperator
-from openfermion.utils import (get_chemist_two_body_coefficients,
-                               low_rank_two_body_decomposition,
+from openfermion.utils import (low_rank_spatial_two_body_decomposition,
                                prepare_one_body_squared_evolution)
 
 from openfermioncirq import (
@@ -68,25 +67,35 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
 
     def __init__(self,
                  truncation_threshold: Optional[float]=None,
-                 final_rank: Optional[int]=None) -> None:
+                 final_rank: Optional[int]=None,
+                 spin_basis=True) -> None:
         """
         Args:
             truncation_threshold: The value of x from the docstring of
                 this class.
             final_rank: If provided, this specifies the value of J at which to
                 truncate.
+            spin_basis: Whether the Hamiltonian is given in the spin orbital
+                (rather than spatial orbital) basis.
         """
         self.truncation_threshold = truncation_threshold
         self.final_rank = final_rank
+        self.spin_basis = spin_basis
 
     def asymmetric(self, hamiltonian: Hamiltonian) -> Optional[TrotterStep]:
         return AsymmetricLowRankTrotterStep(
-                hamiltonian, self.truncation_threshold, self.final_rank)
+                hamiltonian,
+                self.truncation_threshold,
+                self.final_rank,
+                self.spin_basis)
 
     def controlled_asymmetric(self, hamiltonian: Hamiltonian
                               ) -> Optional[TrotterStep]:
         return ControlledAsymmetricLowRankTrotterStep(
-                hamiltonian, self.truncation_threshold, self.final_rank)
+                hamiltonian,
+                self.truncation_threshold,
+                self.final_rank,
+                self.spin_basis)
 
 
 LOW_RANK = LowRankTrotterAlgorithm()
@@ -97,23 +106,22 @@ class LowRankTrotterStep(TrotterStep):
     def __init__(self,
                  hamiltonian: InteractionOperator,
                  truncation_threshold: Optional[float]=None,
-                 final_rank: Optional[int]=None) -> None:
+                 final_rank: Optional[int]=None,
+                 spin_basis=True) -> None:
 
         self.truncation_threshold = truncation_threshold
         self.final_rank = final_rank
 
-        # Get the chemist matrix.
-        (self.constant,
-         self.one_body_coefficients,
-         chemist_two_body_coefficients) = (
-                 get_chemist_two_body_coefficients(hamiltonian))
-
         # Perform the low rank decomposition of two-body operator.
-        self.eigenvalues, self.one_body_squares, _ = (
-            low_rank_two_body_decomposition(
-                chemist_two_body_coefficients,
+        self.eigenvalues, self.one_body_squares, _, one_body_correction = (
+            low_rank_spatial_two_body_decomposition(
+                hamiltonian.two_body_tensor,
                 truncation_threshold=self.truncation_threshold,
-                final_rank=self.final_rank))
+                final_rank=self.final_rank,
+                spin_basis=spin_basis))
+        self.one_body_coefficients = (
+                hamiltonian.one_body_tensor + one_body_correction)
+        self.constant = hamiltonian.constant
 
         # Get scaled density-density terms and basis transformation matrices.
         self.scaled_density_density_matrices = []  # type: List[numpy.ndarray]
