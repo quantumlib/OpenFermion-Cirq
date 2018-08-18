@@ -26,9 +26,9 @@ class Rot111Gate(cirq.EigenGate,
     """Phases the |111> state of three qubits by a fixed amount."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]] = None,
-                 rads: Optional[float] = None,
-                 degs: Optional[float] = None) -> None:
+                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 rads: Optional[float]=None,
+                 degs: Optional[float]=None) -> None:
         """Initializes the gate.
 
         At most one angle argument may be specified. If more are specified,
@@ -112,25 +112,20 @@ class ControlledXXYYGate(cirq.EigenGate,
         return self._exponent
 
     def _eigen_components(self):
-        return [
-            (0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
-            (-0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0.5, 0.5, 0],
-                                [0, 0, 0, 0, 0, 0.5, 0.5, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0]])),
-            (0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0.5, -0.5, 0],
-                               [0, 0, 0, 0, 0, -0.5, 0.5, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0]]))
-        ]
+        minus_half_component = cirq.linalg.block_diag(
+            numpy.diag([0, 0, 0, 0, 0]),
+            numpy.array([[0.5, 0.5],
+                         [0.5, 0.5]]),
+            numpy.diag([0]))
+        plus_half_component = cirq.linalg.block_diag(
+            numpy.diag([0, 0, 0, 0, 0]),
+            numpy.array([[0.5, -0.5],
+                         [-0.5, 0.5]]),
+            numpy.diag([0]))
+
+        return [(0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+                (-0.5, minus_half_component),
+                (0.5, plus_half_component)]
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
@@ -199,25 +194,20 @@ class ControlledYXXYGate(cirq.EigenGate,
         return self._exponent
 
     def _eigen_components(self):
-        return [
-            (0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
-            (-0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 0, 0, 0.5, -0.5j, 0],
-                                [0, 0, 0, 0, 0, 0.5j, 0.5, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0]])),
-            (0.5, numpy.array([[0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0],
-                               [0, 0, 0, 0, 0, 0.5, 0.5j, 0],
-                               [0, 0, 0, 0, 0, -0.5j, 0.5, 0],
-                               [0, 0, 0, 0, 0, 0, 0, 0]]))
-        ]
+        minus_half_component = cirq.linalg.block_diag(
+            numpy.diag([0, 0, 0, 0, 0]),
+            numpy.array([[0.5, -0.5j],
+                         [0.5j, 0.5]]),
+            numpy.diag([0]))
+        plus_half_component = cirq.linalg.block_diag(
+            numpy.diag([0, 0, 0, 0, 0]),
+            numpy.array([[0.5, 0.5j],
+                         [-0.5j, 0.5]]),
+            numpy.diag([0]))
+
+        return [(0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+                (-0.5, minus_half_component),
+                (0.5, plus_half_component)]
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
