@@ -471,7 +471,7 @@ class VariationalStudy:
     @property
     def num_params(self) -> int:
         """The number of parameters of the ansatz."""
-        return len(self.ansatz.params)
+        return len(list(self.ansatz.params()))
 
     def value_of(self,
                  params: numpy.ndarray) -> float:
@@ -602,7 +602,7 @@ class VariationalBlackBox(BlackBox):
     @property
     def dimension(self) -> int:
         """The dimension of the array accepted by the objective function."""
-        return len(self.ansatz.params)
+        return len(list(self.ansatz.params()))
 
     @property
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:

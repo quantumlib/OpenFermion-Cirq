@@ -12,10 +12,9 @@
 
 """A variational ansatz based on a linear swap network Trotter step."""
 
-from typing import Match, Optional, Sequence, Tuple, cast
+from typing import Iterable, Optional, Sequence, Tuple, cast
 
 import itertools
-import re
 
 import numpy
 
@@ -24,6 +23,8 @@ import openfermion
 
 from openfermioncirq import XXYYGate, YXXYGate, swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
+from openfermioncirq.variational.letter_with_subscripts import (
+        LetterWithSubscripts)
 
 
 class SwapNetworkTrotterAnsatz(VariationalAnsatz):
@@ -37,74 +38,74 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
     Example: The ansatz on 4 qubits with one iteration and all gates included
     has the circuit::
 
-        0    1         2         3
-        │    │         │         │
-        XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3
-        │    │         │         │
-        YXXY─#2^W0_1   YXXY──────#2^W2_3
-        │    │         │         │
-        @────@^V0_1    @─────────@^V2_3
-        │    │         │         │
-        ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
-        │    │         │         │
-        │    XXYY──────XXYY^T0_3 │
-        │    │         │         │
-        │    YXXY──────#2^W0_3   │
-        │    │         │         │
-        │    @─────────@^V0_3    │
-        │    │         │         │
-        │    ×ᶠ────────×ᶠ        │
-        │    │         │         │
-        XXYY─XXYY^T1_3 XXYY──────XXYY^T0_2
-        │    │         │         │
-        YXXY─#2^W1_3   YXXY──────#2^W0_2
-        │    │         │         │
-        @────@^V1_3    @─────────@^V0_2
-        │    │         │         │
-        ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
-        │    │         │         │
-        Z^U3 XXYY──────XXYY^T1_2 Z^U0
-        │    │         │         │
-        │    YXXY──────#2^W1_2   │
-        │    │         │         │
-        │    @─────────@^V1_2    │
-        │    │         │         │
-        │    ×ᶠ────────×ᶠ        │
-        │    │         │         │
-        │    Z^U2      Z^U1      │
-        │    │         │         │
-        │    @─────────@^V1_2    │
-        │    │         │         │
-        │    #2────────YXXY^W1_2 │
-        │    │         │         │
-        │    XXYY──────XXYY^T1_2 │
-        │    │         │         │
-        │    ×ᶠ────────×ᶠ        │
-        │    │         │         │
-        @────@^V1_3    @─────────@^V0_2
-        │    │         │         │
-        #2───YXXY^W1_3 #2────────YXXY^W0_2
-        │    │         │         │
-        XXYY─XXYY^T1_3 XXYY──────XXYY^T0_2
-        │    │         │         │
-        ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
-        │    │         │         │
-        │    @─────────@^V0_3    │
-        │    │         │         │
-        │    #2────────YXXY^W0_3 │
-        │    │         │         │
-        │    XXYY──────XXYY^T0_3 │
-        │    │         │         │
-        │    ×ᶠ────────×ᶠ        │
-        │    │         │         │
-        @────@^V0_1    @─────────@^V2_3
-        │    │         │         │
-        #2───YXXY^W0_1 #2────────YXXY^W2_3
-        │    │         │         │
-        XXYY─XXYY^T0_1 XXYY──────XXYY^T2_3
-        │    │         │         │
-        ×ᶠ───×ᶠ        ×ᶠ────────×ᶠ
-        │    │         │         │
+        0       1            2            3
+        │       │            │            │
+        XXYY────XXYY^T_0_1_0 XXYY─────────XXYY^T_2_3_0
+        │       │            │            │
+        YXXY────#2^W_0_1_0   YXXY─────────#2^W_2_3_0
+        │       │            │            │
+        @───────@^V_0_1_0    @────────────@^V_2_3_0
+        │       │            │            │
+        ×ᶠ──────×ᶠ           ×ᶠ───────────×ᶠ
+        │       │            │            │
+        │       XXYY─────────XXYY^T_0_3_0 │
+        │       │            │            │
+        │       YXXY─────────#2^W_0_3_0   │
+        │       │            │            │
+        │       @────────────@^V_0_3_0    │
+        │       │            │            │
+        │       ×ᶠ───────────×ᶠ           │
+        │       │            │            │
+        XXYY────XXYY^T_1_3_0 XXYY─────────XXYY^T_0_2_0
+        │       │            │            │
+        YXXY────#2^W_1_3_0   YXXY─────────#2^W_0_2_0
+        │       │            │            │
+        @───────@^V_1_3_0    @────────────@^V_0_2_0
+        │       │            │            │
+        ×ᶠ──────×ᶠ           ×ᶠ───────────×ᶠ
+        │       │            │            │
+        Z^U_3_0 XXYY─────────XXYY^T_1_2_0 Z^U_0_0
+        │       │            │            │
+        │       YXXY─────────#2^W_1_2_0   │
+        │       │            │            │
+        │       @────────────@^V_1_2_0    │
+        │       │            │            │
+        │       ×ᶠ───────────×ᶠ           │
+        │       │            │            │
+        │       Z^U_2_0      Z^U_1_0      │
+        │       │            │            │
+        │       @────────────@^V_1_2_0    │
+        │       │            │            │
+        │       #2───────────YXXY^W_1_2_0 │
+        │       │            │            │
+        │       XXYY─────────XXYY^T_1_2_0 │
+        │       │            │            │
+        │       ×ᶠ───────────×ᶠ           │
+        │       │            │            │
+        @───────@^V_1_3_0    @────────────@^V_0_2_0
+        │       │            │            │
+        #2──────YXXY^W_1_3_0 #2───────────YXXY^W_0_2_0
+        │       │            │            │
+        XXYY────XXYY^T_1_3_0 XXYY─────────XXYY^T_0_2_0
+        │       │            │            │
+        ×ᶠ──────×ᶠ           ×ᶠ───────────×ᶠ
+        │       │            │            │
+        │       @────────────@^V_0_3_0    │
+        │       │            │            │
+        │       #2───────────YXXY^W_0_3_0 │
+        │       │            │            │
+        │       XXYY─────────XXYY^T_0_3_0 │
+        │       │            │            │
+        │       ×ᶠ───────────×ᶠ           │
+        │       │            │            │
+        @───────@^V_0_1_0    @────────────@^V_2_3_0
+        │       │            │            │
+        #2──────YXXY^W_0_1_0 #2───────────YXXY^W_2_3_0
+        │       │            │            │
+        XXYY────XXYY^T_0_1_0 XXYY─────────XXYY^T_2_3_0
+        │       │            │            │
+        ×ᶠ──────×ᶠ           ×ᶠ───────────×ᶠ
+        │       │            │            │
 
     The Hamiltonian associated with the ansatz determines which XXYY, YXXY, CZ,
     and Z gates are included. This basic template can be repeated, with each
@@ -183,34 +184,31 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
 
         super().__init__(qubits)
 
-    def param_names(self) -> Sequence[str]:
-        """The names of the parameters of the ansatz."""
-        names = []
+    def params(self) -> Iterable[cirq.Symbol]:
+        """The parameters of the ansatz."""
         for i in range(self.iterations):
-            suffix = '-{}'.format(i) if self.iterations > 1 else ''
             for p in range(len(self.qubits)):
                 if (self.include_all_z or not
                         numpy.isclose(self.hamiltonian.one_body[p, p], 0)):
-                    names.append('U{}'.format(p) + suffix)
+                    yield LetterWithSubscripts('U', p, i)
             for p, q in itertools.combinations(range(len(self.qubits)), 2):
                 if (self.include_all_xxyy or not
                         numpy.isclose(self.hamiltonian.one_body[p, q].real, 0)):
-                    names.append('T{}_{}'.format(p, q) + suffix)
+                    yield LetterWithSubscripts('T', p, q, i)
                 if (self.include_all_yxxy or not
                         numpy.isclose(self.hamiltonian.one_body[p, q].imag, 0)):
-                    names.append('W{}_{}'.format(p, q) + suffix)
+                    yield LetterWithSubscripts('W', p, q, i)
                 if (self.include_all_cz or not
                         numpy.isclose(self.hamiltonian.two_body[p, q], 0)):
-                    names.append('V{}_{}'.format(p, q) + suffix)
-        return names
+                    yield LetterWithSubscripts('V', p, q, i)
 
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Bounds on the parameters."""
         bounds = []
-        for param_name in self.param_names():
-            if param_name.startswith('U') or param_name.startswith('V'):
+        for param in self.params():
+            if param.letter == 'U' or param.letter == 'V':
                 bounds.append((-1.0, 1.0))
-            elif param_name.startswith('T') or param_name.startswith('W'):
+            elif param.letter == 'T' or param.letter == 'W':
                 bounds.append((-2.0, 2.0))
         return bounds
 
@@ -219,47 +217,47 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
 
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit."""
-        # TODO implement asymmetric ansatzes?
+        # TODO implement asymmetric ansatz
+
+        param_set = set(self.params())
 
         for i in range(self.iterations):
-
-            suffix = '-{}'.format(i) if self.iterations > 1 else ''
 
             # Apply one- and two-body interactions with a swap network that
             # reverses the order of the modes
             def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-                if 'T{}_{}'.format(p, q) + suffix in self.params:
-                    yield XXYYGate(half_turns=self.params[
-                              'T{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'W{}_{}'.format(p, q) + suffix in self.params:
-                    yield YXXYGate(half_turns=self.params[
-                              'W{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'V{}_{}'.format(p, q) + suffix in self.params:
-                    yield cirq.Rot11Gate(half_turns=self.params[
-                              'V{}_{}'.format(p, q) + suffix]).on(a, b)
+                t_symbol = LetterWithSubscripts('T', p, q, i)
+                w_symbol = LetterWithSubscripts('W', p, q, i)
+                v_symbol = LetterWithSubscripts('V', p, q, i)
+                if t_symbol in param_set:
+                    yield XXYYGate(half_turns=t_symbol).on(a, b)
+                if w_symbol in param_set:
+                    yield YXXYGate(half_turns=w_symbol).on(a, b)
+                if v_symbol in param_set:
+                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction, fermionic=True)
             qubits = qubits[::-1]
 
             # Apply one-body potential
-            yield (cirq.RotZGate(half_turns=
-                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                   for p in range(len(qubits))
-                   if 'U{}'.format(p) + suffix in self.params)
+            for p in range(len(qubits)):
+                u_symbol = LetterWithSubscripts('U', p, i)
+                if u_symbol in param_set:
+                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
 
             # Apply one- and two-body interactions again. This time, reorder
             # them so that the entire iteration is symmetric
             def one_and_two_body_interaction_reversed_order(p, q, a, b
                     ) -> cirq.OP_TREE:
-                if 'V{}_{}'.format(p, q) + suffix in self.params:
-                    yield cirq.Rot11Gate(half_turns=self.params[
-                              'V{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'W{}_{}'.format(p, q) + suffix in self.params:
-                    yield YXXYGate(half_turns=self.params[
-                              'W{}_{}'.format(p, q) + suffix]).on(a, b)
-                if 'T{}_{}'.format(p, q) + suffix in self.params:
-                    yield XXYYGate(half_turns=self.params[
-                              'T{}_{}'.format(p, q) + suffix]).on(a, b)
+                t_symbol = LetterWithSubscripts('T', p, q, i)
+                w_symbol = LetterWithSubscripts('W', p, q, i)
+                v_symbol = LetterWithSubscripts('V', p, q, i)
+                if v_symbol in param_set:
+                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
+                if w_symbol in param_set:
+                    yield YXXYGate(half_turns=w_symbol).on(a, b)
+                if t_symbol in param_set:
+                    yield XXYYGate(half_turns=t_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction_reversed_order,
                     fermionic=True, offset=True)
@@ -292,31 +290,25 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
         step_time = total_time / self.iterations
         hamiltonian = self.hamiltonian
 
-        U_pattern = re.compile('U([0-9]*)-?([0-9]*)?')
-        TWV_pattern = re.compile('(T|W|V)([0-9]*)_([0-9]*)-?([0-9]*)?')
-
         params = []
-        for param_name in self.param_names():
-            if param_name.startswith('U'):
-                p, i = cast(Match, U_pattern.match(param_name)).groups()
-                p, i = int(p), int(i) if i else 0
+        for param in self.params():
+            if param.letter == 'U':
+                p, _ = param.subscripts
                 params.append(_canonicalize_exponent(
                     -hamiltonian.one_body[p, p].real * step_time / numpy.pi, 2))
             else:
-                letter, p, q, i = cast(
-                        Match, TWV_pattern.match(param_name)).groups()
-                p, q, i = int(p), int(q), int(i) if i else 0
+                p, q, i = param.subscripts
                 # Use the midpoint of the time segment
                 interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
-                if letter == 'T':
+                if param.letter == 'T':
                     params.append(_canonicalize_exponent(
                         hamiltonian.one_body[p, q].real *
                         step_time / numpy.pi, 4))
-                elif letter == 'W':
+                elif param.letter == 'W':
                     params.append(_canonicalize_exponent(
                         hamiltonian.one_body[p, q].imag *
                         step_time / numpy.pi, 4))
-                elif letter == 'V':
+                elif param.letter == 'V':
                     params.append(_canonicalize_exponent(
                         -hamiltonian.two_body[p, q] * interpolation_progress *
                         step_time / numpy.pi, 2))

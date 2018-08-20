@@ -12,10 +12,9 @@
 
 """A variational ansatz based on a split-operator Trotter step."""
 
-from typing import Match, Optional, Sequence, Tuple, cast
+from typing import Iterable, Optional, Sequence, Tuple, cast
 
 import itertools
-import re
 
 import numpy
 
@@ -24,6 +23,8 @@ import openfermion
 
 from openfermioncirq import bogoliubov_transform, swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
+from openfermioncirq.variational.letter_with_subscripts import (
+        LetterWithSubscripts)
 
 
 class SplitOperatorTrotterAnsatz(VariationalAnsatz):
@@ -37,86 +38,98 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
     Example: The ansatz for a spinless jellium Hamiltonian on a 2x2 grid with
     one iteration has the circuit::
 
-        0    1           2           3
-        │    │           │           │
-        │    │           YXXY────────#2^0.5
-        │    │           │           │
-        │    YXXY────────#2^0.608    │
-        │    │           │           │
-        │    │           YXXY────────#2^-0.333
-        │    │           │           │
-        YXXY─#2^0.667    │           │
-        │    │           │           │
-        │    YXXY────────#2          │
-        │    │           │           │
-        │    │           YXXY────────#2^-0.392
-        │    │           │           │
-        │    Z           │           Z
-        │    │           │           │
-        │    Z^U1        Z^U2        Z^U3
-        │    │           │           │
-        │    Z           │           Z
-        │    │           │           │
-        │    │           YXXY────────#2^0.392
-        │    │           │           │
-        │    YXXY────────#2^-1       │
-        │    │           │           │
-        YXXY─#2^-0.667   │           │
-        │    │           │           │
-        │    │           YXXY────────#2^0.333
-        │    │           │           │
-        │    YXXY────────#2^-0.608   │
-        │    │           │           │
-        @────@^V0_1      │           │
-        │    │           │           │
-        ×────×           YXXY────────#2^-0.5
-        │    │           │           │
-        │    │           @───────────@^V2_3
-        │    │           │           │
-        │    │           ×───────────×
-        │    │           │           │
-        │    @───────────@^V0_3      │
-        │    │           │           │
-        │    ×───────────×           │
-        │    │           │           │
-        @────@^V1_3      @───────────@^V0_2
-        │    │           │           │
-        ×────×           ×───────────×
-        │    │           │           │
-        │    @───────────@^V1_2      │
-        │    │           │           │
-        │    ×───────────×           │
-        │    │           │           │
-        #2───YXXY^0.5    │           │
-        │    │           │           │
-        │    #2──────────YXXY^0.608  │
-        │    │           │           │
-        #2───YXXY^-0.333 │           │
-        │    │           │           │
-        │    │           #2──────────YXXY^0.667
-        │    │           │           │
-        │    #2──────────YXXY        │
-        │    │           │           │
-        #2───YXXY^-0.392 │           │
-        │    │           │           │
-        Z    │           Z           │
-        │    │           │           │
-        Z^U3 Z^U2        Z^U1        │
-        │    │           │           │
-        Z    │           Z           │
-        │    │           │           │
-        #2───YXXY^0.392  │           │
-        │    │           │           │
-        │    #2──────────YXXY^-1     │
-        │    │           │           │
-        │    │           #2──────────YXXY^-0.667
-        │    │           │           │
-        #2───YXXY^0.333  │           │
-        │    │           │           │
-        │    #2──────────YXXY^-0.608 │
-        │    │           │           │
-        #2───YXXY^-0.5   │           │
-        │    │           │           │
+        0       1           2           3
+        │       │           │           │
+        │       │           │           Z^0.0
+        │       │           │           │
+        │       │           YXXY────────#2^0.5
+        │       │           │           │
+        │       │           Z^0.0       Z^0.0
+        │       │           │           │
+        │       YXXY────────#2^0.608    │
+        │       │           │           │
+        │       Z^0.0       YXXY────────#2^-0.333
+        │       │           │           │
+        YXXY────#2^0.667    Z^0.0       Z^0.0
+        │       │           │           │
+        Z       YXXY────────#2          │
+        │       │           │           │
+        Z       Z           YXXY────────#2^-0.392
+        │       │           │           │
+        │       Z^U_1_0     Z^0.0       Z
+        │       │           │           │
+        │       Z           Z^U_2_0     Z^U_3_0
+        │       │           │           │
+        │       │           Z^0.0       Z
+        │       │           │           │
+        │       │           YXXY────────#2^0.392
+        │       │           │           │
+        │       YXXY────────#2^-1       Z^0.0
+        │       │           │           │
+        YXXY────#2^-0.667   Z^0.0       │
+        │       │           │           │
+        │       Z^0.0       YXXY────────#2^0.333
+        │       │           │           │
+        │       YXXY────────#2^-0.608   Z^0.0
+        │       │           │           │
+        @───────@^V_0_1_0   Z^0.0       │
+        │       │           │           │
+        ×───────×           YXXY────────#2^-0.5
+        │       │           │           │
+        │       │           │           Z^0.0
+        │       │           │           │
+        │       │           @───────────@^V_2_3_0
+        │       │           │           │
+        │       │           ×───────────×
+        │       │           │           │
+        │       @───────────@^V_0_3_0   │
+        │       │           │           │
+        │       ×───────────×           │
+        │       │           │           │
+        @───────@^V_1_3_0   @───────────@^V_0_2_0
+        │       │           │           │
+        ×───────×           ×───────────×
+        │       │           │           │
+        Z^0.0   @───────────@^V_1_2_0   │
+        │       │           │           │
+        │       ×───────────×           │
+        │       │           │           │
+        #2──────YXXY^0.5    │           │
+        │       │           │           │
+        Z^0.0   Z^0.0       │           │
+        │       │           │           │
+        │       #2──────────YXXY^0.608  │
+        │       │           │           │
+        #2──────YXXY^-0.333 Z^0.0       │
+        │       │           │           │
+        Z^0.0   Z^0.0       #2──────────YXXY^0.667
+        │       │           │           │
+        │       #2──────────YXXY        Z
+        │       │           │           │
+        #2──────YXXY^-0.392 Z           Z
+        │       │           │           │
+        Z       Z^0.0       Z^U_1_0     │
+        │       │           │           │
+        Z^U_3_0 Z^U_2_0     Z           │
+        │       │           │           │
+        Z       Z^0.0       │           │
+        │       │           │           │
+        #2──────YXXY^0.392  │           │
+        │       │           │           │
+        Z^0.0   #2──────────YXXY^-1     │
+        │       │           │           │
+        │       Z^0.0       #2──────────YXXY^-0.667
+        │       │           │           │
+        #2──────YXXY^0.333  Z^0.0       │
+        │       │           │           │
+        Z^0.0   #2──────────YXXY^-0.608 │
+        │       │           │           │
+        │       Z^0.0       │           │
+        │       │           │           │
+        #2──────YXXY^-0.5   │           │
+        │       │           │           │
+        Z^0.0   │           │           │
+        │       │           │           │
 
     This basic template can be repeated, with each iteration introducing a
     new set of parameters.
@@ -191,24 +204,21 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
 
         super().__init__(qubits)
 
-    def param_names(self) -> Sequence[str]:
+    def params(self) -> Iterable[cirq.Symbol]:
         """The names of the parameters of the ansatz."""
-        names = []
         for i in range(self.iterations):
-            suffix = '-{}'.format(i) if self.iterations > 1 else ''
             for p in range(len(self.qubits)):
                 if (self.include_all_z or not
                         numpy.isclose(self.orbital_energies[p], 0)):
-                    names.append('U{}'.format(p) + suffix)
+                    yield LetterWithSubscripts('U', p, i)
             for p, q in itertools.combinations(range(len(self.qubits)), 2):
                 if (self.include_all_cz or not
                         numpy.isclose(self.hamiltonian.two_body[p, q], 0)):
-                    names.append('V{}_{}'.format(p, q) + suffix)
-        return names
+                    yield LetterWithSubscripts('V', p, q, i)
 
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Bounds on the parameters."""
-        return [(-1.0, 1.0)] * len(self.params)
+        return [(-1.0, 1.0)] * len(list(self.params()))
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
@@ -217,29 +227,28 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
         """Produce the operations of the ansatz circuit."""
         # TODO implement asymmetric ansatz
 
+        param_set = set(self.params())
+
         # Change to the basis in which the one-body term is diagonal
         yield cirq.inverse(
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         for i in range(self.iterations):
 
-            suffix = '-{}'.format(i) if self.iterations > 1 else ''
-
             # Simulate one-body terms
-            yield (cirq.RotZGate(half_turns=
-                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                   for p in range(len(qubits))
-                   if 'U{}'.format(p) + suffix in self.params)
+            for p in range(len(qubits)):
+                u_symbol = LetterWithSubscripts('U', p, i)
+                if u_symbol in param_set:
+                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
 
             # Rotate to the computational basis
             yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
             # Simulate the two-body terms
             def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-                if 'V{}_{}'.format(p, q) + suffix in self.params:
-                    yield cirq.Rot11Gate(half_turns=
-                            self.params['V{}_{}'.format(p, q) + suffix]
-                            ).on(a, b)
+                v_symbol = LetterWithSubscripts('V', p, q, i)
+                if v_symbol in param_set:
+                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
             yield swap_network(qubits, two_body_interaction)
             qubits = qubits[::-1]
 
@@ -248,10 +257,10 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
                     bogoliubov_transform(qubits, self.basis_change_matrix))
 
             # Simulate one-body terms again
-            yield (cirq.RotZGate(half_turns=
-                       self.params['U{}'.format(p) + suffix]).on(qubits[p])
-                   for p in range(len(qubits))
-                   if 'U{}'.format(p) + suffix in self.params)
+            for p in range(len(qubits)):
+                u_symbol = LetterWithSubscripts('U', p, i)
+                if u_symbol in param_set:
+                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
 
         # Rotate to the computational basis
         yield bogoliubov_transform(qubits, self.basis_change_matrix)
@@ -293,19 +302,14 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
         step_time = total_time / self.iterations
         hamiltonian = self.hamiltonian
 
-        U_pattern = re.compile('U([0-9]*)-?([0-9]*)?')
-        V_pattern = re.compile('V([0-9]*)_([0-9]*)-?([0-9]*)?')
-
         params = []
-        for param_name in self.param_names():
-            if param_name.startswith('U'):
-                p, i = cast(Match, U_pattern.match(param_name)).groups()
-                p, i = int(p), int(i) if i else 0
+        for param in self.params():
+            if param.letter == 'U':
+                p, i = param.subscripts
                 params.append(_canonicalize_exponent(
                     -0.5 * self.orbital_energies[p] * step_time / numpy.pi, 2))
             else:
-                p, q, i = cast(Match, V_pattern.match(param_name)).groups()
-                p, q, i = int(p), int(q), int(i) if i else 0
+                p, q, i = param.subscripts
                 # Use the midpoint of the time segment
                 interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
                 params.append(_canonicalize_exponent(

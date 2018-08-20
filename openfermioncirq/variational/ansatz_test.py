@@ -41,7 +41,7 @@ def test_variational_ansatz_param_resolver():
 def test_variational_ansatz_default_initial_params():
     ansatz = ExampleAnsatz()
     numpy.testing.assert_allclose(ansatz.default_initial_params(),
-                                  numpy.zeros(len(ansatz.params)))
+                                  numpy.zeros(len(list(ansatz.params()))))
 
 
 def test_variational_ansatz_is_abstract_cant_instantiate():
@@ -51,7 +51,7 @@ def test_variational_ansatz_is_abstract_cant_instantiate():
 
 def test_variational_ansatz_is_abstract_must_implement():
     class Missing1(VariationalAnsatz):
-        def param_names(self):
+        def params(self):
             return []  # coverage: ignore
         def _generate_qubits(self):
             pass
@@ -63,7 +63,7 @@ def test_variational_ansatz_is_abstract_must_implement():
     class Missing3(VariationalAnsatz):
         def operations(self, qubits):
             pass
-        def param_names(self):
+        def params(self):
             return []  # coverage: ignore
 
     with pytest.raises(TypeError):
@@ -76,7 +76,7 @@ def test_variational_ansatz_is_abstract_must_implement():
 
 def test_variational_ansatz_is_abstract_can_implement():
     class Included(VariationalAnsatz):
-        def param_names(self):
+        def params(self):
             return []  # coverage: ignore
         def _generate_qubits(self):
             pass

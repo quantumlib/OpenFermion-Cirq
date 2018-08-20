@@ -57,6 +57,10 @@ def test_variational_study_circuit():
 """.strip())
 
 
+def test_variational_study_num_params():
+    assert test_study.num_params == 2
+
+
 def test_variational_study_optimize_and_extend_and_summary():
     numpy.random.seed(63351)
 

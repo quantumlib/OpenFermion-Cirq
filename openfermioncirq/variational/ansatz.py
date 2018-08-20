@@ -12,7 +12,7 @@
 
 """The variational ansatz class."""
 
-from typing import Optional, Sequence, Tuple
+from typing import Iterable, Optional, Sequence, Tuple
 
 import numpy
 
@@ -48,18 +48,14 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         """
         self.qubits = qubits or self._generate_qubits()
 
-        # Populate the params dictionary based on the output of param_names
-        self.params = {param_name: cirq.Symbol(param_name)
-                       for param_name in self.param_names()}
-
         # Generate the ansatz circuit
         self.circuit = cirq.Circuit.from_ops(
                 self.operations(self.qubits),
                 strategy=cirq.InsertStrategy.EARLIEST)
 
     @abc.abstractmethod
-    def param_names(self) -> Sequence[str]:
-        """The names of the parameters of the ansatz."""
+    def params(self) -> Iterable[cirq.Symbol]:
+        """The parameters of the ansatz."""
         pass
 
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
@@ -67,28 +63,29 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
 
         Returns a list of tuples of the form (low, high), where low and high
         are lower and upper bounds on a parameter. The order of the tuples
-        corresponds to the order of the parameters in the list returned by
-        the param_names method.
+        corresponds to the order of the parameters as yielded by the
+        `params` method.
         """
         return None
 
     def param_resolver(self, param_values: numpy.ndarray) -> cirq.ParamResolver:
         """Interprets parameters input as an array of real numbers."""
         # Default: leave the parameters unchanged
-        return cirq.ParamResolver(dict(zip(self.param_names(), param_values)))
+        return cirq.ParamResolver(
+                dict(zip((param.name for param in self.params()),
+                         param_values)))
 
     def default_initial_params(self) -> numpy.ndarray:
         """Suggested initial parameter settings."""
         # Default: zeros
-        return numpy.zeros(len(self.params))
+        return numpy.zeros(len(list(self.params())))
 
     @abc.abstractmethod
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit.
 
-        The operations should use Symbols stored in `self.params`. To access
-        the Symbol associated with the parameter named 'some_parameter_name',
-        use the expression `self.params['some_parameter_name']`.
+        The operations should use Symbols produced by the `params` method
+        of the ansatz.
         """
         pass
 
