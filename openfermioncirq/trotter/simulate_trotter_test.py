@@ -33,28 +33,6 @@ def fidelity(state1, state2):
     return abs(numpy.dot(state1, numpy.conjugate(state2)))**2
 
 
-def load_molecular_hamiltonian(
-        geometry,
-        basis,
-        multiplicity,
-        description,
-        n_active_electrons,
-        n_active_orbitals):
-
-    molecule = openfermion.MolecularData(
-            geometry, basis, multiplicity, description=description)
-    molecule.load()
-
-    n_core_orbitals = (molecule.n_electrons - n_active_electrons) // 2
-    occupied_indices = list(range(n_core_orbitals))
-    active_indices = list(range(n_core_orbitals,
-                                n_core_orbitals + n_active_orbitals))
-
-    return molecule.get_molecular_hamiltonian(
-            occupied_indices=occupied_indices,
-            active_indices=active_indices)
-
-
 def produce_simulation_test_parameters(
         hamiltonian: Hamiltonian,
         time: float,

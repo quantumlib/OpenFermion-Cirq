@@ -221,6 +221,7 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
         return [(-1.0, 1.0)] * len(list(self.params()))
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+        """Produce qubits that can be used by the ansatz circuit."""
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:

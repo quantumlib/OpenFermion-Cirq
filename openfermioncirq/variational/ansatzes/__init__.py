@@ -12,6 +12,8 @@
 
 """Variational ansatzes."""
 
+from openfermioncirq.variational.ansatzes.low_rank import LowRankTrotterAnsatz
+
 from openfermioncirq.variational.ansatzes.split_operator_trotter import (
     SplitOperatorTrotterAnsatz)
 

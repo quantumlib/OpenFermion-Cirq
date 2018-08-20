@@ -15,6 +15,7 @@
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 
 from openfermioncirq.variational.ansatzes import (
+    LowRankTrotterAnsatz,
     SplitOperatorTrotterAnsatz,
     SwapNetworkTrotterAnsatz)
 
