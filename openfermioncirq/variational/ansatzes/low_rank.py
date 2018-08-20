@@ -20,11 +20,8 @@ import numpy
 
 import cirq
 import openfermion
-from openfermion import (
-        low_rank_two_body_decomposition,
-        prepare_one_body_squared_evolution)
 
-from openfermioncirq import XXYYGate, bogoliubov_transform, swap_network
+from openfermioncirq import bogoliubov_transform, swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
@@ -35,17 +32,78 @@ if TYPE_CHECKING:
 
 
 class LowRankTrotterAnsatz(VariationalAnsatz):
-    """An ansatz based on a low rank Trotter step."""
+    """An ansatz based on a low rank Trotter step.
+
+    This ansatz uses as a template the form of a second-order Trotter step
+    based on the low rank simulation method described in arXiv:1808.02625.
+    The ansatz circuit and default initial parameters are determined by an
+    instance of the InteractionOperator class.
+
+    Example: The ansatz for an LiH molecule in a minimal basis with one
+    iteration and final rank set to 1 has the circuit::
+
+        0         1           2           3
+        │         │           │           │
+        Z         Z           Z           Z
+        │         │           │           │
+        │         YXXY────────#2^-1       │
+        │         │           │           │
+        YXXY──────#2^0.0813   │           │
+        │         │           │           │
+        Z^U_0_0   │           YXXY────────#2^-0.0813
+        │         │           │           │
+        │         YXXY────────#2^-1       │
+        │         │           │           │
+        │         Z^U_1_0     │           Z^U_3_0
+        │         │           │           │
+        │         │           Z^U_2_0     │
+        │         │           │           │
+        │         YXXY────────#2^-1       │
+        │         │           │           │
+        YXXY──────#2^-0.051   │           │
+        │         │           │           │
+        │         │           YXXY────────#2^0.051
+        │         │           │           │
+        │         YXXY────────#2^-1       │
+        │         │           │           │
+        @─────────@^V_0_1_0_0 │           │
+        │         │           │           │
+        ×─────────×           @───────────@^V_2_3_0_0
+        │         │           │           │
+        │         │           ×───────────×
+        │         │           │           │
+        │         @───────────@^V_0_3_0_0 │
+        │         │           │           │
+        │         ×───────────×           │
+        │         │           │           │
+        @─────────@^V_1_3_0_0 @───────────@^V_0_2_0_0
+        │         │           │           │
+        ×─────────×           ×───────────×
+        │         │           │           │
+        Z^U_3_0_0 @───────────@^V_1_2_0_0 Z^U_0_0_0
+        │         │           │           │
+        Z         ×───────────×           Z
+        │         │           │           │
+        │         Z^U_2_0_0   Z^U_1_0_0   │
+        │         │           │           │
+        │         #2──────────YXXY^-1     │
+        │         │           │           │
+        │         │           #2──────────YXXY^0.132
+        │         │           │           │
+        #2────────YXXY^-0.132 │           │
+        │         │           │           │
+        │         #2──────────YXXY^-1     │
+        │         │           │           │
+    """
 
     def __init__(self,
                  hamiltonian: openfermion.InteractionOperator,
                  iterations: int=1,
                  final_rank: Optional[int]=None,
-                 spin_basis: bool=True,
-                 include_all_xxyy: bool=False,
                  include_all_cz: bool=False,
                  include_all_z: bool=False,
                  adiabatic_evolution_time: Optional[float]=None,
+                 spin_basis: bool=True,
                  omit_final_swaps: bool=False,
                  qubits: Optional[Sequence[cirq.QubitId]]=None
                  ) -> None:
@@ -57,13 +115,21 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                 include in the circuit. The number of parameters grows linearly
                 with this value.
             final_rank: The rank at which to truncate the decomposition.
-            spin_basis: Whether the Hamiltonian is given in the spin orbital
-                (rather than spatial orbital) basis.
+            include_all_cz: Whether to include all possible CZ-type
+                parameterized gates in the ansatz (irrespective of the ansatz
+                Hamiltonian)
+            include_all_z: Whether to include all possible Z-type
+                parameterized gates in the ansatz (irrespective of the ansatz
+                Hamiltonian)
             adiabatic_evolution_time: The time scale for Hamiltonian evolution
                 used to determine the default initial parameters of the ansatz.
                 This is the value A from the docstring of this class.
                 If not specified, defaults to the sum of the absolute values
                 of the entries of the two-body tensor of the Hamiltonian.
+            spin_basis: Whether the Hamiltonian is given in the spin orbital
+                (rather than spatial orbital) basis.
+            omit_final_swaps: If this is set to True, then SWAP gates at
+                the end of the circuit may be omitted.
             qubits: Qubits to be used by the ansatz circuit. If not specified,
                 then qubits will automatically be generated by the
                 `_generate_qubits` method.
@@ -71,7 +137,6 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
         self.hamiltonian = hamiltonian
         self.iterations = iterations
         self.final_rank = final_rank
-        self.include_all_xxyy = include_all_xxyy
         self.include_all_cz = include_all_cz
         self.include_all_z = include_all_z
         self.omit_final_swaps = omit_final_swaps
@@ -83,23 +148,29 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
 
         # Perform the low rank decomposition of two-body operator.
         self.eigenvalues, one_body_squares, self.one_body_correction, _ = (
-            low_rank_two_body_decomposition(
+            openfermion.low_rank_two_body_decomposition(
                 hamiltonian.two_body_tensor,
                 final_rank=self.final_rank,
                 spin_basis=spin_basis))
-        self.one_body_coefficients = (
-                hamiltonian.one_body_tensor + self.one_body_correction)
-        self.constant = hamiltonian.constant
 
         # Get scaled density-density terms and basis transformation matrices.
         self.scaled_density_density_matrices = []  # type: List[numpy.ndarray]
         self.basis_change_matrices = []            # type: List[numpy.ndarray]
         for j in range(len(self.eigenvalues)):
             density_density_matrix, basis_change_matrix = (
-                prepare_one_body_squared_evolution(one_body_squares[j]))
+                openfermion.prepare_one_body_squared_evolution(
+                    one_body_squares[j]))
             self.scaled_density_density_matrices.append(
                     numpy.real(self.eigenvalues[j] * density_density_matrix))
             self.basis_change_matrices.append(basis_change_matrix)
+
+        # Get transformation matrix and orbital energies for one-body terms
+        one_body_coefficients = (
+                hamiltonian.one_body_tensor + self.one_body_correction)
+        quad_ham = openfermion.QuadraticHamiltonian(one_body_coefficients)
+        self.one_body_energies, _ = quad_ham.orbital_energies()
+        self.one_body_basis_change_matrix = (
+                quad_ham.diagonalizing_bogoliubov_transform())
 
         super().__init__(qubits)
 
@@ -109,9 +180,9 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
         for i in range(self.iterations):
 
             for p in range(len(self.qubits)):
-                # Diagonal one-body coefficients
+                # One-body energies
                 if (self.include_all_z or not numpy.isclose(
-                        self.one_body_coefficients[p, p], 0)):
+                        self.one_body_energies[p], 0)):
                     yield LetterWithSubscripts('U', p, i)
                 # Diagonal two-body coefficients for each singular vector
                 for j in range(len(self.eigenvalues)):
@@ -122,10 +193,6 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                         yield LetterWithSubscripts('U', p, j, i)
 
             for p, q in itertools.combinations(range(len(self.qubits)), 2):
-                # Off-diagonal one-body coefficients
-                if (self.include_all_xxyy or not numpy.isclose(
-                        self.one_body_coefficients[p, q].real, 0)):
-                    yield LetterWithSubscripts('T', p, q, i)
                 # Off-diagonal two-body coefficients for each singular vector
                 for j in range(len(self.eigenvalues)):
                     two_body_coefficients = (
@@ -136,13 +203,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
 
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Bounds on the parameters."""
-        bounds = []
-        for param in self.params():
-            if param.letter == 'U' or param.letter == 'V':
-                bounds.append((-1.0, 1.0))
-            elif param.letter == 'T':
-                bounds.append((-2.0, 2.0))
-        return bounds
+        return [(-1.0, 1.0)] * len(list(self.params()))
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         """Produce qubits that can be used by the ansatz circuit."""
@@ -156,33 +217,30 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
 
         for i in range(self.iterations):
 
-            # Simulate the off-diagonal one-body terms.
-            def one_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-                t_symbol = LetterWithSubscripts('T', p, q, i)
-                if t_symbol in param_set:
-                    yield XXYYGate(half_turns=t_symbol).on(a, b)
-            yield swap_network(qubits, one_body_interaction, fermionic=True)
-            qubits = qubits[::-1]
+            # Change to the basis in which the one-body term is diagonal
+            yield bogoliubov_transform(
+                    qubits, self.one_body_basis_change_matrix.T.conj())
 
-            # Simulate the diagonal one-body terms.
+            # Simulate the one-body terms.
             for p in range(n_qubits):
                 u_symbol = LetterWithSubscripts('U', p, i)
                 if u_symbol in param_set:
                     yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
 
             # Simulate each singular vector of the two-body terms.
-            prior_basis_matrix = numpy.identity(n_qubits)
+            prior_basis_matrix = self.one_body_basis_change_matrix
 
             for j in range(len(self.eigenvalues)):
 
                 # Get the basis change matrix.
                 basis_change_matrix = self.basis_change_matrices[j]
 
-                # Perform basis change.
-                inverse_basis_matrix = basis_change_matrix.T.conj()
-                merged_basis_matrix = numpy.dot(prior_basis_matrix,
-                                                inverse_basis_matrix)
-                yield bogoliubov_transform(qubits, merged_basis_matrix)
+                # Merge previous basis change matrix with the inverse of the
+                # current one
+                merged_basis_change_matrix = numpy.dot(
+                        prior_basis_matrix,
+                        basis_change_matrix.T.conj())
+                yield bogoliubov_transform(qubits, merged_basis_change_matrix)
 
                 # Simulate the off-diagonal two-body terms.
                 def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
@@ -205,14 +263,9 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
             yield bogoliubov_transform(qubits, prior_basis_matrix)
 
         if not self.omit_final_swaps:
-            # If the number of fermionic swap networks was odd,
-            # swap the modes back
-            if self.iterations & 1:
-                yield swap_network(qubits, fermionic=True)
-                # If the total number of swap networks was odd,
-                # swap the qubits back
-                if len(self.eigenvalues) & 1:
-                    yield swap_network(qubits)
+            # If the number of swap networks was odd, swap the qubits back
+            if self.iterations & 1 and len(self.eigenvalues) & 1:
+                yield swap_network(qubits)
 
 
     def default_initial_params(self) -> numpy.ndarray:
@@ -249,24 +302,18 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
             # Use the midpoint of the time segment
             interpolation_progress = 0.5 * (2 * i + 1) / self.iterations
 
-            # Off-diagonal one-body term
-            if param.letter == 'T':
-                p, q, _ = param.subscripts
-                one_body_coefficients = (
-                        self.hamiltonian.one_body_tensor
-                        + interpolation_progress * self.one_body_correction)
-                params.append(_canonicalize_exponent(
-                    2 * one_body_coefficients[p, q].real
-                    * step_time / numpy.pi, 4))
-
-            # Diagonal one-body term
-            elif param.letter == 'U' and len(param.subscripts) == 2:
+            # One-body term
+            if param.letter == 'U' and len(param.subscripts) == 2:
                 p, _ = param.subscripts
+
                 one_body_coefficients = (
                         self.hamiltonian.one_body_tensor
                         + interpolation_progress * self.one_body_correction)
+                quad_ham = openfermion.QuadraticHamiltonian(
+                        one_body_coefficients)
+                one_body_energies, _ = quad_ham.orbital_energies()
                 params.append(_canonicalize_exponent(
-                    -one_body_coefficients[p, p].real
+                    -one_body_energies[p]
                     * step_time / numpy.pi, 2))
 
             # Off-diagonal one-body term

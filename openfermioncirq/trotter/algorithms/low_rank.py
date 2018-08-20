@@ -17,15 +17,10 @@ from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 import numpy
 
 import cirq
-from openfermion import (
-        InteractionOperator,
-        low_rank_two_body_decomposition,
-        prepare_one_body_squared_evolution)
+import openfermion
 
 from openfermioncirq import (
-        ControlledXXYYGate,
         Rot111Gate,
-        XXYYGate,
         bogoliubov_transform,
         swap_network)
 from openfermioncirq.trotter.trotter_algorithm import (
@@ -42,7 +37,8 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
     """A Trotter algorithm using the low rank decomposition strategy.
 
     This algorithm simulates an InteractionOperator with real coefficients.
-    The one-body terms are simulated using a fermionic swap network.
+    The one-body terms are simulated in their diagonal basis; the basis change
+    is accomplished with a Bogoliubov transformation.
     To simulate the two-body terms, the two-body tensor is decomposed into
     singular components and possibly truncating. Then, each singular component
     is simulated in the appropriate basis using a (non-fermionic) swap network.
@@ -55,7 +51,7 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
     Then, a 'low rank' Trotter step of the two-body tensor can be simulated as
     :math:`\prod_{j=0}^{J-1}
     R_j e^{-i \lambda_j \sum_{pq} f_{pj} f_{qj} n_p n_q} R_j^\dagger`.
-    One can use the Givens rotation strategy for the :math:`R_j` and one can
+    The :math:`R_j` are Bogoliubov transformations, and one can
     use a swap network to simulate the diagonal :math:`n_p n_q` terms.
     The value of J is either fully the square of the number of qubits,
     which would imply no truncation, or it is specified by the user,
@@ -64,7 +60,7 @@ class LowRankTrotterAlgorithm(TrotterAlgorithm):
     where x is a truncation threshold specified by user.
     """
 
-    supported_types = {InteractionOperator}
+    supported_types = {openfermion.InteractionOperator}
 
     def __init__(self,
                  truncation_threshold: Optional[float]=1e-8,
@@ -105,7 +101,7 @@ LOW_RANK = LowRankTrotterAlgorithm()
 class LowRankTrotterStep(TrotterStep):
 
     def __init__(self,
-                 hamiltonian: InteractionOperator,
+                 hamiltonian: openfermion.InteractionOperator,
                  truncation_threshold: Optional[float]=1e-8,
                  final_rank: Optional[int]=None,
                  spin_basis=True) -> None:
@@ -115,24 +111,30 @@ class LowRankTrotterStep(TrotterStep):
 
         # Perform the low rank decomposition of two-body operator.
         self.eigenvalues, self.one_body_squares, one_body_correction, _ = (
-            low_rank_two_body_decomposition(
+            openfermion.low_rank_two_body_decomposition(
                 hamiltonian.two_body_tensor,
                 truncation_threshold=self.truncation_threshold,
                 final_rank=self.final_rank,
                 spin_basis=spin_basis))
-        self.one_body_coefficients = (
-                hamiltonian.one_body_tensor + one_body_correction)
-        self.constant = hamiltonian.constant
 
         # Get scaled density-density terms and basis transformation matrices.
         self.scaled_density_density_matrices = []  # type: List[numpy.ndarray]
         self.basis_change_matrices = []            # type: List[numpy.ndarray]
         for j in range(len(self.eigenvalues)):
             density_density_matrix, basis_change_matrix = (
-                prepare_one_body_squared_evolution(self.one_body_squares[j]))
+                openfermion.prepare_one_body_squared_evolution(
+                    self.one_body_squares[j]))
             self.scaled_density_density_matrices.append(
                     numpy.real(self.eigenvalues[j] * density_density_matrix))
             self.basis_change_matrices.append(basis_change_matrix)
+
+        # Get transformation matrix and orbital energies for one-body terms
+        one_body_coefficients = (
+                hamiltonian.one_body_tensor + one_body_correction)
+        quad_ham = openfermion.QuadraticHamiltonian(one_body_coefficients)
+        self.one_body_energies, _ = quad_ham.orbital_energies()
+        self.one_body_basis_change_matrix = (
+                quad_ham.diagonalizing_bogoliubov_transform())
 
         super().__init__(hamiltonian)
 
@@ -148,22 +150,18 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
         n_qubits = len(qubits)
 
-        # Simulate the off-diagonal one-body terms.
-        yield swap_network(
-                qubits,
-                lambda p, q, a, b: XXYYGate(duration=
-                    self.one_body_coefficients[p, q].real * time).on(a, b),
-                fermionic=True)
-        qubits = qubits[::-1]
+        # Change to the basis in which the one-body term is diagonal
+        yield bogoliubov_transform(
+                qubits, self.one_body_basis_change_matrix.T.conj())
 
-        # Simulate the diagonal one-body terms.
+        # Simulate the one-body terms.
         for p in range(n_qubits):
             yield cirq.RotZGate(rads=
-                    -self.one_body_coefficients[p, p].real * time
+                    -self.one_body_energies[p] * time
                     ).on(qubits[p])
 
         # Simulate each singular vector of the two-body terms.
-        prior_basis_matrix = numpy.identity(n_qubits)
+        prior_basis_matrix = self.one_body_basis_change_matrix
 
         for j in range(len(self.eigenvalues)):
 
@@ -171,11 +169,11 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
             two_body_coefficients = self.scaled_density_density_matrices[j]
             basis_change_matrix = self.basis_change_matrices[j]
 
-            # Perform basis change.
-            inverse_basis_matrix = basis_change_matrix.T.conj()
-            merged_basis_matrix = numpy.dot(prior_basis_matrix,
-                                            inverse_basis_matrix)
-            yield bogoliubov_transform(qubits, merged_basis_matrix)
+            # Merge previous basis change matrix with the inverse of the
+            # current one
+            merged_basis_change_matrix = numpy.dot(prior_basis_matrix,
+                                                   basis_change_matrix.T.conj())
+            yield bogoliubov_transform(qubits, merged_basis_change_matrix)
 
             # Simulate the off-diagonal two-body terms.
             yield swap_network(
@@ -202,11 +200,11 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
                                ) -> Tuple[Sequence[cirq.QubitId],
                                           Optional[cirq.QubitId]]:
         # A Trotter step reverses the qubit ordering when the number of
-        # eigenvalues is even
+        # eigenvalues is odd
         if len(self.eigenvalues) & 1:
-            return qubits, None
-        else:
             return qubits[::-1], None
+        else:
+            return qubits, None
 
     def finish(self,
                qubits: Sequence[cirq.QubitId],
@@ -215,14 +213,9 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         if not omit_final_swaps:
-            # If the number of fermionic swap networks was odd,
-            # swap the modes back
-            if n_steps & 1:
-                yield swap_network(qubits, fermionic=True)
-                # If the total number of swap networks was odd,
-                # swap the qubits back
-                if len(self.eigenvalues) & 1:
-                    yield swap_network(qubits)
+            # If the number of swap networks was odd, swap the qubits back
+            if n_steps & 1 and len(self.eigenvalues) & 1:
+                yield swap_network(qubits)
 
 
 class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
@@ -236,34 +229,30 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
         n_qubits = len(qubits)
 
-        # Simulate the off-diagonal one-body terms.
-        yield swap_network(
-                qubits,
-                lambda p, q, a, b: ControlledXXYYGate(duration=
-                    self.one_body_coefficients[p, q].real * time).on(
-                        control_qubit, a, b),
-                fermionic=True)
-        qubits = qubits[::-1]
+        # Change to the basis in which the one-body term is diagonal
+        yield bogoliubov_transform(
+                qubits, self.one_body_basis_change_matrix.T.conj())
 
-        # Simulate the diagonal one-body terms.
-        yield (cirq.Rot11Gate(rads=
-                   -self.one_body_coefficients[j, j].real * time).on(
-                       control_qubit, qubits[j])
-               for j in range(n_qubits))
+        # Simulate the one-body terms.
+        for p in range(n_qubits):
+            yield cirq.Rot11Gate(rads=
+                    -self.one_body_energies[p] * time
+                    ).on(control_qubit, qubits[p])
 
         # Simulate each singular vector of the two-body terms.
-        prior_basis_matrix = numpy.identity(n_qubits)
+        prior_basis_matrix = self.one_body_basis_change_matrix
+
         for j in range(len(self.eigenvalues)):
 
             # Get the two-body coefficients and basis change matrix.
             two_body_coefficients = self.scaled_density_density_matrices[j]
             basis_change_matrix = self.basis_change_matrices[j]
 
-            # Perform basis change
-            inverse_basis_matrix = basis_change_matrix.T.conj()
-            merged_basis_matrix = numpy.dot(prior_basis_matrix,
-                                            inverse_basis_matrix)
-            yield bogoliubov_transform(qubits, merged_basis_matrix)
+            # Merge previous basis change matrix with the inverse of the
+            # current one
+            merged_basis_change_matrix = numpy.dot(prior_basis_matrix,
+                                                   basis_change_matrix.T.conj())
+            yield bogoliubov_transform(qubits, merged_basis_change_matrix)
 
             # Simulate the off-diagonal two-body terms.
             yield swap_network(
@@ -286,7 +275,8 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
         yield bogoliubov_transform(qubits, prior_basis_matrix)
 
         # Apply phase from constant term
-        yield cirq.RotZGate(rads=-self.constant * time).on(control_qubit)
+        yield cirq.RotZGate(rads=
+                -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.QubitId],
@@ -294,11 +284,11 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                                ) -> Tuple[Sequence[cirq.QubitId],
                                           Optional[cirq.QubitId]]:
         # A Trotter step reverses the qubit ordering when the number of
-        # eigenvalues is even
+        # eigenvalues is odd
         if len(self.eigenvalues) & 1:
-            return qubits, control_qubit
-        else:
             return qubits[::-1], control_qubit
+        else:
+            return qubits, control_qubit
 
     def finish(self,
                qubits: Sequence[cirq.QubitId],
@@ -307,11 +297,6 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         if not omit_final_swaps:
-            # If the number of fermionic swap networks was odd,
-            # swap the modes back
-            if n_steps & 1:
-                yield swap_network(qubits, fermionic=True)
-                # If the total number of swap networks was odd,
-                # swap the qubits back
-                if len(self.eigenvalues) & 1:
-                    yield swap_network(qubits)
+            # If the number of swap networks was odd, swap the qubits back
+            if n_steps & 1 and len(self.eigenvalues) & 1:
+                yield swap_network(qubits)

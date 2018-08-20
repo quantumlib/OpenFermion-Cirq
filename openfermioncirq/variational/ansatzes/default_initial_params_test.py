@@ -141,7 +141,7 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
             iterations=iterations,
             final_rank=3),
         LowRankTrotterAlgorithm(final_rank=3),
-        0, lih_hamiltonian, 5e-5),
+        0, lih_hamiltonian, 1e-3),
 ])
 def test_trotter_ansatzes_default_initial_params_iterations_2(
         ansatz_factory, trotter_algorithm, order, hamiltonian, atol):
