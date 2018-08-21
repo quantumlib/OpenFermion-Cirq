@@ -13,7 +13,7 @@
 """The variational study class."""
 
 from typing import (
-        Any, Dict, Hashable, Iterable, List, Optional, Sequence, Tuple, cast)
+        Any, Dict, Hashable, Iterable, List, Optional, Sequence, Type, cast)
 
 import collections
 import itertools
@@ -26,10 +26,10 @@ import numpy
 
 import cirq
 
+from openfermioncirq.variational import variational_black_box
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.objective import VariationalObjective
 from openfermioncirq.optimization import (
-        BlackBox,
         OptimizationParams,
         OptimizationResult,
         OptimizationTrialResult,
@@ -73,17 +73,22 @@ class VariationalStudy:
                  name: str,
                  ansatz: VariationalAnsatz,
                  objective: VariationalObjective,
-                 target: Optional[float]=None,
                  preparation_circuit: Optional[cirq.Circuit]=None,
+                 target: Optional[float]=None,
+                 black_box_type: Type[
+                     variational_black_box.VariationalBlackBox]=
+                     variational_black_box.DEFAULT,
                  datadir: Optional[str]=None) -> None:
         """
         Args:
             name: The name of the study.
             ansatz: The ansatz to study.
             objective: The objective function.
-            target: The target value one wants to achieve during optimization.
             preparation_circuit: A circuit to apply prior to the ansatz circuit.
                 It should use the qubits belonging to the ansatz.
+            target: The target value one wants to achieve during optimization.
+            black_box_type: The type of VariationalBlackBox to use for
+                optimization.
             datadir: The directory to use when saving the study. The default
                 behavior is to use the current working directory.
         """
@@ -96,13 +101,13 @@ class VariationalStudy:
         self._objective = objective
         self._preparation_circuit = preparation_circuit or cirq.Circuit()
         self._circuit = self._preparation_circuit + self._ansatz.circuit
+        self._black_box_type = black_box_type
         self.datadir = datadir
 
     def optimize(self,
                  optimization_params: OptimizationParams,
                  identifier: Optional[Hashable]=None,
                  reevaluate_final_params: bool=False,
-                 stateful: bool=False,
                  save_x_vals: bool=False,
                  repetitions: int=1,
                  seeds: Optional[Sequence[int]]=None,
@@ -136,14 +141,9 @@ class VariationalStudy:
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
-            stateful: Whether the optimizer should use a StatefulBlackBox.
-                If True, then the black box will keep track of all points
-                evaluated by the optimizer, the total cost spent, and the time
-                between queries.
             save_x_vals: Whether to save all points (x values) that the
-                black box was queried at. Only used if `stateful` is set to
-                True. Setting this to True will cause the black box to consume
-                a lot more memory.
+                black box was queried at. Only used if the black box type is
+                a subclass of StatefulBlackBox.
             repetitions: The number of times to run the optimization.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
@@ -161,7 +161,6 @@ class VariationalStudy:
         return self.optimize_sweep([optimization_params],
                                    [identifier] if identifier else None,
                                    reevaluate_final_params,
-                                   stateful,
                                    save_x_vals,
                                    repetitions,
                                    seeds,
@@ -172,7 +171,6 @@ class VariationalStudy:
                        param_sweep: Iterable[OptimizationParams],
                        identifiers: Optional[Iterable[Hashable]]=None,
                        reevaluate_final_params: bool=False,
-                       stateful: bool=False,
                        save_x_vals: bool=False,
                        repetitions: int=1,
                        seeds: Optional[Sequence[int]]=None,
@@ -198,14 +196,9 @@ class VariationalStudy:
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
-            stateful: Whether the optimizer should use a StatefulBlackBox.
-                If True, then the black box will track of all points evaluated
-                by the optimizer, the total cost spent, and the time between
-                queries.
             save_x_vals: Whether to save all points (x values) that the
-                black box was queried at. Only used if `stateful` is set to
-                True. Setting this to True will cause the black box to consume
-                a lot more memory.
+                black box was queried at. Only used if the black box type is
+                a subclass of StatefulBlackBox.
             repetitions: The number of times to run the algorithm for each
                 set of optimization parameters.
             seeds: Random number generator seeds to use for the repetitions.
@@ -242,7 +235,6 @@ class VariationalStudy:
             result_list = self._get_result_list(
                     optimization_params,
                     reevaluate_final_params,
-                    stateful,
                     save_x_vals,
                     repetitions,
                     seeds,
@@ -262,7 +254,6 @@ class VariationalStudy:
     def extend_result(self,
                       identifier: Hashable,
                       reevaluate_final_params: bool=False,
-                      stateful: bool=False,
                       save_x_vals: bool=False,
                       repetitions: int=1,
                       seeds: Optional[Sequence[int]]=None,
@@ -289,14 +280,9 @@ class VariationalStudy:
                 to the noisy `evaluate_with_cost` method of the study (because
                 `cost_of_evaluate` is set), but you are interested in the true
                 noiseless value of the returned parameters.
-            stateful: Whether the optimizer should use a StatefulBlackBox.
-                If True, then the black box will track of all points evaluated
-                by the optimizer, the total cost spent, and the time between
-                queries.
             save_x_vals: Whether to save all points (x values) that the
-                black box was queried at. Only used if `stateful` is set to
-                True. Setting this to True will cause the black box to consume
-                a lot more memory.
+                black box was queried at. Only used if the black box type is
+                a subclass of StatefulBlackBox.
             repetitions: The number of repetitions to perform.
             seeds: Random number generator seeds to use for the repetitions.
                 The default behavior is to randomly generate an independent seed
@@ -319,7 +305,6 @@ class VariationalStudy:
         result_list = self._get_result_list(
                 optimization_params,
                 reevaluate_final_params,
-                stateful,
                 save_x_vals,
                 repetitions,
                 seeds,
@@ -332,7 +317,6 @@ class VariationalStudy:
             self,
             optimization_params,
             reevaluate_final_params: bool,
-            stateful: bool,
             save_x_vals: bool,
             repetitions: int=1,
             seeds: Optional[Sequence[int]]=None,
@@ -352,11 +336,11 @@ class VariationalStudy:
                         self._preparation_circuit,
                         optimization_params,
                         reevaluate_final_params,
-                        stateful,
                         save_x_vals,
                         seeds[i] if seeds is not None
                         else numpy.random.randint(4294967296),
-                        self.ansatz.default_initial_params()
+                        self.ansatz.default_initial_params(),
+                        self._black_box_type
                     )
                     for i in range(repetitions)
                 )
@@ -373,11 +357,11 @@ class VariationalStudy:
                         self._preparation_circuit,
                         optimization_params,
                         reevaluate_final_params,
-                        stateful,
                         save_x_vals,
                         seeds[i] if seeds is not None
                         else numpy.random.randint(4294967296),
-                        self.ansatz.default_initial_params()
+                        self.ansatz.default_initial_params(),
+                        self._black_box_type
                     )
                 )
                 result_list.append(result)
@@ -476,7 +460,7 @@ class VariationalStudy:
     def value_of(self,
                  params: numpy.ndarray) -> float:
         """Determine the value of some parameters."""
-        return VariationalBlackBox(
+        return self._black_box_type(
                 self.ansatz,
                 self.objective,
                 self._preparation_circuit).evaluate_noiseless(params)
@@ -533,21 +517,23 @@ def _run_optimization(args) -> OptimizationResult:
             preparation_circuit,
             optimization_params,
             reevaluate_final_params,
-            stateful,
             save_x_vals,
             seed,
-            default_initial_params
+            default_initial_params,
+            black_box_type
     ) = args
 
+    stateful = issubclass(black_box_type, StatefulBlackBox)
+
     if stateful:
-        black_box = VariationalStatefulBlackBox(
+        black_box = black_box_type(
                 ansatz=ansatz,
                 objective=objective,
                 preparation_circuit=preparation_circuit,
                 cost_of_evaluate=optimization_params.cost_of_evaluate,
                 save_x_vals=save_x_vals)
     else:
-        black_box = VariationalBlackBox(  # type: ignore
+        black_box = black_box_type(  # type: ignore
                 ansatz=ansatz,
                 objective=objective,
                 preparation_circuit=preparation_circuit,
@@ -579,68 +565,3 @@ def _run_optimization(args) -> OptimizationResult:
                 result.optimal_parameters)
 
     return result
-
-
-class VariationalBlackBox(BlackBox):
-    """A black box encapsulating a variational ansatz objective function.
-
-    Attributes:
-        ansatz: The variational ansatz circuit.
-        objective: The objective function.
-    """
-
-    def __init__(self,
-                 ansatz: VariationalAnsatz,
-                 objective: VariationalObjective,
-                 preparation_circuit: Optional[cirq.Circuit]=None,
-                 **kwargs) -> None:
-        self.ansatz = ansatz
-        self.objective = objective
-        self.preparation_circuit = preparation_circuit or cirq.Circuit()
-        super().__init__(**kwargs)
-
-    @property
-    def dimension(self) -> int:
-        """The dimension of the array accepted by the objective function."""
-        return len(list(self.ansatz.params()))
-
-    @property
-    def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
-        """Optional bounds on the inputs to the objective function."""
-        return self.ansatz.param_bounds()
-
-    def evaluate_noiseless(self,
-                           x: numpy.ndarray) -> float:
-        """Evaluate parameters with a noiseless simulation."""
-        # Default: evaluate using Xmon simulator
-        simulator = cirq.google.XmonSimulator()
-        result = simulator.simulate(
-                self.preparation_circuit + self.ansatz.circuit,
-                param_resolver=self.ansatz.param_resolver(x),
-                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
-        return self.objective.value(result)
-
-    def _evaluate(self,
-                  x: numpy.ndarray) -> float:
-        """Determine the value of some parameters."""
-        # Default: defer to evaluate_noiseless
-        return self.evaluate_noiseless(x)
-
-    def _evaluate_with_cost(self,
-                            x: numpy.ndarray,
-                            cost: float) -> float:
-        """Evaluate parameters with a specified cost."""
-        # Default: add artifical noise with the specified cost
-        return self._evaluate(x) + self.objective.noise(cost)
-
-    def noise_bounds(self,
-                     cost: float,
-                     confidence: Optional[float]=None
-                     ) -> Tuple[float, float]:
-        """Exact or approximate bounds on noise in the objective function."""
-        return self.objective.noise_bounds(cost, confidence)
-
-
-class VariationalStatefulBlackBox(VariationalBlackBox, StatefulBlackBox):
-    """A stateful black box encapsulating a variational objective function."""
-    pass

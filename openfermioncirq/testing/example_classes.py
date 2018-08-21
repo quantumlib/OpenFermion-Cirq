@@ -113,10 +113,11 @@ class ExampleVariationalObjective(VariationalObjective):
     """
 
     def value(self,
-              trial_result: Union[cirq.TrialResult,
-                                  cirq.google.XmonSimulateTrialResult]
+              circuit_output: Union[cirq.TrialResult,
+                                    cirq.google.XmonSimulateTrialResult,
+                                    numpy.ndarray]
               ) -> float:
-        measurements = trial_result.measurements['all']
+        measurements = circuit_output.measurements['all']
         return numpy.sum(measurements)
 
 

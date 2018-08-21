@@ -43,7 +43,11 @@ def test_hamiltonian_objective_value():
     numpy.testing.assert_allclose(
             obj.value(result), correct_val, atol=1e-5)
     numpy.testing.assert_allclose(
+            obj.value(result.final_state), correct_val, 1e-5)
+    numpy.testing.assert_allclose(
             obj_linear_op.value(result), correct_val, 1e-5)
+    numpy.testing.assert_allclose(
+            obj_linear_op.value(result.final_state), correct_val, 1e-5)
 
 
 def test_hamiltonian_objective_noise():

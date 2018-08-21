@@ -83,17 +83,24 @@ class HamiltonianObjective(VariationalObjective):
         self.variance_bound = one_norm_minus_constant**2
 
     def value(self,
-              trial_result: Union[cirq.TrialResult,
-                                  cirq.google.XmonSimulateTrialResult]
+              circuit_output: Union[cirq.TrialResult,
+                                    cirq.google.XmonSimulateTrialResult,
+                                    numpy.ndarray]
               ) -> float:
-        # TODO implement support for TrialResult (compute energy given
-        #      measurements)
-        if not isinstance(trial_result, cirq.google.XmonSimulateTrialResult):
+        """The evaluation function for a circuit output."""
+        if isinstance(circuit_output, numpy.ndarray):
+            return openfermion.expectation(
+                    self._hamiltonian_linear_op,
+                    circuit_output).real
+        elif isinstance(circuit_output, cirq.google.XmonSimulateTrialResult):
+            return openfermion.expectation(
+                    self._hamiltonian_linear_op,
+                    circuit_output.final_state).real
+        else:
+            # TODO implement this
             raise NotImplementedError(
                     "Don't know how to compute the value of a TrialResult that "
                     "is not an XmonSimulateTrialResult.")
-        return openfermion.expectation(
-                self._hamiltonian_linear_op, trial_result.final_state).real
 
     def noise(self, cost: Optional[float]=None) -> float:
         """A sample from a normal distribution with mean 0.
