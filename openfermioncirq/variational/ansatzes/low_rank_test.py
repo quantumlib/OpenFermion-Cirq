@@ -54,8 +54,7 @@ def test_low_rank_trotter_ansatz_param_bounds():
 
 def test_low_rank_trotter_ansatz_circuit():
 
-    ansatz = LowRankTrotterAnsatz(
-            lih_hamiltonian, final_rank=2, omit_final_swaps=True)
+    ansatz = LowRankTrotterAnsatz(lih_hamiltonian, final_rank=2)
     circuit = ansatz.circuit
     cirq.DropNegligible().optimize_circuit(circuit)
     assert circuit.to_text_diagram(transpose=True).strip() == """

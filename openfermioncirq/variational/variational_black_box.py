@@ -83,7 +83,27 @@ class VariationalBlackBox(BlackBox):
         return self.objective.noise_bounds(cost, confidence)
 
 
-class DefaultVariationalBlackBox(VariationalBlackBox):
+class UnitarySimulateVariationalBlackBox(VariationalBlackBox):
+
+    def evaluate_noiseless(self,
+                           x: numpy.ndarray) -> float:
+        """Evaluate parameters with a noiseless simulation."""
+        # Default: evaluate using apply_unitary_effect_to_state
+        circuit = (self.preparation_circuit + self.ansatz.circuit
+                  ).with_parameters_resolved_by(self.ansatz.param_resolver(x))
+        final_state = circuit.apply_unitary_effect_to_state(
+                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
+        return self.objective.value(final_state)
+
+
+class UnitarySimulateVariationalStatefulBlackBox(
+        UnitarySimulateVariationalBlackBox,
+        StatefulBlackBox):
+    """A stateful black box encapsulating a variational objective function."""
+    pass
+
+
+class XmonSimulateVariationalBlackBox(VariationalBlackBox):
 
     def evaluate_noiseless(self,
                            x: numpy.ndarray) -> float:
@@ -97,11 +117,13 @@ class DefaultVariationalBlackBox(VariationalBlackBox):
         return self.objective.value(result)
 
 
-class DefaultVariationalStatefulBlackBox(DefaultVariationalBlackBox,
-                                         StatefulBlackBox):
+class XmonSimulateVariationalStatefulBlackBox(XmonSimulateVariationalBlackBox,
+                                              StatefulBlackBox):
     """A stateful black box encapsulating a variational objective function."""
     pass
 
 
-DEFAULT = DefaultVariationalBlackBox
-DEFAULT_STATEFUL = DefaultVariationalStatefulBlackBox
+UNITARY_SIMULATE = UnitarySimulateVariationalBlackBox
+UNITARY_SIMULATE_STATEFUL = UnitarySimulateVariationalStatefulBlackBox
+XMON_SIMULATE = XmonSimulateVariationalBlackBox
+XMON_SIMULATE_STATEFUL = XmonSimulateVariationalStatefulBlackBox

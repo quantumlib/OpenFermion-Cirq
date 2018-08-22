@@ -77,7 +77,7 @@ class VariationalStudy:
                  target: Optional[float]=None,
                  black_box_type: Type[
                      variational_black_box.VariationalBlackBox]=
-                     variational_black_box.DEFAULT,
+                     variational_black_box.UNITARY_SIMULATE,
                  datadir: Optional[str]=None) -> None:
         """
         Args:
