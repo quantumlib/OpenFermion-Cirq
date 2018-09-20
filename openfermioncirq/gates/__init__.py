@@ -32,4 +32,5 @@ from openfermioncirq.gates.three_qubit_gates import (
 
 from openfermioncirq.gates.four_qubit_gates import (
     DoubleExcitation,
-    DoubleExcitationGate)
+    DoubleExcitationGate,
+    CombinedDoubleExcitationGate)
