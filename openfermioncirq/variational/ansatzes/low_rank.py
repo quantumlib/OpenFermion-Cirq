@@ -164,9 +164,9 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
         one_body_coefficients = (
                 hamiltonian.one_body_tensor + self.one_body_correction)
         quad_ham = openfermion.QuadraticHamiltonian(one_body_coefficients)
-        self.one_body_energies, _ = quad_ham.orbital_energies()
-        self.one_body_basis_change_matrix = (
-                quad_ham.diagonalizing_bogoliubov_transform())
+        self.one_body_energies, self.one_body_basis_change_matrix, _ = (
+                quad_ham.diagonalizing_bogoliubov_transform()
+        )
 
         super().__init__(qubits)
 

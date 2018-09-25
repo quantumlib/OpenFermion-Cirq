@@ -19,8 +19,6 @@ import scipy
 import cirq
 import openfermion
 
-from cirq.testing import EqualsTester
-
 from openfermioncirq.gates import (
         DoubleExcitation, DoubleExcitationGate, CombinedDoubleExcitationGate)
 
@@ -69,7 +67,7 @@ def test_double_excitation_init_with_multiple_args_fails():
 
 
 def test_double_excitation_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(DoubleExcitationGate(half_turns=1.5),
                           DoubleExcitationGate(half_turns=-0.5),
@@ -106,7 +104,7 @@ def test_weights_and_exponent(weights):
                                          half_turns=exponent)
             for exponent in exponents)
 
-    EqualsTester().add_equality_group(*gates)
+    cirq.testing.EqualsTester().add_equality_group(*gates)
 
     for i, (gate, exponent) in enumerate(zip(gates, exponents)):
         assert gate.half_turns == 1
@@ -415,7 +413,7 @@ def test_combined_double_excitation_init_with_multiple_args_fails():
 
 
 def test_combined_double_excitation_eq():
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(
             CombinedDoubleExcitationGate((1.2, 0.4, -0.4), half_turns=0.5),

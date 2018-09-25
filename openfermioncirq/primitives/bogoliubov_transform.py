@@ -83,29 +83,64 @@ def bogoliubov_transform(
             example, the list [2, 3] represents qubits 2 and 3 being set to one.
             Default is 0, the all zeros state.
     """
+
     n_qubits = len(qubits)
     shape = transformation_matrix.shape
+    if shape not in [(n_qubits, n_qubits), (n_qubits, 2 * n_qubits)]:
+        raise ValueError('Bad shape for transformation_matrix. '
+                         'Expected {} or {} but got {}.'.format(
+                             (n_qubits, n_qubits),
+                             (n_qubits, 2 * n_qubits),
+                             shape))
 
     if isinstance(initial_state, int):
         initial_state = _occupied_orbitals(initial_state, n_qubits)
     initially_occupied_orbitals = cast(Optional[Sequence[int]], initial_state)
+
+    # If the transformation matrix is block diagonal with two blocks,
+    # do each block separately
+    if _is_spin_block_diagonal(transformation_matrix):
+        up_block = transformation_matrix[:n_qubits//2, :n_qubits//2]
+        up_qubits = qubits[:n_qubits//2]
+
+        down_block = transformation_matrix[n_qubits//2:, n_qubits//2:]
+        down_qubits = qubits[n_qubits//2:]
+
+        if initially_occupied_orbitals is None:
+            up_orbitals = None
+            down_orbitals = None
+        else:
+            up_orbitals = [i for i in initially_occupied_orbitals
+                           if i < n_qubits//2]
+            down_orbitals = [i-n_qubits//2 for i in initially_occupied_orbitals
+                             if i >= n_qubits//2]
+
+        yield bogoliubov_transform(
+                up_qubits, up_block, initial_state=up_orbitals)
+        yield bogoliubov_transform(
+                down_qubits, down_block, initial_state=down_orbitals)
+        return
 
     if shape == (n_qubits, n_qubits):
         # We're performing a particle-number conserving "Slater" basis change
         yield _slater_basis_change(qubits,
                                    transformation_matrix,
                                    initially_occupied_orbitals)
-    elif shape == (n_qubits, 2 * n_qubits):
+    else:
         # We're performing a more general Gaussian unitary
         yield _gaussian_basis_change(qubits,
                                      transformation_matrix,
                                      initially_occupied_orbitals)
-    else:
-        raise ValueError('Bad shape for transformation_matrix. '
-                         'Expected {} or {} but got {}.'.format(
-                             (n_qubits, n_qubits),
-                             (n_qubits, 2 * n_qubits),
-                             shape))
+
+
+def _is_spin_block_diagonal(matrix) -> bool:
+    n = matrix.shape[0]
+    if n % 2:
+        return False
+    max_upper_right = numpy.max(numpy.abs(matrix[:n//2, n//2:]))
+    max_lower_left = numpy.max(numpy.abs(matrix[n//2:, :n//2]))
+    return (numpy.isclose(max_upper_right, 0.0)
+            and numpy.isclose(max_lower_left, 0.0))
 
 
 def _occupied_orbitals(computational_basis_state: int, n_qubits) -> List[int]:

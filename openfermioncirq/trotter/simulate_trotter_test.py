@@ -80,6 +80,16 @@ diag_coul_initial_state, diag_coul_exact_state = (
             diag_coul_hamiltonian, long_time, seed=49075)
 )
 
+# Hubbard model, reordered
+hubbard_model = openfermion.fermi_hubbard(2, 2, 1.0, 4.0)
+hubbard_model = openfermion.reorder(hubbard_model, openfermion.up_then_down)
+hubbard_hamiltonian = openfermion.get_diagonal_coulomb_hamiltonian(
+        hubbard_model)
+hubbard_initial_state, hubbard_exact_state = (
+        produce_simulation_test_parameters(
+            hubbard_hamiltonian, long_time, seed=8200)
+)
+
 # 4-qubit H2 2-2 with bond length 0.7414
 bond_length = 0.7414
 geometry = [('H', (0., 0., 0.)), ('H', (0., 0., bond_length))]
@@ -116,6 +126,10 @@ lih_initial_state, lih_exact_state = produce_simulation_test_parameters(
                 diag_coul_exact_state, 1, 1, SPLIT_OPERATOR, .99),
             (diag_coul_hamiltonian, long_time, diag_coul_initial_state,
                 diag_coul_exact_state, 2, 1, SPLIT_OPERATOR, .99999),
+            (hubbard_hamiltonian, long_time, hubbard_initial_state,
+                hubbard_exact_state, 0, 3, SPLIT_OPERATOR, .999),
+            (hubbard_hamiltonian, long_time, hubbard_initial_state,
+                hubbard_exact_state, 0, 6, SPLIT_OPERATOR, .9999),
             (h2_hamiltonian, longer_time, h2_initial_state,
                 h2_exact_state, 0, 1, LOW_RANK, .99),
             (h2_hamiltonian, longer_time, h2_initial_state,
