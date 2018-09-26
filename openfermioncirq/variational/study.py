@@ -233,25 +233,37 @@ class VariationalStudy:
                 start = 0
             identifiers = itertools.count(cast(int, start))  # type: ignore
 
-        trial_results = []
 
-        for identifier, optimization_params in zip(identifiers, param_sweep):
-
-            result_list = self._get_result_list(
-                    optimization_params,
+        if use_multiprocessing and repetitions == 1:
+            trial_results = self._get_trial_result_list(
+                    param_sweep,
+                    identifiers,
                     reevaluate_final_params,
                     save_x_vals,
-                    repetitions,
                     seeds,
-                    use_multiprocessing,
                     num_processes)
+            for identifier, trial_result in zip(identifiers, trial_results):
+                self.trial_results[identifier] = trial_result
+        else:
+            trial_results = []
+            for identifier, optimization_params in zip(
+                    identifiers, param_sweep):
 
-            trial_result = OptimizationTrialResult(result_list,
-                                                   optimization_params)
-            trial_results.append(trial_result)
+                result_list = self._get_result_list(
+                        optimization_params,
+                        reevaluate_final_params,
+                        save_x_vals,
+                        repetitions,
+                        seeds,
+                        use_multiprocessing,
+                        num_processes)
 
-            # Save the result into the trial_results dictionary
-            self.trial_results[identifier] = trial_result
+                trial_result = OptimizationTrialResult(result_list,
+                                                       optimization_params)
+                trial_results.append(trial_result)
+
+                # Save the result into the trial_results dictionary
+                self.trial_results[identifier] = trial_result
 
         return trial_results
 
@@ -317,6 +329,48 @@ class VariationalStudy:
                 num_processes)
 
         self.trial_results[identifier].extend(result_list)
+
+    def _get_trial_result_list(
+            self,
+            param_sweep: Iterable[OptimizationParams],
+            identifiers: Optional[Iterable[Hashable]],
+            reevaluate_final_params: bool,
+            save_x_vals: bool,
+            seeds: Optional[Sequence[int]],
+            num_processes: Optional[int]
+            ) -> List[OptimizationTrialResult]:
+
+        if num_processes is None:
+            # coverage: ignore
+            num_processes = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(num_processes)
+        try:
+            arg_tuples = (
+                (
+                    self.ansatz,
+                    self.objective,
+                    self._preparation_circuit,
+                    self.initial_state,
+                    optimization_params,
+                    reevaluate_final_params,
+                    save_x_vals,
+                    seeds[0] if seeds is not None
+                    else numpy.random.randint(4294967296),
+                    self.ansatz.default_initial_params(),
+                    self._black_box_type
+                )
+                for optimization_params in param_sweep
+            )
+            result_list = pool.map(_run_optimization, arg_tuples)
+            trial_results = [
+                    OptimizationTrialResult([result], optimization_params)
+                    for optimization_params, result in
+                    zip(param_sweep, result_list)
+            ]
+        finally:
+            pool.terminate()
+
+        return trial_results
 
     def _get_result_list(
             self,

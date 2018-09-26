@@ -121,6 +121,21 @@ def test_variational_study_optimize_and_extend_and_summary():
             == result.data_frame['optimal_value'])
     assert isinstance(result.results[0].cost_spent, float)
 
+    # Optimization run 4
+    trial_results = study.optimize_sweep(
+            [OptimizationParams(test_algorithm),
+                OptimizationParams(LazyAlgorithm())],
+            identifiers=['test', 'lazy'],
+            use_multiprocessing=True,
+            num_processes=2
+    )
+    assert isinstance(trial_results[0].params.algorithm, ExampleAlgorithm)
+    assert isinstance(trial_results[1].params.algorithm, LazyAlgorithm)
+    assert isinstance(study.trial_results['test'].params.algorithm,
+                      ExampleAlgorithm)
+    assert isinstance(study.trial_results['lazy'].params.algorithm,
+                      LazyAlgorithm)
+
     # Try extending non-existent run
     with pytest.raises(KeyError):
         study.extend_result('run100')
