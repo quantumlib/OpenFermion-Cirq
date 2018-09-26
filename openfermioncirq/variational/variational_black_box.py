@@ -12,7 +12,7 @@
 
 """Black boxes for variational studies"""
 
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy
 
@@ -40,10 +40,12 @@ class VariationalBlackBox(BlackBox):
                  ansatz: VariationalAnsatz,
                  objective: VariationalObjective,
                  preparation_circuit: Optional[cirq.Circuit]=None,
+                 initial_state: Union[int, numpy.ndarray]=0,
                  **kwargs) -> None:
         self.ansatz = ansatz
         self.objective = objective
         self.preparation_circuit = preparation_circuit or cirq.Circuit()
+        self.initial_state = initial_state
         super().__init__(**kwargs)
 
     @property
@@ -92,6 +94,7 @@ class UnitarySimulateVariationalBlackBox(VariationalBlackBox):
         circuit = (self.preparation_circuit + self.ansatz.circuit
                   ).with_parameters_resolved_by(self.ansatz.param_resolver(x))
         final_state = circuit.apply_unitary_effect_to_state(
+                self.initial_state,
                 qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
         return self.objective.value(final_state)
 
@@ -112,6 +115,7 @@ class XmonSimulateVariationalBlackBox(VariationalBlackBox):
         simulator = cirq.google.XmonSimulator()
         result = simulator.simulate(
                 self.preparation_circuit + self.ansatz.circuit,
+                initial_state=self.initial_state,
                 param_resolver=self.ansatz.param_resolver(x),
                 qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
         return self.objective.value(result)

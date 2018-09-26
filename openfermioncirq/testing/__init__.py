@@ -17,4 +17,5 @@ from openfermioncirq.testing.example_classes import (
     ExampleBlackBoxNoisy,
     ExampleStatefulBlackBox,
     ExampleVariationalObjective,
-    ExampleVariationalObjectiveNoisy)
+    ExampleVariationalObjectiveNoisy,
+    LazyAlgorithm)

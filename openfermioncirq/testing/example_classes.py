@@ -50,6 +50,27 @@ class ExampleAlgorithm(OptimizationAlgorithm):
                 message='success')
 
 
+class LazyAlgorithm(OptimizationAlgorithm):
+    """Just returns the initial guess, or the zeros vector."""
+
+    def optimize(self,
+                 black_box: BlackBox,
+                 initial_guess: Optional[numpy.ndarray]=None,
+                 initial_guess_array: Optional[numpy.ndarray]=None
+                 ) -> OptimizationResult:
+        if initial_guess is None:
+            # coverage: ignore
+            initial_guess = numpy.zeros(black_box.dimension)
+        opt = black_box.evaluate(initial_guess)
+        return OptimizationResult(
+                optimal_value=opt,
+                optimal_parameters=initial_guess,
+                num_evaluations=1,
+                cost_spent=0.0,
+                status=0,
+                message='success')
+
+
 class ExampleBlackBox(BlackBox):
     """Returns the sum of the squares of the inputs."""
 

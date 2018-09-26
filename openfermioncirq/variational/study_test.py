@@ -17,7 +17,7 @@ import pytest
 
 import cirq
 
-from openfermioncirq import VariationalStudy
+from openfermioncirq import VariationalObjective, VariationalStudy
 from openfermioncirq.optimization import (
         OptimizationParams,
         OptimizationTrialResult,
@@ -31,7 +31,8 @@ from openfermioncirq.testing import (
         ExampleAlgorithm,
         ExampleAnsatz,
         ExampleVariationalObjective,
-        ExampleVariationalObjectiveNoisy)
+        ExampleVariationalObjectiveNoisy,
+        LazyAlgorithm)
 
 
 test_algorithm = ExampleAlgorithm()
@@ -126,6 +127,38 @@ def test_variational_study_optimize_and_extend_and_summary():
 
     # Check that getting a summary works
     assert str(study).startswith('This study contains')
+
+
+def test_variational_study_initial_state():
+    preparation_circuit = cirq.Circuit.from_ops(cirq.X(test_ansatz.qubits[0]))
+    initial_state = numpy.array([0.0, 0.0, 1.0, 0.0])
+
+    class TestObjective(VariationalObjective):
+        def value(self, circuit_output):
+            return circuit_output[0].real
+
+    study1 = VariationalStudy(
+            'study1',
+            test_ansatz,
+            TestObjective(),
+            preparation_circuit=preparation_circuit,
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL)
+    study2 = VariationalStudy(
+            'study2',
+            test_ansatz,
+            TestObjective(),
+            initial_state=initial_state,
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL)
+
+    initial_guess = numpy.random.randn(2)
+    result1 = study1.optimize(
+            OptimizationParams(
+                LazyAlgorithm(), initial_guess=initial_guess))
+    result2 = study2.optimize(
+            OptimizationParams(
+                LazyAlgorithm(), initial_guess=initial_guess))
+
+    numpy.testing.assert_allclose(result1.optimal_value, result2.optimal_value)
 
 
 def test_variational_study_run_too_few_seeds_raises_error():
