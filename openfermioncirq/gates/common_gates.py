@@ -20,13 +20,12 @@ import cirq
 
 
 class FermionicSwapGate(cirq.InterchangeableQubitsGate,
-                        cirq.KnownMatrix,
                         cirq.ReversibleEffect,
                         cirq.TextDiagrammable,
                         cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
-    def matrix(self):
+    def _unitary_(self) -> numpy.ndarray:
         return numpy.array([[1, 0, 0, 0],
                             [0, 0, 1, 0],
                             [0, 1, 0, 0],

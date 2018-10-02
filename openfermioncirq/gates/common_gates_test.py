@@ -103,32 +103,32 @@ def test_xxyy_decompose(half_turns):
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, gate.matrix(), atol=1e-8)
+            matrix, cirq.unitary(gate), atol=1e-8)
 
 
 def test_xxyy_matrix():
-    numpy.testing.assert_allclose(XXYYGate(half_turns=2).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=2)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(half_turns=1).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=1)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, -1j, 0],
                                                [0, -1j, 0, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(half_turns=0).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=0)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(XXYYGate(half_turns=-1).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=-1)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, 1j, 0],
                                                [0, 1j, 0, 0],
@@ -139,7 +139,7 @@ def test_xxyy_matrix():
     Y = numpy.array([[0, -1j], [1j, 0]])
     XX = kron(X, X)
     YY = kron(Y, Y)
-    numpy.testing.assert_allclose(XXYYGate(half_turns=0.25).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
 
@@ -186,32 +186,32 @@ def test_yxxy_decompose(half_turns):
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, gate.matrix(), atol=1e-8)
+            matrix, cirq.unitary(gate), atol=1e-8)
 
 
 def test_yxxy_matrix():
-    numpy.testing.assert_allclose(YXXYGate(half_turns=2).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=2)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, -1, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(half_turns=1).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=1)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, -1, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(half_turns=0).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=0)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(YXXYGate(half_turns=-1).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=-1)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, -1, 0, 0],
@@ -222,7 +222,7 @@ def test_yxxy_matrix():
     Y = numpy.array([[0, -1j], [1j, 0]])
     YX = kron(Y, X)
     XY = kron(X, Y)
-    numpy.testing.assert_allclose(YXXYGate(half_turns=0.25).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
 
@@ -262,28 +262,28 @@ def test_zz_repr():
 
 
 def test_zz_matrix():
-    numpy.testing.assert_allclose(ZZGate(half_turns=0).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=0)),
                                   numpy.array([[1, 0, 0, 0],
                                                [0, 1, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(ZZGate(half_turns=0.5).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=0.5)),
                                   numpy.array([[(-1j)**0.5, 0, 0, 0],
                                                [0, 1j**0.5, 0, 0],
                                                [0, 0, 1j**0.5, 0],
                                                [0, 0, 0, (-1j)**0.5]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(ZZGate(half_turns=1).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=1)),
                                   numpy.array([[-1j, 0, 0, 0],
                                                [0, 1j, 0, 0],
                                                [0, 0, 1j, 0],
                                                [0, 0, 0, -1j]]),
                                   atol=1e-8)
 
-    numpy.testing.assert_allclose(ZZGate(half_turns=-0.5).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=-0.5)),
                                   numpy.array([[(1j)**0.5, 0, 0, 0],
                                                [0, (-1j)**0.5, 0, 0],
                                                [0, 0, (-1j)**0.5, 0],
@@ -292,7 +292,7 @@ def test_zz_matrix():
 
     Z = numpy.array([[1, 0], [0, -1]])
     ZZ = kron(Z, Z)
-    numpy.testing.assert_allclose(ZZGate(half_turns=0.25).matrix(),
+    numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * ZZ / 2))
 
 
