@@ -308,7 +308,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
             cirq.CNOT(d, c),
             controlled_Zs,
             cirq.CNOT(d, c),
-            [op.inverse() for op in reversed(controlled_Zs)],
+            [cirq.inverse(op) for op in reversed(controlled_Zs)],
             [cirq.H(c), cirq.CNOT(c, d)],
             ]
 

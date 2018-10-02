@@ -19,9 +19,7 @@ import numpy
 import cirq
 
 
-class FermionicSwapGate(cirq.InterchangeableQubitsGate,
-                        cirq.ReversibleEffect,
-                        cirq.TwoQubitGate):
+class FermionicSwapGate(cirq.InterchangeableQubitsGate, cirq.TwoQubitGate):
     """Swaps two adjacent fermionic modes under the JWT."""
 
     def _unitary_(self) -> numpy.ndarray:
@@ -30,8 +28,10 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate,
                             [0, 1, 0, 0],
                             [0, 0, 0, -1]])
 
-    def inverse(self):
-        return self
+    def __pow__(self, power) -> 'FermionicSwapGate':
+        if power in [1, -1]:
+            return self
+        return NotImplemented
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> Tuple[str, str]:

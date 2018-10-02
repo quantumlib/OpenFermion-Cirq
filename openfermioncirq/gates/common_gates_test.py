@@ -26,7 +26,7 @@ def test_fswap_interchangeable():
 
 
 def test_fswap_inverse():
-    assert FSWAP.inverse() == FSWAP
+    assert FSWAP**-1 == FSWAP
 
 
 def test_fswap_repr():
