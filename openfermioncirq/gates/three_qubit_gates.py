@@ -19,68 +19,6 @@ import numpy
 import cirq
 
 
-class Rot111Gate(cirq.EigenGate,
-                 cirq.CompositeGate,
-                 cirq.InterchangeableQubitsGate):
-    """Phases the |111> state of three qubits by a fixed amount."""
-
-    def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
-                 rads: Optional[float]=None,
-                 degs: Optional[float]=None) -> None:
-        """Initializes the gate.
-
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
-        Args:
-            half_turns: Relative phasing of CCZ's eigenstates, in half_turns.
-            rads: Relative phasing of CCZ's eigenstates, in radians.
-            degs: Relative phasing of CCZ's eigenstates, in degrees.
-        """
-        super().__init__(exponent=cirq.chosen_angle_to_half_turns(
-            half_turns=half_turns,
-            rads=rads,
-            degs=degs))
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
-
-    def _eigen_components(self):
-        return [
-            (0, numpy.diag([1, 1, 1, 1, 1, 1, 1, 0])),
-            (1, numpy.diag([0, 0, 0, 0, 0, 0, 0, 1])),
-        ]
-
-    def _canonical_exponent_period(self) -> Optional[float]:
-        return 2
-
-    def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]) -> 'Rot111Gate':
-        return Rot111Gate(half_turns=exponent)
-
-    def default_decompose(self, qubits):
-        a, b, c = qubits
-        yield cirq.CZ(b, c)**(0.5 * self.half_turns)
-        yield cirq.CNOT(a, b)
-        yield cirq.CZ(b, c)**(-0.5 * self.half_turns)
-        yield cirq.CNOT(a, b)
-        yield cirq.CZ(a, c)**(0.5 * self.half_turns)
-
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                               ) -> cirq.CircuitDiagramInfo:
-        return cirq.CircuitDiagramInfo(
-            wire_symbols=('@', '@', '@'),
-            exponent=self.half_turns)
-
-    def __repr__(self) -> str:
-        if self.half_turns == 1:
-            return 'CCZ'
-        return 'CCZ**{!r}'.format(self.half_turns)
-
-
 class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
@@ -134,19 +72,11 @@ class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
 
     def default_decompose(self, qubits):
         control, a, b = qubits
-        yield cirq.Z(a)
-        yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
-        yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
-        yield cirq.Z(a)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        yield cirq.CNOT(b, control)
+        yield cirq.CCX(control, b, a)**self.half_turns
+        # Note: Clifford optimization would merge this CZ into the CCX decomp.
+        yield cirq.CZ(control, a)**(self.half_turns / 2)
+        yield cirq.CNOT(b, control)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
@@ -217,12 +147,12 @@ class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
         yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
         yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
-        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CCZ(control, a, b)**self.half_turns
         yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
         yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
         yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
+        yield cirq.CCZ(control, a, b)**self.half_turns
         yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
         yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
         yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
@@ -242,6 +172,10 @@ class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
         return 'CYXXY**{!r}'.format(self.half_turns)
 
 
-CCZ = Rot111Gate()
+def rot111(rads: float) -> cirq.Gate:
+    """A three-qubit gate that phases the 111 state by exp(i rads)."""
+    return cirq.CCZ**(rads / numpy.pi)
+
+
 CXXYY = ControlledXXYYGate()
 CYXXY = ControlledYXXYGate()

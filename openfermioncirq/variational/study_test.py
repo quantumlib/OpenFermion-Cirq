@@ -57,11 +57,11 @@ test_study_noisy = VariationalStudy(
 
 
 def test_variational_study_circuit():
-    assert (test_study.circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(test_study.circuit, """
 0: ───X───X^theta0───@───X^theta0───M('all')───
                      │              │
 1: ───────X^theta1───@───X^theta1───M──────────
-""".strip())
+""")
 
 
 def test_variational_study_num_params():

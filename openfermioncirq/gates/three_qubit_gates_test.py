@@ -16,13 +16,7 @@ import pytest
 import cirq
 from cirq.testing import EqualsTester
 
-from openfermioncirq import (
-        CCZ, CXXYY, CYXXY, ControlledXXYYGate, ControlledYXXYGate, Rot111Gate)
-
-
-def test_ccz_repr():
-    assert repr(Rot111Gate(half_turns=1)) == 'CCZ'
-    assert repr(Rot111Gate(half_turns=0.5)) == 'CCZ**0.5'
+from openfermioncirq import CXXYY, CYXXY, ControlledXXYYGate, ControlledYXXYGate
 
 
 def test_cxxyy_init_with_multiple_args_fails():
@@ -51,13 +45,13 @@ def test_cxxyy_eq():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cxxyy_decompose(half_turns):
-
     gate = CXXYY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-7)
+        cirq.unitary(circuit),
+        cirq.unitary(gate),
+        atol=1e-7)
 
 
 def test_cxxyy_repr():
@@ -91,13 +85,13 @@ def test_cyxxy_eq():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cyxxy_decompose(half_turns):
-
     gate = CYXXY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-7)
+        cirq.unitary(circuit),
+        cirq.unitary(gate),
+        atol=1e-7)
 
 
 def test_cyxxy_repr():
@@ -107,21 +101,6 @@ def test_cyxxy_repr():
 
 @pytest.mark.parametrize(
         'gate, half_turns, initial_state, correct_state, atol', [
-            (CCZ, 0.5,
-                numpy.array([1, 0, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
-                numpy.array([1, 0, 0, 0, 0, 0, 0, 1j]) / numpy.sqrt(2), 1e-7),
-            (CCZ, 1.0,
-                numpy.array([0, 1, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
-                numpy.array([0, 1, 0, 0, 0, 0, 0, -1]) / numpy.sqrt(2), 5e-7),
-            (CCZ, 0.5,
-                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2), 5e-7),
-            (CCZ, 0.25,
-                numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2), 5e-7),
-            (CCZ, -0.5,
-                numpy.array([0, 0, 0, 0, 1, 0, 0, 1j]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 1, 0, 0, 1]) / numpy.sqrt(2), 1e-7),
             (CXXYY, 1.0,
                 numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
                 numpy.array([0, 0, 0, 0, 0, -1j, -1j, 0]) / numpy.sqrt(2),
@@ -197,25 +176,23 @@ def test_three_qubit_gate_text_diagrams():
     c = cirq.NamedQubit('c')
 
     circuit = cirq.Circuit.from_ops(
-        CCZ(a, b, c),
         CXXYY(a, b, c),
         CYXXY(a, b, c))
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@───@──────@──────
       │   │      │
 b: ───@───XXYY───YXXY───
       │   │      │
 c: ───@───XXYY───#2─────
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
-        CCZ(a, b, c)**-0.5,
         CXXYY(a, b, c)**-0.5,
         CYXXY(a, b, c)**-0.5)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@────────@───────────@─────────
       │        │           │
 b: ───@────────XXYY────────YXXY──────
       │        │           │
 c: ───@^-0.5───XXYY^-0.5───#2^-0.5───
-""".strip()
+""")

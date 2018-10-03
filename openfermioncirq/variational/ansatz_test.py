@@ -13,17 +13,19 @@
 import numpy
 import pytest
 
+import cirq
+
 from openfermioncirq import VariationalAnsatz
 from openfermioncirq.testing import ExampleAnsatz
 
 
 def test_variational_ansatz_circuit():
     ansatz = ExampleAnsatz()
-    assert ansatz.circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(ansatz.circuit, """
 0: ───X^theta0───@───X^theta0───M('all')───
                  │              │
 1: ───X^theta1───@───X^theta1───M──────────
-""".strip()
+""")
 
 
 def test_variational_ansatz_param_bounds():

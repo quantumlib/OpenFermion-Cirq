@@ -253,7 +253,7 @@ def test_double_excitation_gate_text_diagrams():
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d))
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───
       │
 b: ───⇅───
@@ -261,11 +261,11 @@ b: ───⇅───
 c: ───⇵───
       │
 d: ───⇵───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d)**-0.5)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅────────
       │
 b: ───⇅────────
@@ -273,11 +273,11 @@ b: ───⇅────────
 c: ───⇵────────
       │
 d: ───⇵^-0.5───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, c, b, d)**0.2)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───────
       │
 b: ───⇵───────
@@ -285,11 +285,11 @@ b: ───⇵───────
 c: ───⇅───────
       │
 d: ───⇵^0.2───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**0.7)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
 b: ───⇅───────
@@ -297,11 +297,11 @@ b: ───⇅───────
 c: ───⇵───────
       │
 d: ───⇅^0.7───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**2.3)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
 b: ───⇅───────
@@ -309,7 +309,7 @@ b: ───⇅───────
 c: ───⇵───────
       │
 d: ───⇅^0.3───
-""".strip()
+""")
 
 
 def test_double_excitation_gate_text_diagrams_no_unicode():
@@ -451,8 +451,7 @@ def test_combined_double_excitation_gate_text_diagram():
     circuit = cirq.Circuit.from_ops(
             [gate(*qubits[:4]), gate(*qubits[-4:])])
 
-    actual_text_diagram = circuit.to_text_diagram()
-    expected_text_diagram = """
+    cirq.testing.assert_has_diagram(circuit, """
 0: ───⇊⇈────────
       │
 1: ───⇊⇈────────
@@ -464,8 +463,7 @@ def test_combined_double_excitation_gate_text_diagram():
 4: ────────⇊⇈───
            │
 5: ────────⇊⇈───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+"""),
 
     actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=False)
     expected_text_diagram = """

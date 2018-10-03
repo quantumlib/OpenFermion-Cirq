@@ -20,9 +20,9 @@ import cirq
 import openfermion
 
 from openfermioncirq import (
-        Rot111Gate,
-        bogoliubov_transform,
-        swap_network)
+    rot111,
+    bogoliubov_transform,
+    swap_network)
 from openfermioncirq.trotter.trotter_algorithm import (
         Hamiltonian,
         TrotterStep,

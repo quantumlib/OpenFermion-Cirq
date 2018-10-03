@@ -12,7 +12,7 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Sequence
 
 import numpy
 
@@ -27,6 +27,20 @@ class FermionicSwapGate(cirq.InterchangeableQubitsGate, cirq.TwoQubitGate):
                             [0, 0, 1, 0],
                             [0, 1, 0, 0],
                             [0, 0, 0, -1]])
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: numpy.ndarray,
+                                  available_buffer: numpy.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> numpy.ndarray:
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        oo = cirq.slice_for_qubits_equal_to(axes, 0b11)
+        available_buffer[zo] = target_tensor[zo]
+        target_tensor[zo] = target_tensor[oz]
+        target_tensor[oz] = available_buffer[zo]
+        target_tensor[oo] *= -1
+        return target_tensor
 
     def __pow__(self, power) -> 'FermionicSwapGate':
         if power in [1, -1]:
@@ -234,6 +248,26 @@ class YXXYGate(cirq.EigenGate,
                                [0, 0, 0, 0]]))
         ]
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: numpy.ndarray,
+                                  available_buffer: numpy.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> numpy.ndarray:
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        t = self.half_turns * numpy.pi / 2
+        c, s = numpy.cos(t), numpy.sin(t)
+
+        available_buffer[:] = target_tensor
+        available_buffer *= s
+        target_tensor[zo] *= c
+        target_tensor[oz] *= c
+
+        target_tensor[zo] += available_buffer[oz]
+        target_tensor[oz] -= available_buffer[zo]
+
+        return target_tensor
+
     def _canonical_exponent_period(self) -> Optional[float]:
         return 4
 
@@ -339,6 +373,20 @@ class ZZGate(cirq.EigenGate,
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: numpy.ndarray,
+                                  available_buffer: numpy.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> numpy.ndarray:
+        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
+        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
+        p_all = numpy.exp(-0.5j * numpy.pi * self.half_turns)
+        p_dif = numpy.exp(1j * numpy.pi * self.half_turns)
+        target_tensor *= p_all
+        target_tensor[zo] *= p_dif
+        target_tensor[oz] *= p_dif
+        return target_tensor
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]) -> 'ZZGate':

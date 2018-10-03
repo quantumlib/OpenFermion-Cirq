@@ -33,6 +33,20 @@ def test_fswap_repr():
     assert repr(FSWAP) == 'FSWAP'
 
 
+def test_fswap_matrix():
+    a, b = cirq.LineQubit.range(2)
+    expected = cirq.unitary(
+        cirq.Circuit.from_ops(cirq.CZ(a, b), cirq.SWAP(a, b)))
+    actual = cirq.unitary(FSWAP)
+    applied = cirq.apply_unitary_to_tensor(
+        FSWAP,
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        [0, 1])
+    numpy.testing.assert_allclose(actual, expected)
+    numpy.testing.assert_allclose(applied.reshape((4, 4)), expected)
+
+
 def test_fswap_on_simulator():
     simulator = cirq.google.XmonSimulator()
     a, b = cirq.LineQubit.range(2)
@@ -142,6 +156,14 @@ def test_xxyy_matrix():
     numpy.testing.assert_allclose(cirq.unitary(XXYYGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * (XX + YY) / 4))
 
+    applied = cirq.apply_unitary_to_tensor(
+        XXYYGate(half_turns=0.25),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        [0, 1])
+    numpy.testing.assert_allclose(applied.reshape((4, 4)),
+                                  cirq.unitary(XXYYGate(half_turns=0.25)))
+
 
 def test_yxxy_init():
     assert YXXYGate(half_turns=0.5).half_turns == 0.5
@@ -225,6 +247,14 @@ def test_yxxy_matrix():
     numpy.testing.assert_allclose(cirq.unitary(YXXYGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * (YX - XY) / 4))
 
+    applied = cirq.apply_unitary_to_tensor(
+        YXXYGate(half_turns=0.25),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        [0, 1])
+    numpy.testing.assert_allclose(applied.reshape((4, 4)),
+                                  cirq.unitary(YXXYGate(half_turns=0.25)))
+
 
 def test_zz_init():
     assert ZZGate(half_turns=0.5).half_turns == 0.5
@@ -295,6 +325,14 @@ def test_zz_matrix():
     numpy.testing.assert_allclose(cirq.unitary(ZZGate(half_turns=0.25)),
                                   expm(-1j * numpy.pi * 0.25 * ZZ / 2))
 
+    applied = cirq.apply_unitary_to_tensor(
+        ZZGate(half_turns=0.25),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        numpy.eye(4, dtype=numpy.complex128).reshape((2, 2, 2, 2)),
+        [0, 1])
+    numpy.testing.assert_allclose(applied.reshape((4, 4)),
+                                  cirq.unitary(ZZGate(half_turns=0.25)))
+
 
 @pytest.mark.parametrize(
         'gate, half_turns, initial_state, correct_state, atol', [
@@ -345,24 +383,24 @@ def test_common_gate_text_diagrams():
         XXYY(a, b),
         YXXY(a, b),
         ZZ(a, b))
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───×ᶠ───XXYY───YXXY───Z───
       │    │      │      │
 b: ───×ᶠ───XXYY───#2─────Z───
-""".strip()
+""")
 
     assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
 a: ---fswap---XXYY---YXXY---Z---
       |       |      |      |
 b: ---fswap---XXYY---#2-----Z---
-""".strip()
+"""
 
     circuit = cirq.Circuit.from_ops(
         XXYY(a, b)**0.5,
         YXXY(a, b)**0.5,
         ZZ(a, b)**0.5)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───XXYY───────YXXY─────Z───────
       │          │        │
 b: ───XXYY^0.5───#2^0.5───Z^0.5───
-""".strip()
+""")

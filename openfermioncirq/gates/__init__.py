@@ -23,12 +23,11 @@ from openfermioncirq.gates.common_gates import (
     ZZGate)
 
 from openfermioncirq.gates.three_qubit_gates import (
-    CCZ,
     CXXYY,
     CYXXY,
     ControlledXXYYGate,
     ControlledYXXYGate,
-    Rot111Gate)
+    rot111)
 
 from openfermioncirq.gates.four_qubit_gates import (
     DoubleExcitation,
