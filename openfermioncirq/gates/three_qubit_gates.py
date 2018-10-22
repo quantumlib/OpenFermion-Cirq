@@ -137,19 +137,13 @@ class ControlledXXYYGate(cirq.EigenGate,
 
     def default_decompose(self, qubits):
         control, a, b = qubits
-        yield cirq.Z(a)
-        yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
+        yield cirq.CNOT(a, b)
+        yield cirq.H(a)
         yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
-        yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
-        yield cirq.Z(a)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        # Note: Clifford optimization would merge this CZ into the CCZ decomp.
+        yield cirq.CZ(control, b)**(-self.half_turns / 2)
+        yield cirq.H(a)
+        yield cirq.CNOT(a, b)
 
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
                           ) -> cirq.TextDiagramInfo:
@@ -219,21 +213,13 @@ class ControlledYXXYGate(cirq.EigenGate,
 
     def default_decompose(self, qubits):
         control, a, b = qubits
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Y(a)**-0.5, cirq.Y(b)**-0.5
+        yield cirq.CNOT(a, b)
+        yield cirq.X(a)**0.5
         yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.Y(a)**0.5, cirq.Y(b)**0.5
-        yield cirq.X(a)**0.5, cirq.X(b)**0.5
-        yield CCZ(control, a, b)**self.half_turns
-        yield cirq.CZ(control, a)**(-0.5 * self.half_turns)
-        yield cirq.CZ(control, b)**(-0.5 * self.half_turns)
-        yield cirq.X(a)**-0.5, cirq.X(b)**-0.5
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=5/8).on(a)
-        yield cirq.google.ExpWGate(half_turns=1, axis_half_turns=7/8).on(b)
-        yield cirq.Z(control)**(0.5 * self.half_turns)
+        # Note: Clifford optimization would merge this CZ into the CCZ decomp.
+        yield cirq.CZ(control, b)**(-self.half_turns / 2)
+        yield cirq.X(a)**-0.5
+        yield cirq.CNOT(a, b)
 
     def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
                           ) -> cirq.TextDiagramInfo:
