@@ -192,6 +192,8 @@ def test_variational_study_save_load():
             study_name,
             test_ansatz,
             test_objective,
+            initial_state=numpy.array([0.0, 1.0, 0.0, 0.0]).astype(
+                numpy.complex64),
             datadir=datadir,
             black_box_type=variational_black_box.XMON_SIMULATE_STATEFUL)
     study.optimize(
@@ -212,6 +214,8 @@ def test_variational_study_save_load():
     assert str(loaded_study.circuit) == str(study.circuit)
     assert loaded_study.datadir == datadir
     assert len(loaded_study.trial_results) == 1
+    numpy.testing.assert_allclose(loaded_study.initial_state,
+                                  numpy.array([0.0, 1.0, 0.0, 0.0]))
 
     result = loaded_study.trial_results['example']
     assert isinstance(result, OptimizationTrialResult)

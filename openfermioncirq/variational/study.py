@@ -536,7 +536,10 @@ class VariationalStudy:
         return {'name': self.name,
                 'ansatz': self.ansatz,
                 'objective': self.objective,
-                'preparation_circuit': self._preparation_circuit}
+                'preparation_circuit': self._preparation_circuit,
+                'initial_state': self.initial_state,
+                'target': self.target,
+                'black_box_type': self._black_box_type}
 
     def save(self) -> None:
         """Save the study to disk."""
