@@ -12,10 +12,11 @@
 
 from typing import Optional, Tuple, Union
 
+import abc
+
 import numpy
 
 import cirq
-from cirq import abc
 
 
 class VariationalObjective(metaclass=abc.ABCMeta):
@@ -36,7 +37,7 @@ class VariationalObjective(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def value(self,
               circuit_output: Union[cirq.TrialResult,
-                                    cirq.google.XmonSimulateTrialResult,
+                                    cirq.SimulationTrialResult,
                                     numpy.ndarray]
               ) -> float:
         """The evaluation function for a circuit output.

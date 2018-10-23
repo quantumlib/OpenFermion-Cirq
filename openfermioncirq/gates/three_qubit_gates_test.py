@@ -57,7 +57,7 @@ def test_cxxyy_decompose(half_turns):
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, gate.matrix(), atol=1e-7)
+            matrix, cirq.unitary(gate), atol=1e-7)
 
 
 def test_cxxyy_repr():
@@ -97,7 +97,7 @@ def test_cyxxy_decompose(half_turns):
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
     cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, gate.matrix(), atol=1e-7)
+            matrix, cirq.unitary(gate), atol=1e-7)
 
 
 def test_cyxxy_repr():

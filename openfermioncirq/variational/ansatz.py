@@ -14,10 +14,11 @@
 
 from typing import Iterable, Optional, Sequence, Tuple
 
+import abc
+
 import numpy
 
 import cirq
-from cirq import abc
 
 
 class VariationalAnsatz(metaclass=abc.ABCMeta):

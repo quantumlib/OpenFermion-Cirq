@@ -82,9 +82,9 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
     )
 
     # Compute value using ansatz circuit and objective
-    circuit = (preparation_circuit + ansatz.circuit
-              ).with_parameters_resolved_by(
-                      ansatz.param_resolver(ansatz.default_initial_params()))
+    circuit = cirq.resolve_parameters(
+            preparation_circuit + ansatz.circuit,
+            ansatz.param_resolver(ansatz.default_initial_params()))
     result = circuit.apply_unitary_effect_to_state(
             qubit_order=ansatz.qubit_permutation(qubits))
     obj_val = objective.value(result)
@@ -163,9 +163,9 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
     )
 
     # Compute value using ansatz circuit and objective
-    circuit = (preparation_circuit + ansatz.circuit
-              ).with_parameters_resolved_by(
-                      ansatz.param_resolver(ansatz.default_initial_params()))
+    circuit = cirq.resolve_parameters(
+            preparation_circuit + ansatz.circuit,
+            ansatz.param_resolver(ansatz.default_initial_params()))
     result = circuit.apply_unitary_effect_to_state(
             qubit_order=ansatz.qubit_permutation(qubits))
     obj_val = objective.value(result)

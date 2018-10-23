@@ -14,11 +14,10 @@
 
 from typing import Optional, Sequence, TYPE_CHECKING, Tuple
 
+import abc
 import time
 
 import numpy
-
-from cirq import abc
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

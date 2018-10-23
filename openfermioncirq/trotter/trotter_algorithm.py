@@ -14,8 +14,9 @@
 
 from typing import Optional, Sequence, TYPE_CHECKING, Tuple, Union
 
+import abc
+
 import cirq
-from cirq import abc
 import openfermion
 
 if TYPE_CHECKING:

@@ -84,7 +84,7 @@ class HamiltonianObjective(VariationalObjective):
 
     def value(self,
               circuit_output: Union[cirq.TrialResult,
-                                    cirq.google.XmonSimulateTrialResult,
+                                    cirq.SimulationTrialResult,
                                     numpy.ndarray]
               ) -> float:
         """The evaluation function for a circuit output."""
@@ -92,7 +92,7 @@ class HamiltonianObjective(VariationalObjective):
             return openfermion.expectation(
                     self._hamiltonian_linear_op,
                     circuit_output).real
-        elif isinstance(circuit_output, cirq.google.XmonSimulateTrialResult):
+        elif isinstance(circuit_output, cirq.SimulationTrialResult):
             return openfermion.expectation(
                     self._hamiltonian_linear_op,
                     circuit_output.final_state).real
@@ -100,7 +100,7 @@ class HamiltonianObjective(VariationalObjective):
             # TODO implement this
             raise NotImplementedError(
                     "Don't know how to compute the value of a TrialResult that "
-                    "is not an XmonSimulateTrialResult.")
+                    "is not an SimulationTrialResult.")
 
     def noise(self, cost: Optional[float]=None) -> float:
         """A sample from a normal distribution with mean 0.

@@ -65,9 +65,7 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1):
     return component
 
 
-class DoubleExcitationGate(cirq.EigenGate,
-                           cirq.CompositeGate,
-                           cirq.TextDiagrammable):
+class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
     """Evolve under -|0011><1100| + h.c. for some time."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -164,8 +162,8 @@ class DoubleExcitationGate(cirq.EigenGate,
         yield cirq.CNOT(q, r)
         yield cirq.CNOT(r, s)
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
         if args.use_unicode_characters:
             wire_symbols = ('⇅', '⇅', '⇵', '⇵')
         else:
@@ -173,7 +171,7 @@ class DoubleExcitationGate(cirq.EigenGate,
                             '/\\ \/',
                             '\/ /\\',
                             '\/ /\\')
-        return cirq.TextDiagramInfo(wire_symbols=wire_symbols,
+        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
                                     exponent=self.half_turns)
 
     def __repr__(self):
@@ -185,9 +183,7 @@ class DoubleExcitationGate(cirq.EigenGate,
 DoubleExcitation = DoubleExcitationGate()
 
 
-class CombinedDoubleExcitationGate(cirq.EigenGate,
-                           cirq.CompositeGate,
-                           cirq.TextDiagrammable):
+class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
     """Rotates Hamming-weight 2 states into their bitwise complements.
 
     For weights (t0, t1, t2), is equivalent to
@@ -312,7 +308,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate,
             cirq.CNOT(d, c),
             controlled_Zs,
             cirq.CNOT(d, c),
-            [op.inverse() for op in reversed(controlled_Zs)],
+            [cirq.inverse(op) for op in reversed(controlled_Zs)],
             [cirq.H(c), cirq.CNOT(c, d)],
             ]
 
@@ -320,13 +316,13 @@ class CombinedDoubleExcitationGate(cirq.EigenGate,
         yield controlled_swaps
         yield basis_change[::-1]
 
-    def text_diagram_info(self, args: cirq.TextDiagramInfoArgs
-                          ) -> cirq.TextDiagramInfo:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
         if args.use_unicode_characters:
             wire_symbols = ('⇊⇈',) * 4
         else:
             wire_symbols = ('a*a*aa',) * 4
-        return cirq.TextDiagramInfo(wire_symbols=wire_symbols,
+        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
                                     exponent=self.half_turns)
 
     def absorb_exponent_into_weights(self):

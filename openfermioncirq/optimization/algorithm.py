@@ -14,9 +14,9 @@
 
 from typing import Any, Optional
 
-import numpy
+import abc
 
-from cirq import abc
+import numpy
 
 from openfermioncirq.optimization.black_box import BlackBox
 from openfermioncirq.optimization.result import OptimizationResult

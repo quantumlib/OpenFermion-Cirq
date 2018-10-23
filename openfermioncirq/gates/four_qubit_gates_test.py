@@ -93,7 +93,7 @@ def test_double_excitation_decompose(half_turns):
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        matrix, gate.matrix(), atol=1e-7)
+        matrix, cirq.unitary(gate), atol=1e-7)
 
 
 @pytest.mark.parametrize('weights', numpy.random.rand(10, 3))
@@ -391,7 +391,7 @@ def test_double_excitation_matches_fermionic_evolution(half_turns):
     time_evol_op = time_evol_op.todense()
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        gate.matrix(), time_evol_op, atol=1e-7)
+        cirq.unitary(gate), time_evol_op, atol=1e-7)
 
 
 def test_combined_double_excitation_repr():
@@ -494,6 +494,6 @@ def test_combined_double_excitation_decompose(weights):
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     circuit_matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    eigen_matrix = gate.matrix()
+    eigen_matrix = cirq.unitary(gate)
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_matrix, eigen_matrix, rtol=1e-5, atol=1e-5)

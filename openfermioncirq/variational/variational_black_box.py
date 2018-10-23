@@ -14,10 +14,11 @@
 
 from typing import Optional, Sequence, Tuple, Union
 
+import abc
+
 import numpy
 
 import cirq
-from cirq import abc
 
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.objective import VariationalObjective
@@ -91,8 +92,9 @@ class UnitarySimulateVariationalBlackBox(VariationalBlackBox):
                            x: numpy.ndarray) -> float:
         """Evaluate parameters with a noiseless simulation."""
         # Default: evaluate using apply_unitary_effect_to_state
-        circuit = (self.preparation_circuit + self.ansatz.circuit
-                  ).with_parameters_resolved_by(self.ansatz.param_resolver(x))
+        circuit = cirq.resolve_parameters(
+                self.preparation_circuit + self.ansatz.circuit,
+                self.ansatz.param_resolver(x))
         final_state = circuit.apply_unitary_effect_to_state(
                 self.initial_state,
                 qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))

@@ -2,12 +2,18 @@ sudo: false
 language: python
 matrix:
   include:
+
   - os: linux
     python: "3.5"
     env: MODE="normal" REQS="dev-requirements.txt"
+
   - os: linux
+    env: NAME=pytest2
     python: "2.7"
-    env: MODE="convert-and-test" REQS="python2.7-dev-requirements.txt"
+    install:
+      - pip install -r python2.7-dev-requirements.txt
+      - dev_tools/pip-install-cirq-python2-from-head.sh
+    script: check/pytest2
 
 branches:
   only:
