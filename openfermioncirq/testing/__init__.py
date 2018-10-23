@@ -19,3 +19,5 @@ from openfermioncirq.testing.example_classes import (
     ExampleVariationalObjective,
     ExampleVariationalObjectiveNoisy,
     LazyAlgorithm)
+
+from openfermioncirq.testing.equivalent_repr import assert_equivalent_repr
