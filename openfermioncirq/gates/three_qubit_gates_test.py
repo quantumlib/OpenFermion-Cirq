@@ -16,43 +16,38 @@ import pytest
 import cirq
 from cirq.testing import EqualsTester
 
-from openfermioncirq import (
-        CCZ, CXXYY, CYXXY, ControlledXXYYGate, ControlledYXXYGate, Rot111Gate)
-
-
-def test_ccz_repr():
-    assert repr(Rot111Gate(half_turns=1)) == 'CCZ'
-    assert repr(Rot111Gate(half_turns=0.5)) == 'CCZ**0.5'
+import openfermioncirq as ofc
 
 
 def test_cxxyy_init_with_multiple_args_fails():
     with pytest.raises(ValueError):
-        _ = ControlledXXYYGate(half_turns=1.0, duration=numpy.pi/2)
+        _ = ofc.ControlledXXYYGate(half_turns=1.0, duration=numpy.pi/2)
 
 
 def test_cxxyy_eq():
     eq = EqualsTester()
 
-    eq.add_equality_group(ControlledXXYYGate(half_turns=3.5),
-                          ControlledXXYYGate(half_turns=-0.5),
-                          ControlledXXYYGate(rads=-0.5 * numpy.pi),
-                          ControlledXXYYGate(degs=-90),
-                          ControlledXXYYGate(duration=-0.5 * numpy.pi / 2))
+    eq.add_equality_group(ofc.CXXYY**-0.5,
+                          ofc.ControlledXXYYGate(half_turns=3.5),
+                          ofc.ControlledXXYYGate(half_turns=-0.5),
+                          ofc.ControlledXXYYGate(rads=-0.5 * numpy.pi),
+                          ofc.ControlledXXYYGate(degs=-90),
+                          ofc.ControlledXXYYGate(duration=-0.5 * numpy.pi / 2))
 
-    eq.add_equality_group(ControlledXXYYGate(half_turns=1.5),
-                          ControlledXXYYGate(half_turns=-2.5),
-                          ControlledXXYYGate(rads=1.5 * numpy.pi),
-                          ControlledXXYYGate(degs=-450),
-                          ControlledXXYYGate(duration=-2.5 * numpy.pi / 2))
+    eq.add_equality_group(ofc.ControlledXXYYGate(half_turns=1.5),
+                          ofc.ControlledXXYYGate(half_turns=-2.5),
+                          ofc.ControlledXXYYGate(rads=1.5 * numpy.pi),
+                          ofc.ControlledXXYYGate(degs=-450),
+                          ofc.ControlledXXYYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_group(lambda: ControlledXXYYGate(half_turns=0))
-    eq.make_equality_group(lambda: ControlledXXYYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(half_turns=0))
+    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(half_turns=0.5))
 
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cxxyy_decompose(half_turns):
 
-    gate = CXXYY**half_turns
+    gate = ofc.CXXYY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -61,38 +56,39 @@ def test_cxxyy_decompose(half_turns):
 
 
 def test_cxxyy_repr():
-    assert repr(ControlledXXYYGate(half_turns=1)) == 'CXXYY'
-    assert repr(ControlledXXYYGate(half_turns=0.5)) == 'CXXYY**0.5'
+    assert repr(ofc.CXXYY) == 'CXXYY'
+    assert repr(ofc.CXXYY**0.5) == 'CXXYY**0.5'
 
 
 def test_cyxxy_init_with_multiple_args_fails():
     with pytest.raises(ValueError):
-        _ = ControlledYXXYGate(half_turns=1.0, duration=numpy.pi/2)
+        _ = ofc.ControlledYXXYGate(half_turns=1.0, duration=numpy.pi/2)
 
 
 def test_cyxxy_eq():
     eq = EqualsTester()
 
-    eq.add_equality_group(ControlledYXXYGate(half_turns=3.5),
-                          ControlledYXXYGate(half_turns=-0.5),
-                          ControlledYXXYGate(rads=-0.5 * numpy.pi),
-                          ControlledYXXYGate(degs=-90),
-                          ControlledYXXYGate(duration=-0.5 * numpy.pi / 2))
+    eq.add_equality_group(ofc.CYXXY**-0.5,
+                          ofc.ControlledYXXYGate(half_turns=3.5),
+                          ofc.ControlledYXXYGate(half_turns=-0.5),
+                          ofc.ControlledYXXYGate(rads=-0.5 * numpy.pi),
+                          ofc.ControlledYXXYGate(degs=-90),
+                          ofc.ControlledYXXYGate(duration=-0.5 * numpy.pi / 2))
 
-    eq.add_equality_group(ControlledYXXYGate(half_turns=1.5),
-                          ControlledYXXYGate(half_turns=-2.5),
-                          ControlledYXXYGate(rads=1.5 * numpy.pi),
-                          ControlledYXXYGate(degs=-450),
-                          ControlledYXXYGate(duration=-2.5 * numpy.pi / 2))
+    eq.add_equality_group(ofc.ControlledYXXYGate(half_turns=1.5),
+                          ofc.ControlledYXXYGate(half_turns=-2.5),
+                          ofc.ControlledYXXYGate(rads=1.5 * numpy.pi),
+                          ofc.ControlledYXXYGate(degs=-450),
+                          ofc.ControlledYXXYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_group(lambda: ControlledYXXYGate(half_turns=0))
-    eq.make_equality_group(lambda: ControlledYXXYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(half_turns=0))
+    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(half_turns=0.5))
 
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cyxxy_decompose(half_turns):
 
-    gate = CYXXY**half_turns
+    gate = ofc.CYXXY**half_turns
     qubits = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
     matrix = circuit.to_unitary_matrix(qubit_order=qubits)
@@ -101,94 +97,64 @@ def test_cyxxy_decompose(half_turns):
 
 
 def test_cyxxy_repr():
-    assert repr(ControlledYXXYGate(half_turns=1)) == 'CYXXY'
-    assert repr(ControlledYXXYGate(half_turns=0.5)) == 'CYXXY**0.5'
+    assert repr(ofc.ControlledYXXYGate(half_turns=1)) == 'CYXXY'
+    assert repr(ofc.ControlledYXXYGate(half_turns=0.5)) == 'CYXXY**0.5'
 
 
 @pytest.mark.parametrize(
-        'gate, half_turns, initial_state, correct_state, atol', [
-            (CCZ, 0.5,
-                numpy.array([1, 0, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
-                numpy.array([1, 0, 0, 0, 0, 0, 0, 1j]) / numpy.sqrt(2), 1e-7),
-            (CCZ, 1.0,
-                numpy.array([0, 1, 0, 0, 0, 0, 0, 1]) / numpy.sqrt(2),
-                numpy.array([0, 1, 0, 0, 0, 0, 0, -1]) / numpy.sqrt(2), 5e-7),
-            (CCZ, 0.5,
-                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 1, 0, 0, 0, 1, 0]) / numpy.sqrt(2), 5e-7),
-            (CCZ, 0.25,
-                numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 1, 0, 1, 0, 0]) / numpy.sqrt(2), 5e-7),
-            (CCZ, -0.5,
-                numpy.array([0, 0, 0, 0, 1, 0, 0, 1j]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 1, 0, 0, 1]) / numpy.sqrt(2), 1e-7),
-            (CXXYY, 1.0,
+        'gate, initial_state, correct_state', [
+            (ofc.CXXYY,
                 numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 0, -1j, -1j, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CXXYY, 0.5,
+                numpy.array([0, 0, 0, 0, 0, -1j, -1j, 0]) / numpy.sqrt(2)),
+            (ofc.CXXYY**0.5,
                 numpy.array([0, 0, 0, 0, 1, 1, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, -0.5j, 0]),
-                5e-6),
-            (CXXYY, -0.5,
+                numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, -0.5j, 0])),
+            (ofc.CXXYY**-0.5,
                 numpy.array([0, 0, 0, 0, 1, 1, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, 0.5j, 0]),
-                5e-6),
-            (CXXYY, 1.0,
+                numpy.array([0, 0, 0, 0, 1 / numpy.sqrt(2), 0.5, 0.5j, 0])),
+            (ofc.CXXYY,
                 numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, 0.5, 0.5, 0]),
-                numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, -0.5j, -0.5j, 0]),
-                5e-6),
-            (CXXYY, 1.0,
+                numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, -0.5j, -0.5j, 0])),
+            (ofc.CXXYY,
                 numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CXXYY, 0.5,
+                numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CXXYY**0.5,
                 numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CXXYY, -0.5,
+                numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CXXYY**-0.5,
                 numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CYXXY, 1.0,
+                numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CYXXY,
                 numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 0, 1, -1, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CYXXY, 0.5,
+                numpy.array([0, 0, 0, 0, 0, 1, -1, 0]) / numpy.sqrt(2)),
+            (ofc.CYXXY**0.5,
                 numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 0, 0, 1, 0]),
-                5e-6),
-            (CYXXY, -0.5,
+                numpy.array([0, 0, 0, 0, 0, 0, 1, 0])),
+            (ofc.CYXXY**-0.5,
                 numpy.array([0, 0, 0, 0, 0, 1, 1, 0]) / numpy.sqrt(2),
-                numpy.array([0, 0, 0, 0, 0, 1, 0, 0]),
-                5e-6),
-            (CYXXY, -0.5,
+                numpy.array([0, 0, 0, 0, 0, 1, 0, 0])),
+            (ofc.CYXXY**-0.5,
                 numpy.array([1 / numpy.sqrt(2), 0, 0, 0, 0, 0.5, 0.5, 0]),
-                numpy.array([1, 0, 0, 0, 0, 1, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CYXXY, 1.0,
+                numpy.array([1, 0, 0, 0, 0, 1, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CYXXY,
                 numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CYXXY, 0.5,
+                numpy.array([0, 1, 1, 0, 0, 0, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CYXXY**0.5,
                 numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6),
-            (CYXXY, -0.5,
+                numpy.array([1, 1, 0, 0, 0, 0, 0, 0]) / numpy.sqrt(2)),
+            (ofc.CYXXY**-0.5,
                 numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
-                numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2),
-                5e-6)
+                numpy.array([1, 0, 0, 1, 0, 0, 0, 0]) / numpy.sqrt(2))
 ])
-def test_three_qubit_rotation_gates_on_simulator(
-        gate, half_turns, initial_state, correct_state, atol):
-
-    simulator = cirq.google.XmonSimulator()
-    a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(gate(a, b, c)**half_turns)
-    initial_state = initial_state.astype(numpy.complex64)
-    result = simulator.simulate(circuit, initial_state=initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state, correct_state, atol=atol)
+def test_three_qubit_rotation_gates_on_simulator(gate: cirq.Gate,
+                                                 initial_state: numpy.ndarray,
+                                                 correct_state: numpy.ndarray):
+    op = gate(*cirq.LineQubit.range(3))
+    result = cirq.Circuit.from_ops(op).apply_unitary_effect_to_state(
+        initial_state, dtype=numpy.complex128)
+    cirq.testing.assert_allclose_up_to_global_phase(result,
+                                                    correct_state,
+                                                    atol=1e-8)
 
 
 def test_three_qubit_gate_text_diagrams():
@@ -197,25 +163,23 @@ def test_three_qubit_gate_text_diagrams():
     c = cirq.NamedQubit('c')
 
     circuit = cirq.Circuit.from_ops(
-        CCZ(a, b, c),
-        CXXYY(a, b, c),
-        CYXXY(a, b, c))
+        ofc.CXXYY(a, b, c),
+        ofc.CYXXY(a, b, c))
     assert circuit.to_text_diagram().strip() == """
-a: ───@───@──────@──────
-      │   │      │
-b: ───@───XXYY───YXXY───
-      │   │      │
-c: ───@───XXYY───#2─────
+a: ───@──────@──────
+      │      │
+b: ───XXYY───YXXY───
+      │      │
+c: ───XXYY───#2─────
 """.strip()
 
     circuit = cirq.Circuit.from_ops(
-        CCZ(a, b, c)**-0.5,
-        CXXYY(a, b, c)**-0.5,
-        CYXXY(a, b, c)**-0.5)
+        ofc.CXXYY(a, b, c)**-0.5,
+        ofc.CYXXY(a, b, c)**-0.5)
     assert circuit.to_text_diagram().strip() == """
-a: ───@────────@───────────@─────────
-      │        │           │
-b: ───@────────XXYY────────YXXY──────
-      │        │           │
-c: ───@^-0.5───XXYY^-0.5───#2^-0.5───
+a: ───@───────────@─────────
+      │           │
+b: ───XXYY────────YXXY──────
+      │           │
+c: ───XXYY^-0.5───#2^-0.5───
 """.strip()

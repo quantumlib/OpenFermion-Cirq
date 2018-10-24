@@ -20,7 +20,7 @@ from openfermion import DiagonalCoulombHamiltonian
 from openfermioncirq import (
         ControlledXXYYGate,
         ControlledYXXYGate,
-        Rot111Gate,
+        rot111,
         XXYYGate,
         YXXYGate,
         swap_network)
@@ -122,8 +122,7 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
             yield ControlledYXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
-            yield Rot111Gate(rads=
-                    -self.hamiltonian.two_body[p, q] * time).on(
+            yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
                             control_qubit, a, b)
         yield swap_network(
                 qubits, one_and_two_body_interaction, fermionic=True)
@@ -140,9 +139,8 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         # symmetric
         def one_and_two_body_interaction_reverse_order(p, q, a, b
                 ) -> cirq.OP_TREE:
-            yield Rot111Gate(rads=
-                    -self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
             yield ControlledYXXYGate(duration=
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
@@ -221,9 +219,8 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
             yield ControlledYXXYGate(duration=
                     self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
-            yield Rot111Gate(rads=
-                    -2 * self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
         yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 

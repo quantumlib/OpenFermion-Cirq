@@ -17,7 +17,7 @@ from typing import Optional, Sequence, Tuple
 import cirq
 from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
 
-from openfermioncirq import Rot111Gate, bogoliubov_transform, swap_network
+from openfermioncirq import rot111, bogoliubov_transform, swap_network
 
 from openfermioncirq.trotter.trotter_algorithm import (
         Hamiltonian,
@@ -166,9 +166,8 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield Rot111Gate(rads=
-                    -2 * self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
         qubits = qubits[::-1]
@@ -271,9 +270,8 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield Rot111Gate(rads=
-                    -2 * self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+            yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
+                control_qubit, a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
         qubits = qubits[::-1]

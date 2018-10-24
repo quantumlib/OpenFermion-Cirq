@@ -11,14 +11,13 @@
 # limitations under the License.
 
 from openfermioncirq.gates import (
-    CCZ,
     CXXYY,
     CYXXY,
     ControlledXXYYGate,
     ControlledYXXYGate,
     FSWAP,
     FermionicSwapGate,
-    Rot111Gate,
+    rot111,
     XXYY,
     XXYYGate,
     YXXY,
