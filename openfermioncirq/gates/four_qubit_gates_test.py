@@ -38,6 +38,7 @@ def test_state_swap_eigen_component_args():
     with pytest.raises(ValueError):
         state_swap_eigen_component('01', 'ab', 1)
 
+
 @pytest.mark.parametrize('index_pair,n_qubits', [
     ((0, 1), 2),
     ((0, 3), 2),
@@ -94,6 +95,18 @@ def test_double_excitation_decompose(half_turns):
 
     cirq.testing.assert_allclose_up_to_global_phase(
         matrix, cirq.unitary(gate), atol=1e-7)
+
+
+def test_apply_unitary():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        DoubleExcitation,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
+        qubit_count=4)
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        CombinedDoubleExcitationGate(),
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
+        qubit_count=4)
 
 
 @pytest.mark.parametrize('weights', numpy.random.rand(10, 3))

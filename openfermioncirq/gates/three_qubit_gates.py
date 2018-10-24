@@ -12,19 +12,24 @@
 
 """Common gates that target three qubits."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Sequence
 
-import numpy
+import numpy as np
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
+
+from openfermioncirq.gates import common_gates
 
 
 def rot111(rads: float):
     """Phases the |111> state of three qubits by e^{i rads}."""
-    return cirq.CCZ**(rads / numpy.pi)
+    return cirq.CCZ**(rads / np.pi)
 
 
-class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
+class ControlledXXYYGate(cirq.EigenGate,
+                         cirq.CompositeGate,
+                         cirq.ThreeQubitGate):
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
                  half_turns: Optional[Union[cirq.Symbol, float]]=None,
@@ -38,7 +43,7 @@ class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                     half_turns=half_turns,
@@ -47,23 +52,35 @@ class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
 
         super().__init__(exponent=exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        return cirq.apply_unitary_to_tensor(
+            cirq.ControlledGate(common_gates.XXYY**self.half_turns),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     @property
     def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
         minus_half_component = cirq.linalg.block_diag(
-            numpy.diag([0, 0, 0, 0, 0]),
-            numpy.array([[0.5, 0.5],
+            np.diag([0, 0, 0, 0, 0]),
+            np.array([[0.5, 0.5],
                          [0.5, 0.5]]),
-            numpy.diag([0]))
+            np.diag([0]))
         plus_half_component = cirq.linalg.block_diag(
-            numpy.diag([0, 0, 0, 0, 0]),
-            numpy.array([[0.5, -0.5],
+            np.diag([0, 0, 0, 0, 0]),
+            np.array([[0.5, -0.5],
                          [-0.5, 0.5]]),
-            numpy.diag([0]))
+            np.diag([0]))
 
-        return [(0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+        return [(0, np.diag([1, 1, 1, 1, 1, 0, 0, 1])),
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
@@ -97,7 +114,9 @@ class ControlledXXYYGate(cirq.EigenGate, cirq.CompositeGate):
         return 'CXXYY**{!r}'.format(self.half_turns)
 
 
-class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
+class ControlledYXXYGate(cirq.EigenGate,
+                         cirq.CompositeGate,
+                         cirq.ThreeQubitGate):
     """Controlled YX - XY interaction."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -112,7 +131,7 @@ class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                     half_turns=half_turns,
@@ -121,23 +140,35 @@ class ControlledYXXYGate(cirq.EigenGate, cirq.CompositeGate):
 
         super().__init__(exponent=exponent)
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        return cirq.apply_unitary_to_tensor(
+            cirq.ControlledGate(common_gates.YXXY**self.half_turns),
+            target_tensor,
+            available_buffer,
+            axes,
+            default=NotImplemented)
+
     @property
     def half_turns(self) -> Union[cirq.Symbol, float]:
         return self._exponent
 
     def _eigen_components(self):
         minus_half_component = cirq.linalg.block_diag(
-            numpy.diag([0, 0, 0, 0, 0]),
-            numpy.array([[0.5, -0.5j],
+            np.diag([0, 0, 0, 0, 0]),
+            np.array([[0.5, -0.5j],
                          [0.5j, 0.5]]),
-            numpy.diag([0]))
+            np.diag([0]))
         plus_half_component = cirq.linalg.block_diag(
-            numpy.diag([0, 0, 0, 0, 0]),
-            numpy.array([[0.5, 0.5j],
+            np.diag([0, 0, 0, 0, 0]),
+            np.array([[0.5, 0.5j],
                          [-0.5j, 0.5]]),
-            numpy.diag([0]))
+            np.diag([0]))
 
-        return [(0, numpy.diag([1, 1, 1, 1, 1, 0, 0, 1])),
+        return [(0, np.diag([1, 1, 1, 1, 1, 0, 0, 1])),
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 

@@ -13,8 +13,11 @@
 from openfermioncirq.gates import (
     CXXYY,
     CYXXY,
+    CombinedDoubleExcitationGate,
     ControlledXXYYGate,
     ControlledYXXYGate,
+    DoubleExcitation,
+    DoubleExcitationGate,
     FSWAP,
     FermionicSwapGate,
     rot111,
@@ -23,7 +26,8 @@ from openfermioncirq.gates import (
     YXXY,
     YXXYGate,
     ZZ,
-    ZZGate)
+    ZZGate,
+)
 
 from openfermioncirq.primitives import (
     prepare_gaussian_state,

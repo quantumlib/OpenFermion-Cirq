@@ -13,11 +13,12 @@
 """Gates that target four qubits."""
 
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Sequence
 
-import numpy
+import numpy as np
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 def state_swap_eigen_component(x: str, y: str, sign: int = 1):
@@ -59,7 +60,7 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1):
     dim = 2 ** len(x)
     i, j = int(x, 2), int(y, 2)
 
-    component = numpy.zeros((dim, dim))
+    component = np.zeros((dim, dim))
     component[i, i] = component[j, j] = 0.5
     component[i, j] = component[j, i] = sign * 0.5
     return component
@@ -93,7 +94,7 @@ class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                 half_turns=half_turns,
@@ -107,18 +108,33 @@ class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
         return self._exponent
 
     def _eigen_components(self):
-        minus_one_component = numpy.zeros((16, 16))
+        minus_one_component = np.zeros((16, 16))
         minus_one_component[3, 3] = minus_one_component[12, 12] = 0.5
         minus_one_component[3, 12] = minus_one_component[12, 3] = -0.5
 
-        plus_one_component = numpy.zeros((16, 16))
+        plus_one_component = np.zeros((16, 16))
         plus_one_component[3, 3] = plus_one_component[12, 12] = 0.5
         plus_one_component[3, 12] = plus_one_component[12, 3] = 0.5
 
-        return [(0, numpy.diag([1, 1, 1, 0, 1, 1, 1, 1,
-                                1, 1, 1, 1, 0, 1, 1, 1])),
+        return [(0, np.diag([1, 1, 1, 0, 1, 1, 1, 1,
+                             1, 1, 1, 1, 0, 1, 1, 1])),
                 (-1, minus_one_component),
                 (1, plus_one_component)]
+
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if cirq.is_parameterized(self):
+            return NotImplemented
+        inner_matrix = cirq.unitary(cirq.Rx(-2*np.pi*self.half_turns))
+        a = cirq.slice_for_qubits_equal_to(axes, 0b0011)
+        b = cirq.slice_for_qubits_equal_to(axes, 0b1100)
+        return cirq.apply_matrix_to_slices(target_tensor,
+                                           inner_matrix,
+                                           slices=[a, b],
+                                           out=available_buffer)
 
     def _canonical_exponent_period(self) -> Optional[float]:
         return 2
@@ -226,7 +242,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
                              'Use ONE of half_turns, rads, degs, or duration.')
 
         if duration is not None:
-            exponent = 2 * duration / numpy.pi
+            exponent = 2 * duration / np.pi
         else:
             exponent = cirq.value.chosen_angle_to_half_turns(
                 half_turns=half_turns,
@@ -245,7 +261,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
     def _eigen_components(self):
         # projector onto subspace spanned by basis states with
         # Hamming weight != 2
-        zero_component = numpy.diag([int(bin(i).count('1') != 2)
+        zero_component = np.diag([int(bin(i).count('1') != 2)
                                      for i in range(16)])
 
         state_pairs = (('1001', '0110'),
@@ -273,11 +289,11 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
     def default_decompose(self, qubits):
         a, b, c, d = qubits
 
-        weights_to_exponents = (self._exponent / 4.) * numpy.array([
+        weights_to_exponents = (self._exponent / 4.) * np.array([
             [1, -1, 1],
             [1, 1, -1],
             [-1, 1, 1]
-            ])
+        ])
         exponents = weights_to_exponents.dot(self.weights)
 
         basis_change = list(cirq.flatten_op_tree([
@@ -329,12 +345,41 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
         self.weights = tuple((w * self._exponent) % 4 for w in self.weights)
         self._exponent = 1
 
+    def _apply_unitary_to_tensor_(self,
+                                  target_tensor: np.ndarray,
+                                  available_buffer: np.ndarray,
+                                  axes: Sequence[int],
+                                  ) -> Union[np.ndarray, NotImplementedType]:
+        if cirq.is_parameterized(self):
+            return NotImplemented
+        inner_matrix = cirq.unitary(cirq.Rx(-np.pi*self.half_turns))
+
+        a1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
+        b1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
+        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
+
+        a2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
+        b2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
+        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
+
+        cirq.apply_matrix_to_slices(target_tensor,
+                                    inner_matrix,
+                                    slices=[a1, a2],
+                                    out=available_buffer)
+        cirq.apply_matrix_to_slices(available_buffer,
+                                    inner_matrix,
+                                    slices=[b1, b2],
+                                    out=target_tensor)
+        return cirq.apply_matrix_to_slices(target_tensor,
+                                           inner_matrix,
+                                           slices=[c1, c2],
+                                           out=available_buffer)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return all(numpy.isclose((w * self._exponent) % 4,
-                                 (ww * other._exponent) % 4)
+        return all(np.isclose((w * self._exponent) % 4,
+                              (ww * other._exponent) % 4)
                    for w, ww in zip(self.weights, other.weights))
 
     def __repr__(self):

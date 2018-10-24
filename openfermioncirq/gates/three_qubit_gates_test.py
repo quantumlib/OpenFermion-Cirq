@@ -24,6 +24,16 @@ def test_cxxyy_init_with_multiple_args_fails():
         _ = ofc.ControlledXXYYGate(half_turns=1.0, duration=numpy.pi/2)
 
 
+def test_apply_unitary_effect():
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        ofc.CXXYY,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+
+    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+        ofc.CYXXY,
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+
+
 def test_cxxyy_eq():
     eq = EqualsTester()
 
