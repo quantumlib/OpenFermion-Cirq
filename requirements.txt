@@ -1,0 +1,9 @@
+numpy
+pandas
+scipy
+
+# NOTE: switch to explicit versions when releasing! Last explicit versions were:
+# cirq==0.3.1.*
+# openfermion==0.8.1
+git+git://github.com/quantumlib/cirq#egg=cirq
+git+git://github.com/quantumlib/openfermion#egg=openfermion

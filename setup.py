@@ -42,7 +42,7 @@ setup(
     url='https://github.com/quantumlib/OpenFermion-Cirq',
     author='The OpenFermion Developers',
     author_email='openfermioncirq@googlegroups.com',
-    python_requires='>=3.5.3',
+    python_requires='>=3.5.2',
     install_requires=requirements,
     license='Apache 2',
     description=description,

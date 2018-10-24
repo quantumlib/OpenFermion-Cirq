@@ -1,9 +1,0 @@
-nbformat
-numpy
-pandas
-pytest
-scipy
-3to2
-typing~=3.6
-git+git://github.com/quantumlib/openfermion#egg=openfermion
-# the python 2 dev version of cirq must be installed via dev_tools/pip-install-cirq-python2-from-head.sh

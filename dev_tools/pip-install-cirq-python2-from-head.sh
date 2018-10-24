@@ -14,7 +14,7 @@
 set -e
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd $(git rev-parse --show-toplevel)
 
 # Do a sanity check that we're actually in python 2 land.
@@ -37,5 +37,6 @@ trap "exit" INT
 # Get python 3 code, convert to python 2, then install it.
 git clone git://github.com/quantumlib/Cirq.git "${tmp3_dir}" --depth=1 --quiet
 pip install 3to2
+echo "Transpiling cirq to python 2.7..."
 bash "${tmp3_dir}/dev_tools/python2.7-generate.sh" "${tmp2_dir}" "${tmp3_dir}"
 pip install "${tmp2_dir}"

@@ -1,6 +1,0 @@
-cirq>=0.3
-numpy
-openfermion>=0.8.1
-pandas
-scipy
-typing~=3.6
