@@ -66,7 +66,7 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1):
     return component
 
 
-class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
+class DoubleExcitationGate(cirq.EigenGate):
     """Evolve under -|0011><1100| + h.c. for some time."""
 
     def __init__(self, *,  # Forces keyword args.
@@ -144,7 +144,7 @@ class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
                        ) -> 'DoubleExcitationGate':
         return DoubleExcitationGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         p, q, r, s = qubits
 
         rq_phase_block = [cirq.Z(q) ** 0.125,
@@ -199,7 +199,7 @@ class DoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
 DoubleExcitation = DoubleExcitationGate()
 
 
-class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
+class CombinedDoubleExcitationGate(cirq.EigenGate):
     """Rotates Hamming-weight 2 states into their bitwise complements.
 
     For weights (t0, t1, t2), is equivalent to
@@ -286,7 +286,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
         gate._exponent = exponent
         return gate
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b, c, d = qubits
 
         weights_to_exponents = (self._exponent / 4.) * np.array([
@@ -311,12 +311,12 @@ class CombinedDoubleExcitationGate(cirq.EigenGate, cirq.CompositeGate):
             ]))
 
         controlled_Zs = list(cirq.flatten_op_tree([
-            cirq.Rot11Gate(half_turns=exponents[0])(b, c),
+            cirq.CZPowGate(exponent=exponents[0])(b, c),
             cirq.CNOT(a, b),
-            cirq.Rot11Gate(half_turns=exponents[1])(b, c),
+            cirq.CZPowGate(exponent=exponents[1])(b, c),
             cirq.CNOT(b, a),
             cirq.CNOT(a, b),
-            cirq.Rot11Gate(half_turns=exponents[2])(b, c)
+            cirq.CZPowGate(exponent=exponents[2])(b, c)
             ]))
 
         controlled_swaps = [

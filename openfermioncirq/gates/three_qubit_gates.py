@@ -28,7 +28,6 @@ def rot111(rads: float):
 
 
 class ControlledXXYYGate(cirq.EigenGate,
-                         cirq.CompositeGate,
                          cirq.ThreeQubitGate):
     """Controlled XX + YY interaction."""
     def __init__(self, *,  # Forces keyword args.
@@ -92,7 +91,7 @@ class ControlledXXYYGate(cirq.EigenGate,
                        ) -> 'ControlledXXYYGate':
         return ControlledXXYYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         control, a, b = qubits
         yield cirq.CNOT(a, b)
         yield cirq.H(a)
@@ -115,7 +114,6 @@ class ControlledXXYYGate(cirq.EigenGate,
 
 
 class ControlledYXXYGate(cirq.EigenGate,
-                         cirq.CompositeGate,
                          cirq.ThreeQubitGate):
     """Controlled YX - XY interaction."""
 
@@ -180,7 +178,7 @@ class ControlledYXXYGate(cirq.EigenGate,
                        ) -> 'ControlledYXXYGate':
         return ControlledYXXYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         control, a, b = qubits
         yield cirq.CNOT(a, b)
         yield cirq.X(a)**0.5

@@ -221,7 +221,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
             for p in range(n_qubits):
                 u_symbol = LetterWithSubscripts('U', p, i)
                 if u_symbol in param_set:
-                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
+                    yield cirq.ZPowGate(exponent=u_symbol).on(qubits[p])
 
             # Simulate each singular vector of the two-body terms.
             prior_basis_matrix = self.one_body_basis_change_matrix
@@ -242,7 +242,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                 def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
                     v_symbol = LetterWithSubscripts('V', p, q, j, i)
                     if v_symbol in param_set:
-                        yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
+                        yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
                 yield swap_network(qubits, two_body_interaction)
                 qubits = qubits[::-1]
 
@@ -250,7 +250,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                 for p in range(n_qubits):
                     u_symbol = LetterWithSubscripts('U', p, j, i)
                     if u_symbol in param_set:
-                        yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
+                        yield cirq.ZPowGate(exponent=u_symbol).on(qubits[p])
 
                 # Update prior basis change matrix.
                 prior_basis_matrix = basis_change_matrix

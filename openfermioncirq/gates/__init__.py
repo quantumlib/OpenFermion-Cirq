@@ -20,7 +20,8 @@ from openfermioncirq.gates.common_gates import (
     YXXY,
     YXXYGate,
     ZZ,
-    ZZGate)
+    ZZGate,
+    rot11)
 
 from openfermioncirq.gates.three_qubit_gates import (
     CXXYY,

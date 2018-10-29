@@ -20,6 +20,11 @@ import cirq
 from cirq.type_workarounds import NotImplementedType
 
 
+def rot11(rads: float):
+    """Phases the |11> state of two qubits by e^{i rads}."""
+    return cirq.CZ**(rads / np.pi)
+
+
 class FermionicSwapGate(cirq.EigenGate,
                         cirq.InterchangeableQubitsGate,
                         cirq.TwoQubitGate):
@@ -93,7 +98,6 @@ class FermionicSwapGate(cirq.EigenGate,
 
 
 class XXYYGate(cirq.EigenGate,
-               cirq.CompositeGate,
                cirq.InterchangeableQubitsGate,
                cirq.TwoQubitGate):
     """XX + YY interaction.
@@ -197,7 +201,7 @@ class XXYYGate(cirq.EigenGate,
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
         return XXYYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** 0.5
         yield YXXY(a, b) ** self.half_turns
@@ -216,7 +220,6 @@ class XXYYGate(cirq.EigenGate,
 
 
 class YXXYGate(cirq.EigenGate,
-               cirq.CompositeGate,
                cirq.TwoQubitGate):
     """YX - XY interaction.
 
@@ -319,7 +322,7 @@ class YXXYGate(cirq.EigenGate,
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
         return YXXYGate(half_turns=exponent)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** -0.5
         yield XXYY(a, b) ** self.half_turns

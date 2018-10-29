@@ -56,13 +56,8 @@ def test_cxxyy_eq():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cxxyy_decompose(half_turns):
-
-    gate = ofc.CXXYY**half_turns
-    qubits = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-7)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            ofc.CXXYY**half_turns)
 
 
 def test_cxxyy_repr():
@@ -97,13 +92,8 @@ def test_cyxxy_eq():
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_cyxxy_decompose(half_turns):
-
-    gate = ofc.CYXXY**half_turns
-    qubits = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(gate.default_decompose(qubits))
-    matrix = circuit.to_unitary_matrix(qubit_order=qubits)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            matrix, cirq.unitary(gate), atol=1e-7)
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+            ofc.CYXXY**half_turns)
 
 
 def test_cyxxy_repr():

@@ -119,11 +119,11 @@ class ExampleAnsatz(VariationalAnsatz):
 
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         a, b = qubits
-        yield cirq.RotXGate(half_turns=cirq.Symbol('theta0')).on(a)
-        yield cirq.RotXGate(half_turns=cirq.Symbol('theta1')).on(b)
+        yield cirq.XPowGate(exponent=cirq.Symbol('theta0')).on(a)
+        yield cirq.XPowGate(exponent=cirq.Symbol('theta1')).on(b)
         yield cirq.CZ(a, b)
-        yield cirq.RotXGate(half_turns=cirq.Symbol('theta0')).on(a)
-        yield cirq.RotXGate(half_turns=cirq.Symbol('theta1')).on(b)
+        yield cirq.XPowGate(exponent=cirq.Symbol('theta0')).on(a)
+        yield cirq.XPowGate(exponent=cirq.Symbol('theta1')).on(b)
         yield cirq.MeasurementGate('all').on(a, b)
 
 

@@ -17,7 +17,7 @@ from typing import Optional, Sequence, Tuple
 import cirq
 from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
 
-from openfermioncirq import rot111, bogoliubov_transform, swap_network
+from openfermioncirq import rot11, rot111, bogoliubov_transform, swap_network
 
 from openfermioncirq.trotter.trotter_algorithm import (
         Hamiltonian,
@@ -90,7 +90,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         n_qubits = len(qubits)
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.RotZGate(rads=
+        yield (cirq.Rz(rads=
                    -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -99,7 +99,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield cirq.Rot11Gate(rads=
+            yield rot11(rads=
                     -2 * self.hamiltonian.two_body[p, q] * time).on(a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
@@ -110,7 +110,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.RotZGate(rads=
+        yield (cirq.Rz(rads=
                    -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -156,7 +156,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         n_qubits = len(qubits)
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.Rot11Gate(rads=
+        yield (rot11(rads=
                    -0.5 * self.orbital_energies[i] * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
@@ -177,13 +177,13 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.Rot11Gate(rads=
+        yield (rot11(rads=
                    -0.5 * self.orbital_energies[i] * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
 
         # Apply phase from constant term
-        yield cirq.RotZGate(rads=
+        yield cirq.Rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
@@ -220,7 +220,7 @@ class AsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield cirq.Rot11Gate(rads=
+            yield rot11(rads=
                     -2 * self.hamiltonian.two_body[p, q] * time).on(a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
@@ -231,7 +231,7 @@ class AsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for the full time
-        yield (cirq.RotZGate(rads=
+        yield (cirq.Rz(rads=
                    -self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -281,7 +281,7 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for the full time
-        yield (cirq.Rot11Gate(rads=
+        yield (rot11(rads=
                    -self.orbital_energies[i] * time).on(
                        control_qubit, qubits[i])
                for i in range(n_qubits))
@@ -290,7 +290,7 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
         # Apply phase from constant term
-        yield cirq.RotZGate(rads=
+        yield cirq.Rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,

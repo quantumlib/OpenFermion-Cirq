@@ -228,7 +228,7 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
             for p in range(len(qubits)):
                 u_symbol = LetterWithSubscripts('U', p, i)
                 if u_symbol in param_set:
-                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
+                    yield cirq.ZPowGate(exponent=u_symbol).on(qubits[p])
 
             # Rotate to the computational basis
             yield bogoliubov_transform(qubits, self.basis_change_matrix)
@@ -237,7 +237,7 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
             def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
                 v_symbol = LetterWithSubscripts('V', p, q, i)
                 if v_symbol in param_set:
-                    yield cirq.Rot11Gate(half_turns=v_symbol).on(a, b)
+                    yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
             yield swap_network(qubits, two_body_interaction)
             qubits = qubits[::-1]
 
@@ -249,7 +249,7 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
             for p in range(len(qubits)):
                 u_symbol = LetterWithSubscripts('U', p, i)
                 if u_symbol in param_set:
-                    yield cirq.RotZGate(half_turns=u_symbol).on(qubits[p])
+                    yield cirq.ZPowGate(exponent=u_symbol).on(qubits[p])
 
         # Rotate to the computational basis
         yield bogoliubov_transform(qubits, self.basis_change_matrix)
