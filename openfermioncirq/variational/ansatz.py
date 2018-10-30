@@ -59,6 +59,16 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         """The parameters of the ansatz."""
         pass
 
+    def param_scale_factors(self) -> Iterable[float]:
+        """Coefficients to scale parameters by during optimization.
+
+        When an optimizer requests evaluation of a parameter array x,
+        each entry of x will be multiplied by the corresponding scaling factor
+        and the resulting values will be used to resolve Symbols.
+        """
+        for _ in self.params():
+            yield 1.0
+
     def param_bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
         """Optional bounds on the parameters.
 
@@ -71,10 +81,16 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
 
     def param_resolver(self, param_values: numpy.ndarray) -> cirq.ParamResolver:
         """Interprets parameters input as an array of real numbers."""
-        # Default: leave the parameters unchanged
         return cirq.ParamResolver(
-                dict(zip((param.name for param in self.params()),
-                         param_values)))
+                dict(
+                    (param.name, s*param_value)
+                    for param, param_value, s in zip(
+                        self.params(),
+                        param_values,
+                        self.param_scale_factors())
+                )
+        )
+
 
     def default_initial_params(self) -> numpy.ndarray:
         """Suggested initial parameter settings."""
