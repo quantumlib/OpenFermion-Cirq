@@ -28,7 +28,7 @@ description = ('Quantum circuits for simulations ' +
                'of quantum chemistry and materials.')
 
 # Read in runtime-requirements.txt
-requirements = open('runtime-requirements.txt').readlines()
+requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
 openfermioncirq_packages = ['openfermioncirq'] + [
