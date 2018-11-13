@@ -4,8 +4,8 @@ scipy
 typing~=3.6
 
 # NOTE: switch to explicit versions when releasing! Last explicit versions were:
-# cirq==0.3.1.*
+cirq~=0.4.0.dev
 # openfermion==0.8.1
 git+git://github.com/quantumlib/openfermion#egg=openfermion
-# cirq must be installed via dev_tools/pip-install-cirq-python2-from-head.sh
-# git+git://github.com/quantumlib/cirq#egg=cirq
+
+# Note: if you want to install cirq from github master HEAD, use dev_tools/pip-install-cirq-python2-from-head.sh

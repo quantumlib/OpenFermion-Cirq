@@ -45,5 +45,5 @@ matrix:
     python: "2.7"
     install:
       - pip install -r dev_tools/python2.7-requirements.txt
-      - dev_tools/pip-install-cirq-python2-from-head.sh
+      - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
     script: check/pytest2
