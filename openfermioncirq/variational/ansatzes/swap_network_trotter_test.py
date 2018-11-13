@@ -71,7 +71,7 @@ def test_swap_network_trotter_ansatz_circuit():
             include_all_cz=True,
             include_all_z=True)
     circuit = complete_ansatz.circuit
-    assert circuit.to_text_diagram(transpose=True).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0       1            2            3
 │       │            │            │
 XXYY────XXYY^T_0_1_0 XXYY─────────XXYY^T_2_3_0
@@ -140,11 +140,11 @@ XXYY────XXYY^T_0_1_0 XXYY─────────XXYY^T_2_3_0
 │       │            │            │
 ×ᶠ──────×ᶠ           ×ᶠ───────────×ᶠ
 │       │            │            │
-""".strip()
+""", transpose=True)
 
     hubbard_ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian, iterations=2)
     circuit = hubbard_ansatz.circuit
-    assert circuit.to_text_diagram(transpose=True).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 0    1            2            3         4  5         6            7
 │    │            │            │         │  │         │            │
 @────@^V_0_1_0    @────────────@^V_2_3_0 @──@^V_4_5_0 @────────────@^V_6_7_0
@@ -251,7 +251,7 @@ XXYY─XXYY^T_1_3_1 ×ᶠ───────────×ᶠ        ×ᶠ─�
 │    │            │            │         │  │         │            │
 ×ᶠ───×ᶠ           ×ᶠ───────────×ᶠ        ×ᶠ─×ᶠ        ×ᶠ───────────×ᶠ
 │    │            │            │         │  │         │            │
-""".strip()
+""", transpose=True)
 
 
 def test_swap_network_trotter_ansatz_default_initial_params_length():

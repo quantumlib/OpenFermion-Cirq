@@ -25,11 +25,11 @@ def test_cxxyy_init_with_multiple_args_fails():
 
 
 def test_apply_unitary_effect():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.CXXYY,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.CYXXY,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
@@ -165,21 +165,21 @@ def test_three_qubit_gate_text_diagrams():
     circuit = cirq.Circuit.from_ops(
         ofc.CXXYY(a, b, c),
         ofc.CYXXY(a, b, c))
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@──────@──────
       │      │
 b: ───XXYY───YXXY───
       │      │
 c: ───XXYY───#2─────
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         ofc.CXXYY(a, b, c)**-0.5,
         ofc.CYXXY(a, b, c)**-0.5)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───@───────────@─────────
       │           │
 b: ───XXYY────────YXXY──────
       │           │
 c: ───XXYY^-0.5───#2^-0.5───
-""".strip()
+""")

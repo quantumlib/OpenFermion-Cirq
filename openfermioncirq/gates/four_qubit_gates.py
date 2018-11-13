@@ -33,7 +33,8 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1):
         └             ┘
 
     Args:
-        x, y: The states to swap, as bitstrings.
+        x: The first state to swap, as a bitstring.
+        y: The second state to swap, as a bitstring.
         sign: The sign of the off-diagonal elements (indicated by +/-1).
 
     Returns: The eigen-component.
@@ -136,7 +137,7 @@ class DoubleExcitationGate(cirq.EigenGate):
                                            slices=[a, b],
                                            out=available_buffer)
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self,
@@ -187,8 +188,9 @@ class DoubleExcitationGate(cirq.EigenGate):
                             '/\\ \/',
                             '\/ /\\',
                             '\/ /\\')
-        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=wire_symbols,
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -262,7 +264,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         # projector onto subspace spanned by basis states with
         # Hamming weight != 2
         zero_component = np.diag([int(bin(i).count('1') != 2)
-                                     for i in range(16)])
+                                  for i in range(16)])
 
         state_pairs = (('1001', '0110'),
                        ('0101', '1010'),
@@ -271,12 +273,12 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         plus_minus_components = tuple(
             (weight * sign / 2,
              state_swap_eigen_component(state_pair[0], state_pair[1], sign))
-             for weight, state_pair in zip(self.weights, state_pairs)
-             for sign in (-1, 1))
+            for weight, state_pair in zip(self.weights, state_pairs)
+            for sign in (-1, 1))
 
         return ((0, zero_component),) + plus_minus_components
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return None
 
     def _with_exponent(self,
@@ -339,7 +341,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         else:
             wire_symbols = ('a*a*aa',) * 4
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                    exponent=self.half_turns)
+                                       exponent=self._diagram_exponent(args))
 
     def absorb_exponent_into_weights(self):
         self.weights = tuple((w * self._exponent) % 4 for w in self.weights)
@@ -352,26 +354,28 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Rx(-np.pi*self.half_turns))
+        am = cirq.unitary(cirq.Rx(-np.pi * self.half_turns * self.weights[0]))
+        bm = cirq.unitary(cirq.Rx(-np.pi * self.half_turns * self.weights[1]))
+        cm = cirq.unitary(cirq.Rx(-np.pi * self.half_turns * self.weights[2]))
 
-        a1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
-        b1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
-        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
+        a1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
+        b1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
+        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
 
-        a2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
-        b2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
-        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
+        a2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
+        b2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
+        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
 
         cirq.apply_matrix_to_slices(target_tensor,
-                                    inner_matrix,
+                                    am,
                                     slices=[a1, a2],
                                     out=available_buffer)
         cirq.apply_matrix_to_slices(available_buffer,
-                                    inner_matrix,
+                                    bm,
                                     slices=[b1, b2],
                                     out=target_tensor)
         return cirq.apply_matrix_to_slices(target_tensor,
-                                           inner_matrix,
+                                           cm,
                                            slices=[c1, c2],
                                            out=available_buffer)
 

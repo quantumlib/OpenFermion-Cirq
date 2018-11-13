@@ -46,7 +46,7 @@ class FermionicSwapGate(cirq.EigenGate,
                           [0,  0,    0,   1]])),
         ]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self,
@@ -84,7 +84,7 @@ class FermionicSwapGate(cirq.EigenGate,
             symbols = 'fswap', 'fswap'
         return cirq.CircuitDiagramInfo(
             wire_symbols=symbols,
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __str__(self) -> str:
         if self.half_turns == 1:
@@ -180,7 +180,7 @@ class XXYYGate(cirq.EigenGate,
                              [0, 0, 0, 0]]))
         ]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 4
 
     def _apply_unitary_to_tensor_(self,
@@ -211,7 +211,7 @@ class XXYYGate(cirq.EigenGate,
                                ) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('XXYY', 'XXYY'),
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -316,7 +316,7 @@ class YXXYGate(cirq.EigenGate,
                                            slices=[zo, oz],
                                            out=available_buffer)
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 4
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
@@ -332,7 +332,7 @@ class YXXYGate(cirq.EigenGate,
                                ) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('YXXY', '#2'),
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -435,7 +435,7 @@ class ZZGate(cirq.EigenGate,
             (0.5, np.diag([0, 1, 1, 0])),
         ]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 2
 
     def _with_exponent(self,
@@ -446,7 +446,7 @@ class ZZGate(cirq.EigenGate,
                                ) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('Z', 'Z'),
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self) -> str:
         if self.half_turns == 1:

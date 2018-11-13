@@ -83,7 +83,7 @@ class ControlledXXYYGate(cirq.EigenGate,
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 4
 
     def _with_exponent(self,
@@ -105,7 +105,7 @@ class ControlledXXYYGate(cirq.EigenGate,
                                ) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('@', 'XXYY', 'XXYY'),
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:
@@ -170,7 +170,7 @@ class ControlledYXXYGate(cirq.EigenGate,
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
-    def _canonical_exponent_period(self) -> Optional[float]:
+    def _period(self) -> Optional[float]:
         return 4
 
     def _with_exponent(self,
@@ -192,7 +192,7 @@ class ControlledYXXYGate(cirq.EigenGate,
                                ) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('@', 'YXXY', '#2'),
-            exponent=self.half_turns)
+            exponent=self._diagram_exponent(args))
 
     def __repr__(self):
         if self.half_turns == 1:

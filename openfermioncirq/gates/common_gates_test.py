@@ -56,7 +56,7 @@ def test_fswap_matrix():
                                                [0, 0.5-0.5j, 0.5+0.5j, 0],
                                                [0, 0, 0, 1j]]))
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         val=ofc.FSWAP,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
@@ -64,7 +64,7 @@ def test_fswap_matrix():
 def test_xxyy_init():
     assert ofc.XXYYGate(half_turns=0.5).half_turns == 0.5
     assert ofc.XXYYGate(half_turns=1.5).half_turns == 1.5
-    assert ofc.XXYYGate(half_turns=5).half_turns == 1
+    assert ofc.XXYYGate(half_turns=5).half_turns == 5
 
 
 def test_xxyy_init_with_multiple_args_fails():
@@ -108,7 +108,7 @@ def test_xxyy_decompose(half_turns):
 
 
 def test_xxyy_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.XXYY,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
@@ -151,7 +151,7 @@ def test_xxyy_matrix():
 def test_yxxy_init():
     assert ofc.YXXYGate(half_turns=0.5).half_turns == 0.5
     assert ofc.YXXYGate(half_turns=1.5).half_turns == 1.5
-    assert ofc.YXXYGate(half_turns=5).half_turns == 1
+    assert ofc.YXXYGate(half_turns=5).half_turns == 5
 
 
 def test_yxxy_init_with_multiple_args_fails():
@@ -190,7 +190,7 @@ def test_yxxy_decompose(half_turns):
 
 
 def test_yxxy_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.YXXY,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
@@ -233,8 +233,8 @@ def test_yxxy_matrix():
 
 def test_zz_init():
     assert ofc.ZZGate(half_turns=0.5).half_turns == 0.5
-    assert ofc.ZZGate(half_turns=1.5).half_turns == -0.5
-    assert ofc.ZZGate(half_turns=5).half_turns == 1
+    assert ofc.ZZGate(half_turns=1.5).half_turns == 1.5
+    assert ofc.ZZGate(half_turns=5).half_turns == 5
 
 
 def test_zz_init_with_multiple_args_fails():
@@ -267,7 +267,7 @@ def test_zz_repr():
 
 
 def test_zz_matrix():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.ZZ,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
 
@@ -336,13 +336,11 @@ def test_zz_matrix():
 ])
 def test_two_qubit_rotation_gates_on_simulator(
         gate, half_turns, initial_state, correct_state, atol):
-    simulator = cirq.google.XmonSimulator()
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(gate(a, b)**half_turns)
-    initial_state = initial_state.astype(numpy.complex64)
-    result = simulator.simulate(circuit, initial_state=initial_state)
+    result = circuit.apply_unitary_effect_to_state(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-            result.final_state, correct_state, atol=atol)
+        result, correct_state, atol=atol)
 
 
 def test_common_gate_text_diagrams():
@@ -361,11 +359,11 @@ a: ───×ᶠ───×ᶠ───────XXYY───YXXY───Z�
 b: ───×ᶠ───×ᶠ^0.5───XXYY───#2─────Z───
 """)
 
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---fswap---fswap-------XXYY---YXXY---Z---
       |       |           |      |      |
 b: ---fswap---fswap^0.5---XXYY---#2-----Z---
-""".strip()
+""", use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         ofc.XXYY(a, b)**0.5,

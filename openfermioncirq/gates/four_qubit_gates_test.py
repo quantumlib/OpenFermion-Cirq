@@ -93,13 +93,13 @@ def test_double_excitation_decompose(half_turns):
 
 
 def test_apply_unitary():
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         DoubleExcitation,
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
         qubit_count=4)
 
-    cirq.testing.assert_apply_unitary_to_tensor_is_consistent_with_unitary(
-        CombinedDoubleExcitationGate(),
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
+        CombinedDoubleExcitationGate(weights=(0.2, 0.3, 0.4)),
         exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')],
         qubit_count=4)
 
@@ -244,13 +244,11 @@ combined_double_excitation_simulator_test_cases = [
 def test_four_qubit_rotation_gates_on_simulator(
         gate, half_turns, initial_state, correct_state, atol):
 
-    simulator = cirq.google.XmonSimulator()
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(gate(a, b, c, d)**half_turns)
-    initial_state = initial_state.astype(numpy.complex64)
-    result = simulator.simulate(circuit, initial_state=initial_state)
+    result = circuit.apply_unitary_effect_to_state(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.final_state, correct_state, atol=atol)
+        result, correct_state, atol=atol)
 
 
 def test_double_excitation_gate_text_diagrams():
@@ -261,7 +259,7 @@ def test_double_excitation_gate_text_diagrams():
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d))
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───
       │
 b: ───⇅───
@@ -269,11 +267,11 @@ b: ───⇅───
 c: ───⇵───
       │
 d: ───⇵───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d)**-0.5)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅────────
       │
 b: ───⇅────────
@@ -281,11 +279,11 @@ b: ───⇅────────
 c: ───⇵────────
       │
 d: ───⇵^-0.5───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, c, b, d)**0.2)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───────
       │
 b: ───⇵───────
@@ -293,11 +291,11 @@ b: ───⇵───────
 c: ───⇅───────
       │
 d: ───⇵^0.2───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**0.7)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
 b: ───⇅───────
@@ -305,11 +303,11 @@ b: ───⇅───────
 c: ───⇵───────
       │
 d: ───⇅^0.7───
-""".strip()
+""")
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**2.3)
-    assert circuit.to_text_diagram().strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
 b: ───⇅───────
@@ -317,7 +315,7 @@ b: ───⇅───────
 c: ───⇵───────
       │
 d: ───⇅^0.3───
-""".strip()
+""")
 
 
 def test_double_excitation_gate_text_diagrams_no_unicode():
@@ -328,7 +326,7 @@ def test_double_excitation_gate_text_diagrams_no_unicode():
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d))
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/---
       |
 b: ---/\ \/---
@@ -336,11 +334,11 @@ b: ---/\ \/---
 c: ---\/ /\---
       |
 d: ---\/ /\---
-""".strip()
+""", use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, b, c, d)**-0.5)
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/--------
       |
 b: ---/\ \/--------
@@ -348,11 +346,11 @@ b: ---/\ \/--------
 c: ---\/ /\--------
       |
 d: ---\/ /\^-0.5---
-""".strip()
+""", use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(a, c, b, d)**0.2)
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/-------
       |
 b: ---\/ /\-------
@@ -360,11 +358,11 @@ b: ---\/ /\-------
 c: ---/\ \/-------
       |
 d: ---\/ /\^0.2---
-""".strip()
+""", use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**0.7)
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---\/ /\-------
       |
 b: ---/\ \/-------
@@ -372,11 +370,11 @@ b: ---/\ \/-------
 c: ---\/ /\-------
       |
 d: ---/\ \/^0.7---
-""".strip()
+""", use_unicode_characters=False)
 
     circuit = cirq.Circuit.from_ops(
         DoubleExcitation(d, b, a, c)**2.3)
-    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+    cirq.testing.assert_has_diagram(circuit, """
 a: ---\/ /\-------
       |
 b: ---/\ \/-------
@@ -384,7 +382,7 @@ b: ---/\ \/-------
 c: ---\/ /\-------
       |
 d: ---/\ \/^0.3---
-""".strip()
+""", use_unicode_characters=False)
 
 
 @pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])

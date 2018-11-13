@@ -228,19 +228,20 @@ def test_simulate_trotter_omit_final_swaps():
                 algorithm=LINEAR_SWAP_NETWORK,
                 omit_final_swaps=True))
 
-    assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
-            (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
-│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
-│        │          │          │          │
-×ᶠ───────×ᶠ         ×ᶠ─────────×ᶠ         │
-│        │          │          │          │
-│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
-│        │          │          │          │
-×ᶠ───────×ᶠ         ×ᶠ─────────×ᶠ         │
-│        │          │          │          │
-│        ×ᶠ─────────×ᶠ         ×ᶠ─────────×ᶠ
-│        │          │          │          │
-""").strip())
+    cirq.testing.assert_has_diagram(
+        circuit_with_swaps,
+        circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
+│           ×ᶠ──────────×ᶠ          ×ᶠ──────────×ᶠ
+│           │           │           │           │
+×ᶠ──────────×ᶠ          ×ᶠ──────────×ᶠ          │
+│           │           │           │           │
+│           ×ᶠ──────────×ᶠ          ×ᶠ──────────×ᶠ
+│           │           │           │           │
+×ᶠ──────────×ᶠ          ×ᶠ──────────×ᶠ          │
+│           │           │           │           │
+│           ×ᶠ──────────×ᶠ          ×ᶠ──────────×ᶠ
+│           │           │           │           │
+""", transpose=True)
 
     circuit_with_swaps = cirq.Circuit.from_ops(
             simulate_trotter(
@@ -262,29 +263,30 @@ def test_simulate_trotter_omit_final_swaps():
                 omit_final_swaps=True),
             strategy=cirq.InsertStrategy.NEW)
 
-    assert (circuit_with_swaps.to_text_diagram(transpose=True).strip() ==
-            (circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
-│         │           │           ×────────────×
-│         │           │           │            │
-│         ×───────────×           │            │
-│         │           │           │            │
-│         │           ×───────────×            │
-│         │           │           │            │
-×─────────×           │           │            │
-│         │           │           │            │
-│         │           │           ×────────────×
-│         │           │           │            │
-│         ×───────────×           │            │
-│         │           │           │            │
-│         │           ×───────────×            │
-│         │           │           │            │
-×─────────×           │           │            │
-│         │           │           │            │
-│         │           │           ×────────────×
-│         │           │           │            │
-│         ×───────────×           │            │
-│         │           │           │            │
-""").strip())
+    cirq.testing.assert_has_diagram(
+        circuit_with_swaps,
+        circuit_without_swaps.to_text_diagram(transpose=True).strip() + """
+│           │           │           ×───────────×
+│           │           │           │           │
+│           ×───────────×           │           │
+│           │           │           │           │
+│           │           ×───────────×           │
+│           │           │           │           │
+×───────────×           │           │           │
+│           │           │           │           │
+│           │           │           ×───────────×
+│           │           │           │           │
+│           ×───────────×           │           │
+│           │           │           │           │
+│           │           ×───────────×           │
+│           │           │           │           │
+×───────────×           │           │           │
+│           │           │           │           │
+│           │           │           ×───────────×
+│           │           │           │           │
+│           ×───────────×           │           │
+│           │           │           │           │
+""", transpose=True)
 
     hamiltonian = lih_hamiltonian
     qubits = cirq.LineQubit.range(4)
