@@ -21,7 +21,7 @@ import openfermioncirq as ofc
 
 def test_cxxyy_init_with_multiple_args_fails():
     with pytest.raises(ValueError):
-        _ = ofc.ControlledXXYYGate(half_turns=1.0, duration=numpy.pi/2)
+        _ = ofc.ControlledXXYYGate(exponent=1.0, duration=numpy.pi/2)
 
 
 def test_apply_unitary_effect():
@@ -38,26 +38,26 @@ def test_cxxyy_eq():
     eq = EqualsTester()
 
     eq.add_equality_group(ofc.CXXYY**-0.5,
-                          ofc.ControlledXXYYGate(half_turns=3.5),
-                          ofc.ControlledXXYYGate(half_turns=-0.5),
+                          ofc.ControlledXXYYGate(exponent=3.5),
+                          ofc.ControlledXXYYGate(exponent=-0.5),
                           ofc.ControlledXXYYGate(rads=-0.5 * numpy.pi),
                           ofc.ControlledXXYYGate(degs=-90),
                           ofc.ControlledXXYYGate(duration=-0.5 * numpy.pi / 2))
 
-    eq.add_equality_group(ofc.ControlledXXYYGate(half_turns=1.5),
-                          ofc.ControlledXXYYGate(half_turns=-2.5),
+    eq.add_equality_group(ofc.ControlledXXYYGate(exponent=1.5),
+                          ofc.ControlledXXYYGate(exponent=-2.5),
                           ofc.ControlledXXYYGate(rads=1.5 * numpy.pi),
                           ofc.ControlledXXYYGate(degs=-450),
                           ofc.ControlledXXYYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(half_turns=0))
-    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(exponent=0))
+    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(exponent=0.5))
 
 
-@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_cxxyy_decompose(half_turns):
+@pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cxxyy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
-            ofc.CXXYY**half_turns)
+            ofc.CXXYY**exponent)
 
 
 def test_cxxyy_repr():
@@ -67,38 +67,38 @@ def test_cxxyy_repr():
 
 def test_cyxxy_init_with_multiple_args_fails():
     with pytest.raises(ValueError):
-        _ = ofc.ControlledYXXYGate(half_turns=1.0, duration=numpy.pi/2)
+        _ = ofc.ControlledYXXYGate(exponent=1.0, duration=numpy.pi/2)
 
 
 def test_cyxxy_eq():
     eq = EqualsTester()
 
     eq.add_equality_group(ofc.CYXXY**-0.5,
-                          ofc.ControlledYXXYGate(half_turns=3.5),
-                          ofc.ControlledYXXYGate(half_turns=-0.5),
+                          ofc.ControlledYXXYGate(exponent=3.5),
+                          ofc.ControlledYXXYGate(exponent=-0.5),
                           ofc.ControlledYXXYGate(rads=-0.5 * numpy.pi),
                           ofc.ControlledYXXYGate(degs=-90),
                           ofc.ControlledYXXYGate(duration=-0.5 * numpy.pi / 2))
 
-    eq.add_equality_group(ofc.ControlledYXXYGate(half_turns=1.5),
-                          ofc.ControlledYXXYGate(half_turns=-2.5),
+    eq.add_equality_group(ofc.ControlledYXXYGate(exponent=1.5),
+                          ofc.ControlledYXXYGate(exponent=-2.5),
                           ofc.ControlledYXXYGate(rads=1.5 * numpy.pi),
                           ofc.ControlledYXXYGate(degs=-450),
                           ofc.ControlledYXXYGate(duration=-2.5 * numpy.pi / 2))
 
-    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(half_turns=0))
-    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(half_turns=0.5))
+    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(exponent=0))
+    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(exponent=0.5))
 
 
-@pytest.mark.parametrize('half_turns', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
-def test_cyxxy_decompose(half_turns):
+@pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_cyxxy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
-            ofc.CYXXY**half_turns)
+            ofc.CYXXY**exponent)
 
 
 def test_cyxxy_repr():
-    assert repr(ofc.ControlledYXXYGate(half_turns=1)) == 'CYXXY'
-    assert repr(ofc.ControlledYXXYGate(half_turns=0.5)) == 'CYXXY**0.5'
+    assert repr(ofc.ControlledYXXYGate(exponent=1)) == 'CYXXY'
+    assert repr(ofc.ControlledYXXYGate(exponent=0.5)) == 'CYXXY**0.5'
 
 
 @pytest.mark.parametrize(

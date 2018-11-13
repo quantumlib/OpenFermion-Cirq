@@ -31,8 +31,8 @@ class FermionicSwapGate(cirq.EigenGate,
     """Swaps two adjacent fermionic modes under the JWT."""
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Union[cirq.Symbol, float] = 1.0) -> None:
-        super().__init__(exponent=half_turns)
+                 exponent: Union[cirq.Symbol, float] = 1.0) -> None:
+        super().__init__(exponent=exponent)
 
     def _eigen_components(self):
         return [
@@ -52,7 +52,7 @@ class FermionicSwapGate(cirq.EigenGate,
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'FermionicSwapGate':
-        return FermionicSwapGate(half_turns=exponent)
+        return FermionicSwapGate(exponent=exponent)
 
     def _apply_unitary_to_tensor_(
             self,
@@ -60,7 +60,7 @@ class FermionicSwapGate(cirq.EigenGate,
             available_buffer: np.ndarray,
             axes: Sequence[int],
             ) -> Union[np.ndarray, NotImplementedType]:
-        if self.half_turns != 1:
+        if self.exponent != 1:
             return NotImplemented
 
         zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
@@ -71,10 +71,6 @@ class FermionicSwapGate(cirq.EigenGate,
         target_tensor[oz] = available_buffer[zo]
         target_tensor[oo] *= -1
         return target_tensor
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
@@ -87,14 +83,14 @@ class FermionicSwapGate(cirq.EigenGate,
             exponent=self._diagram_exponent(args))
 
     def __str__(self) -> str:
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'FSWAP'
-        return 'FSWAP**{!r}'.format(self.half_turns)
+        return 'FSWAP**{!r}'.format(self.exponent)
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'ofc.FSWAP'
-        return '(ofc.FSWAP**{!r})'.format(self.half_turns)
+        return '(ofc.FSWAP**{!r})'.format(self.exponent)
 
 
 class XXYYGate(cirq.EigenGate,
@@ -131,41 +127,37 @@ class XXYYGate(cirq.EigenGate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[cirq.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
-        At most one of half_turns, rads, degs, or duration may be specified.
+        At most one of exponent, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
-            half_turns: The exponent angle, in half-turns.
+            exponent: The exponent angle, in half-turns.
             rads: The exponent angle, in radians.
             degs: The exponent angle, in degrees.
             duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, rads, degs, duration]
+        if len([1 for e in [exponent, rads, degs, duration]
                 if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns, rads, degs, or duration.')
+                             'Use ONE of exponent, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / np.pi
         else:
-            exponent = cirq.value.chosen_angle_to_half_turns(
-                    half_turns=half_turns,
+            exponent = cirq.chosen_angle_to_half_turns(
+                    half_turns=exponent,
                     rads=rads,
                     degs=degs)
 
         super().__init__(exponent=exponent)
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
 
     def _eigen_components(self):
         return [
@@ -190,7 +182,7 @@ class XXYYGate(cirq.EigenGate,
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Rx(self.half_turns * np.pi))
+        inner_matrix = cirq.unitary(cirq.Rx(self.exponent * np.pi))
         zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
         oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
         return cirq.apply_matrix_to_slices(target_tensor,
@@ -199,12 +191,12 @@ class XXYYGate(cirq.EigenGate,
                                            out=available_buffer)
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
-        return XXYYGate(half_turns=exponent)
+        return XXYYGate(exponent=exponent)
 
     def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** 0.5
-        yield YXXY(a, b) ** self.half_turns
+        yield YXXY(a, b) ** self.exponent
         yield cirq.Z(a) ** -0.5
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
@@ -214,9 +206,9 @@ class XXYYGate(cirq.EigenGate,
             exponent=self._diagram_exponent(args))
 
     def __repr__(self):
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'XXYY'
-        return 'XXYY**{!r}'.format(self.half_turns)
+        return 'XXYY**{!r}'.format(self.exponent)
 
 
 class YXXYGate(cirq.EigenGate,
@@ -252,41 +244,37 @@ class YXXYGate(cirq.EigenGate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[cirq.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
-        At most one of half_turns, rads, degs, or duration may be specified.
+        At most one of exponent, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
-            half_turns: The exponent angle, in half-turns.
+            exponent: The exponent angle, in half-turns.
             rads: The exponent angle, in radians.
             degs: The exponent angle, in degrees.
             duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, rads, degs, duration]
+        if len([1 for e in [exponent, rads, degs, duration]
                 if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns, rads, degs, or duration.')
+                             'Use ONE of exponent, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / np.pi
         else:
-            exponent = cirq.value.chosen_angle_to_half_turns(
-                    half_turns=half_turns,
+            exponent = cirq.chosen_angle_to_half_turns(
+                half_turns=exponent,
                     rads=rads,
                     degs=degs)
 
         super().__init__(exponent=exponent)
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
 
     def _eigen_components(self):
         return [
@@ -308,7 +296,7 @@ class YXXYGate(cirq.EigenGate,
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Ry(-self.half_turns * np.pi))
+        inner_matrix = cirq.unitary(cirq.Ry(-self.exponent * np.pi))
         zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
         oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
         return cirq.apply_matrix_to_slices(target_tensor,
@@ -320,12 +308,12 @@ class YXXYGate(cirq.EigenGate,
         return 4
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
-        return YXXYGate(half_turns=exponent)
+        return YXXYGate(exponent=exponent)
 
     def _decompose_(self, qubits):
         a, b = qubits
         yield cirq.Z(a) ** -0.5
-        yield XXYY(a, b) ** self.half_turns
+        yield XXYY(a, b) ** self.exponent
         yield cirq.Z(a) ** 0.5
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
@@ -335,9 +323,9 @@ class YXXYGate(cirq.EigenGate,
             exponent=self._diagram_exponent(args))
 
     def __repr__(self):
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'YXXY'
-        return 'YXXY**{!r}'.format(self.half_turns)
+        return 'YXXY**{!r}'.format(self.exponent)
 
 
 class ZZGate(cirq.EigenGate,
@@ -377,41 +365,37 @@ class ZZGate(cirq.EigenGate,
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 half_turns: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[cirq.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
         """Initializes the gate.
 
-        At most one of half_turns, rads, degs, or duration may be specified.
+        At most one of exponent, rads, degs, or duration may be specified.
         If more are specified, the result is considered ambiguous and an
         error is thrown. If no argument is given, the default value of one
         half-turn is used.
 
         Args:
-            half_turns: The exponent angle, in half-turns.
+            exponent: The exponent angle, in half-turns.
             rads: The exponent angle, in radians.
             degs: The exponent angle, in degrees.
             duration: The exponent as a duration of time.
         """
-        if len([1 for e in [half_turns, rads, degs, duration]
+        if len([1 for e in [exponent, rads, degs, duration]
                 if e is not None]) > 1:
             raise ValueError('Redundant exponent specification. '
-                             'Use ONE of half_turns, rads, degs, or duration.')
+                             'Use ONE of exponent, rads, degs, or duration.')
 
         if duration is not None:
             exponent = 2 * duration / np.pi
         else:
-            exponent = cirq.value.chosen_angle_to_half_turns(
-                    half_turns=half_turns,
+            exponent = cirq.chosen_angle_to_half_turns(
+                    half_turns=exponent,
                     rads=rads,
                     degs=degs)
 
         super().__init__(exponent=exponent)
-
-    @property
-    def half_turns(self) -> Union[cirq.Symbol, float]:
-        return self._exponent
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -420,8 +404,8 @@ class ZZGate(cirq.EigenGate,
                                   ) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        global_phase = 1j**-self.half_turns
-        relative_phase = 1j**(2 * self.half_turns)
+        global_phase = 1j**-self.exponent
+        relative_phase = 1j**(2 * self.exponent)
         target_tensor *= global_phase
         zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
         oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
@@ -440,7 +424,7 @@ class ZZGate(cirq.EigenGate,
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]) -> 'ZZGate':
-        return ZZGate(half_turns=exponent)
+        return ZZGate(exponent=exponent)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
@@ -449,9 +433,9 @@ class ZZGate(cirq.EigenGate,
             exponent=self._diagram_exponent(args))
 
     def __repr__(self) -> str:
-        if self.half_turns == 1:
+        if self.exponent == 1:
             return 'ZZ'
-        return 'ZZ**{!r}'.format(self.half_turns)
+        return 'ZZ**{!r}'.format(self.exponent)
 
 
 FSWAP = FermionicSwapGate()
