@@ -79,9 +79,6 @@ class ControlledXXYYGate(cirq.EigenGate,
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
-    def _period(self) -> Optional[float]:
-        return 4
-
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'ControlledXXYYGate':
@@ -161,9 +158,6 @@ class ControlledYXXYGate(cirq.EigenGate,
         return [(0, np.diag([1, 1, 1, 1, 1, 0, 0, 1])),
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
-
-    def _period(self) -> Optional[float]:
-        return 4
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]

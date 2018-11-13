@@ -133,9 +133,6 @@ class DoubleExcitationGate(cirq.EigenGate):
                                            slices=[a, b],
                                            out=available_buffer)
 
-    def _period(self) -> Optional[float]:
-        return 2
-
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'DoubleExcitationGate':
@@ -269,9 +266,6 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
             for sign in (-1, 1))
 
         return ((0, zero_component),) + plus_minus_components
-
-    def _period(self) -> Optional[float]:
-        return None
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]

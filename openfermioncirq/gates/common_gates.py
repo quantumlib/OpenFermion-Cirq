@@ -46,9 +46,6 @@ class FermionicSwapGate(cirq.EigenGate,
                           [0,  0,    0,   1]])),
         ]
 
-    def _period(self) -> Optional[float]:
-        return 2
-
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
                        ) -> 'FermionicSwapGate':
@@ -171,9 +168,6 @@ class XXYYGate(cirq.EigenGate,
                              [0, -0.5, 0.5, 0],
                              [0, 0, 0, 0]]))
         ]
-
-    def _period(self) -> Optional[float]:
-        return 4
 
     def _apply_unitary_to_tensor_(self,
                                   target_tensor: np.ndarray,
@@ -304,9 +298,6 @@ class YXXYGate(cirq.EigenGate,
                                            slices=[zo, oz],
                                            out=available_buffer)
 
-    def _period(self) -> Optional[float]:
-        return 4
-
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
         return YXXYGate(exponent=exponent)
 
@@ -420,7 +411,7 @@ class ZZGate(cirq.EigenGate,
         ]
 
     def _period(self) -> Optional[float]:
-        return 2
+        return 2  # override 4
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]) -> 'ZZGate':
