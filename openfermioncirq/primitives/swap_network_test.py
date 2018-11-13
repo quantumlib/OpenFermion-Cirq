@@ -94,3 +94,8 @@ XXYY─XXYY XXYY─XXYY
 │ ×─× ×─×
 │ │ │ │ │
 """, transpose=True)
+
+
+def test_reusable():
+    ops = swap_network(cirq.LineQubit.range(5))
+    assert list(ops) == list(ops)
