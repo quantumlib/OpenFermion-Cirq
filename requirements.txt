@@ -6,4 +6,4 @@ scipy
 # cirq==0.3.1.*
 # openfermion==0.8.1
 cirq~=0.4.0.dev
-git+git://github.com/quantumlib/openfermion#egg=openfermion
+openfermion~=0.8.2.dev
