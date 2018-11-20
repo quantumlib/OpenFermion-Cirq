@@ -45,6 +45,7 @@ from openfermioncirq.variational import (
     LowRankTrotterAnsatz,
     SplitOperatorTrotterAnsatz,
     SwapNetworkTrotterAnsatz,
+    SwapNetworkTrotterHubbardAnsatz,
     VariationalAnsatz,
     VariationalObjective,
     VariationalStudy)

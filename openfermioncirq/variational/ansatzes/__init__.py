@@ -19,3 +19,6 @@ from openfermioncirq.variational.ansatzes.split_operator_trotter import (
 
 from openfermioncirq.variational.ansatzes.swap_network_trotter import (
     SwapNetworkTrotterAnsatz)
+
+from openfermioncirq.variational.ansatzes.swap_network_trotter_hubbard import (
+    SwapNetworkTrotterHubbardAnsatz)

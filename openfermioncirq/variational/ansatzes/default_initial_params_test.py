@@ -21,6 +21,7 @@ from openfermioncirq import (
         LowRankTrotterAnsatz,
         SplitOperatorTrotterAnsatz,
         SwapNetworkTrotterAnsatz,
+        SwapNetworkTrotterHubbardAnsatz,
         VariationalStudy,
         prepare_gaussian_state,
         simulate_trotter)
@@ -46,25 +47,29 @@ lih_hamiltonian = openfermion.load_molecular_hamiltonian(
 
 
 @pytest.mark.parametrize(
-        'ansatz_factory, trotter_algorithm, order, hamiltonian, atol', [
-    (SwapNetworkTrotterAnsatz, LINEAR_SWAP_NETWORK, 1, diag_coul_hamiltonian,
-        5e-5),
-    (SplitOperatorTrotterAnsatz, SPLIT_OPERATOR, 1, diag_coul_hamiltonian,
-        5e-5),
-    (LowRankTrotterAnsatz, LOW_RANK, 0, h2_hamiltonian, 5e-5),
-    (lambda hamiltonian, iterations: LowRankTrotterAnsatz(
-            hamiltonian,
-            iterations=iterations,
-            final_rank=3),
-        LowRankTrotterAlgorithm(final_rank=3),
-        0, lih_hamiltonian, 5e-5),
+        'ansatz, trotter_algorithm, order, hamiltonian, atol', [
+    (SwapNetworkTrotterAnsatz(diag_coul_hamiltonian, iterations=1),
+        LINEAR_SWAP_NETWORK, 1, diag_coul_hamiltonian, 5e-5),
+    (SplitOperatorTrotterAnsatz(diag_coul_hamiltonian, iterations=1),
+        SPLIT_OPERATOR, 1, diag_coul_hamiltonian, 5e-5),
+    (LowRankTrotterAnsatz(h2_hamiltonian, iterations=1),
+        LOW_RANK, 0, h2_hamiltonian, 5e-5),
+    (LowRankTrotterAnsatz(lih_hamiltonian, iterations=1, final_rank=3),
+        LowRankTrotterAlgorithm(final_rank=3), 0, lih_hamiltonian, 5e-5),
+    (SwapNetworkTrotterHubbardAnsatz(2, 2, 1.0, 4.0, iterations=1),
+        LINEAR_SWAP_NETWORK, 1,
+        openfermion.get_diagonal_coulomb_hamiltonian(
+            openfermion.reorder(
+                openfermion.fermi_hubbard(2, 2, 1.0, 4.0),
+                openfermion.up_then_down)
+        ),
+        5e-5)
 ])
 def test_trotter_ansatzes_default_initial_params_iterations_1(
-        ansatz_factory, trotter_algorithm, order, hamiltonian, atol):
+        ansatz, trotter_algorithm, order, hamiltonian, atol):
     """Check that a Trotter ansatz with one iteration and default parameters
     is consistent with time evolution with one Trotter step."""
 
-    ansatz = ansatz_factory(hamiltonian, iterations=1)
     objective = HamiltonianObjective(hamiltonian)
 
     qubits = ansatz.qubits
@@ -74,11 +79,17 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
@@ -127,25 +138,29 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
 
 
 @pytest.mark.parametrize(
-        'ansatz_factory, trotter_algorithm, order, hamiltonian, atol', [
-    (SwapNetworkTrotterAnsatz, LINEAR_SWAP_NETWORK, 1, diag_coul_hamiltonian,
-        5e-5),
-    (SplitOperatorTrotterAnsatz, SPLIT_OPERATOR, 1, diag_coul_hamiltonian,
-        5e-5),
-    (LowRankTrotterAnsatz, LOW_RANK, 0, h2_hamiltonian, 5e-5),
-    (lambda hamiltonian, iterations: LowRankTrotterAnsatz(
-            hamiltonian,
-            iterations=iterations,
-            final_rank=3),
-        LowRankTrotterAlgorithm(final_rank=3),
-        0, lih_hamiltonian, 1e-3),
+        'ansatz, trotter_algorithm, order, hamiltonian, atol', [
+    (SwapNetworkTrotterAnsatz(diag_coul_hamiltonian, iterations=2),
+        LINEAR_SWAP_NETWORK, 1, diag_coul_hamiltonian, 5e-5),
+    (SplitOperatorTrotterAnsatz(diag_coul_hamiltonian, iterations=2),
+        SPLIT_OPERATOR, 1, diag_coul_hamiltonian, 5e-5),
+    (LowRankTrotterAnsatz(h2_hamiltonian, iterations=2),
+        LOW_RANK, 0, h2_hamiltonian, 5e-5),
+    (LowRankTrotterAnsatz(lih_hamiltonian, iterations=2, final_rank=3),
+        LowRankTrotterAlgorithm(final_rank=3), 0, lih_hamiltonian, 1e-3),
+    (SwapNetworkTrotterHubbardAnsatz(2, 2, 1.0, 4.0, iterations=2),
+        LINEAR_SWAP_NETWORK, 1,
+        openfermion.get_diagonal_coulomb_hamiltonian(
+            openfermion.reorder(
+                openfermion.fermi_hubbard(2, 2, 1.0, 4.0),
+                openfermion.up_then_down)
+        ),
+        5e-5)
 ])
 def test_trotter_ansatzes_default_initial_params_iterations_2(
-        ansatz_factory, trotter_algorithm, order, hamiltonian, atol):
+        ansatz, trotter_algorithm, order, hamiltonian, atol):
     """Check that a Trotter ansatz with two iterations and default parameters
     is consistent with time evolution with two Trotter steps."""
 
-    ansatz = ansatz_factory(hamiltonian, iterations=2)
     objective = HamiltonianObjective(hamiltonian)
 
     qubits = ansatz.qubits
@@ -155,11 +170,17 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
     elif isinstance(hamiltonian, openfermion.InteractionOperator):
         one_body = hamiltonian.one_body_tensor
 
+    if isinstance(ansatz, SwapNetworkTrotterHubbardAnsatz):
+        occupied_orbitals = (range(len(qubits)//4), range(len(qubits)//4))
+    else:
+        occupied_orbitals = range(len(qubits)//2)
+
     preparation_circuit = cirq.Circuit.from_ops(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
-                occupied_orbitals=range(len(qubits) // 2))
+                occupied_orbitals=occupied_orbitals
+            )
     )
 
     # Compute value using ansatz circuit and objective
