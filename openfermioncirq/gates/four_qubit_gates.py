@@ -13,12 +13,11 @@
 """Gates that target four qubits."""
 
 
-from typing import Optional, Union, Tuple, Sequence
+from typing import Optional, Union, Tuple
 
 import numpy as np
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
 
 
 def state_swap_eigen_component(x: str, y: str, sign: int = 1):
@@ -118,20 +117,17 @@ class DoubleExcitationGate(cirq.EigenGate):
                 (-1, minus_one_component),
                 (1, plus_one_component)]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
-            return NotImplemented
-        inner_matrix = cirq.unitary(cirq.Rx(-2*np.pi*self.exponent))
-        a = cirq.slice_for_qubits_equal_to(axes, 0b0011)
-        b = cirq.slice_for_qubits_equal_to(axes, 0b1100)
-        return cirq.apply_matrix_to_slices(target_tensor,
+            return None
+        inner_matrix = cirq.unitary(cirq.Rx(-2 * np.pi * self.exponent))
+        a = args.subspace_index(0b0011)
+        b = args.subspace_index(0b1100)
+        return cirq.apply_matrix_to_slices(args.target_tensor,
                                            inner_matrix,
                                            slices=[a, b],
-                                           out=available_buffer)
+                                           out=args.available_buffer)
 
     def _with_exponent(self,
                        exponent: Union[cirq.Symbol, float]
@@ -333,37 +329,34 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         self.weights = tuple((w * self._exponent) % 4 for w in self.weights)
         self._exponent = 1
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
-            return NotImplemented
+            return None
         am = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[0]))
         bm = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[1]))
         cm = cirq.unitary(cirq.Rx(-np.pi * self.exponent * self.weights[2]))
 
-        a1 = cirq.slice_for_qubits_equal_to(axes, 0b1001)
-        b1 = cirq.slice_for_qubits_equal_to(axes, 0b0101)
-        c1 = cirq.slice_for_qubits_equal_to(axes, 0b0011)
+        a1 = args.subspace_index(0b1001)
+        b1 = args.subspace_index(0b0101)
+        c1 = args.subspace_index(0b0011)
 
-        a2 = cirq.slice_for_qubits_equal_to(axes, 0b0110)
-        b2 = cirq.slice_for_qubits_equal_to(axes, 0b1010)
-        c2 = cirq.slice_for_qubits_equal_to(axes, 0b1100)
+        a2 = args.subspace_index(0b0110)
+        b2 = args.subspace_index(0b1010)
+        c2 = args.subspace_index(0b1100)
 
-        cirq.apply_matrix_to_slices(target_tensor,
+        cirq.apply_matrix_to_slices(args.target_tensor,
                                     am,
                                     slices=[a1, a2],
-                                    out=available_buffer)
-        cirq.apply_matrix_to_slices(available_buffer,
+                                    out=args.available_buffer)
+        cirq.apply_matrix_to_slices(args.available_buffer,
                                     bm,
                                     slices=[b1, b2],
-                                    out=target_tensor)
-        return cirq.apply_matrix_to_slices(target_tensor,
+                                    out=args.target_tensor)
+        return cirq.apply_matrix_to_slices(args.target_tensor,
                                            cm,
                                            slices=[c1, c2],
-                                           out=available_buffer)
+                                           out=args.available_buffer)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

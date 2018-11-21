@@ -12,12 +12,11 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional, Union, Sequence
+from typing import Optional, Union
 
 import numpy as np
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
 
 
 def rot11(rads: float):
@@ -51,23 +50,19 @@ class FermionicSwapGate(cirq.EigenGate,
                        ) -> 'FermionicSwapGate':
         return FermionicSwapGate(exponent=exponent)
 
-    def _apply_unitary_to_tensor_(
-            self,
-            target_tensor: np.ndarray,
-            available_buffer: np.ndarray,
-            axes: Sequence[int],
-            ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if self.exponent != 1:
-            return NotImplemented
+            return None
 
-        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
-        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
-        oo = cirq.slice_for_qubits_equal_to(axes, 0b11)
-        available_buffer[zo] = target_tensor[zo]
-        target_tensor[zo] = target_tensor[oz]
-        target_tensor[oz] = available_buffer[zo]
-        target_tensor[oo] *= -1
-        return target_tensor
+        oi = args.subspace_index(0b01)
+        io = args.subspace_index(0b10)
+        ii = args.subspace_index(0b11)
+        args.available_buffer[oi] = args.target_tensor[oi]
+        args.target_tensor[oi] = args.target_tensor[io]
+        args.target_tensor[io] = args.available_buffer[oi]
+        args.target_tensor[ii] *= -1
+        return args.target_tensor
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
@@ -169,20 +164,17 @@ class XXYYGate(cirq.EigenGate,
                              [0, 0, 0, 0]]))
         ]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
-            return NotImplemented
+            return None
         inner_matrix = cirq.unitary(cirq.Rx(self.exponent * np.pi))
-        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
-        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
-        return cirq.apply_matrix_to_slices(target_tensor,
+        oi = args.subspace_index(0b01)
+        io = args.subspace_index(0b10)
+        return cirq.apply_matrix_to_slices(args.target_tensor,
                                            inner_matrix,
-                                           slices=[zo, oz],
-                                           out=available_buffer)
+                                           slices=[oi, io],
+                                           out=args.available_buffer)
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'XXYYGate':
         return XXYYGate(exponent=exponent)
@@ -283,20 +275,17 @@ class YXXYGate(cirq.EigenGate,
                             [0, 0, 0, 0]]))
         ]
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
-            return NotImplemented
+            return None
         inner_matrix = cirq.unitary(cirq.Ry(-self.exponent * np.pi))
-        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
-        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
-        return cirq.apply_matrix_to_slices(target_tensor,
+        oi = args.subspace_index(0b01)
+        io = args.subspace_index(0b10)
+        return cirq.apply_matrix_to_slices(args.target_tensor,
                                            inner_matrix,
-                                           slices=[zo, oz],
-                                           out=available_buffer)
+                                           slices=[oi, io],
+                                           out=args.available_buffer)
 
     def _with_exponent(self, exponent: Union[cirq.Symbol, float]) -> 'YXXYGate':
         return YXXYGate(exponent=exponent)
@@ -388,21 +377,18 @@ class ZZGate(cirq.EigenGate,
 
         super().__init__(exponent=exponent)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
-            return NotImplemented
+            return None
         global_phase = 1j**-self.exponent
         relative_phase = 1j**(2 * self.exponent)
-        target_tensor *= global_phase
-        zo = cirq.slice_for_qubits_equal_to(axes, 0b01)
-        oz = cirq.slice_for_qubits_equal_to(axes, 0b10)
-        target_tensor[oz] *= relative_phase
-        target_tensor[zo] *= relative_phase
-        return target_tensor
+        args.target_tensor *= global_phase
+        oi = args.subspace_index(0b01)
+        io = args.subspace_index(0b10)
+        args.target_tensor[io] *= relative_phase
+        args.target_tensor[oi] *= relative_phase
+        return args.target_tensor
 
     def _eigen_components(self):
         return [

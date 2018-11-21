@@ -12,12 +12,11 @@
 
 """Common gates that target three qubits."""
 
-from typing import Optional, Union, Sequence
+from typing import Optional, Union
 
 import numpy as np
 
 import cirq
-from cirq.type_workarounds import NotImplementedType
 
 from openfermioncirq.gates import common_gates
 
@@ -51,17 +50,12 @@ class ControlledXXYYGate(cirq.EigenGate,
 
         super().__init__(exponent=exponent)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        return cirq.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
+        return cirq.apply_unitary(
             cirq.ControlledGate(common_gates.XXYY**self.exponent),
-            target_tensor,
-            available_buffer,
-            axes,
-            default=NotImplemented)
+            args,
+            default=None)
 
     def _eigen_components(self):
         minus_half_component = cirq.linalg.block_diag(
@@ -131,17 +125,12 @@ class ControlledYXXYGate(cirq.EigenGate,
 
         super().__init__(exponent=exponent)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        return cirq.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Optional[np.ndarray]:
+        return cirq.apply_unitary(
             cirq.ControlledGate(common_gates.YXXY**self.exponent),
-            target_tensor,
-            available_buffer,
-            axes,
-            default=NotImplemented)
+            args,
+            default=None)
 
     def _eigen_components(self):
         minus_half_component = cirq.linalg.block_diag(
