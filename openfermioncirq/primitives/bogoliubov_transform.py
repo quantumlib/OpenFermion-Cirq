@@ -23,7 +23,7 @@ from openfermion.ops._givens_rotations import (
         fermionic_gaussian_decomposition,
         givens_decomposition_square)
 
-from openfermioncirq import YXXY
+from openfermioncirq import Ryxxy
 
 
 def bogoliubov_transform(
@@ -228,5 +228,5 @@ def _ops_from_givens_rotations_circuit_description(
                 yield cirq.X(qubits[-1])
             else:
                 i, j, theta, phi = cast(Tuple[int, int, float, float], op)
-                yield YXXY(qubits[i], qubits[j]) ** (2 * theta / numpy.pi)
+                yield Ryxxy(theta).on(qubits[i], qubits[j])
                 yield cirq.Z(qubits[j]) ** (phi / numpy.pi)

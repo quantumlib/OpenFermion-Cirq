@@ -18,12 +18,12 @@ import cirq
 from openfermion import DiagonalCoulombHamiltonian
 
 from openfermioncirq import (
-        ControlledXXYYGate,
-        ControlledYXXYGate,
+        CRxxyy,
+        CRyxxy,
+        Rxxyy,
+        Ryxxy,
         rot11,
         rot111,
-        XXYYGate,
-        YXXYGate,
         swap_network)
 
 from openfermioncirq.trotter.trotter_algorithm import (
@@ -75,9 +75,9 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         # Apply one- and two-body interactions for half of the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield XXYYGate(duration=
+            yield Rxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(a, b)
-            yield YXXYGate(duration=
+            yield Ryxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(a, b)
             yield rot11(rads=
                     -self.hamiltonian.two_body[p, q] * time).on(a, b)
@@ -96,9 +96,9 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                 ) -> cirq.OP_TREE:
             yield rot11(rads=
                     -self.hamiltonian.two_body[p, q] * time).on(a, b)
-            yield YXXYGate(duration=
+            yield Ryxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(a, b)
-            yield XXYYGate(duration=
+            yield Rxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(a, b)
         yield swap_network(qubits, one_and_two_body_interaction_reverse_order,
                 fermionic=True, offset=True)
@@ -117,10 +117,10 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         # Apply one- and two-body interactions for half of the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield ControlledXXYYGate(duration=
+            yield CRxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(
                             control_qubit, a, b)
-            yield ControlledYXXYGate(duration=
+            yield CRyxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
             yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
@@ -142,10 +142,10 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                 ) -> cirq.OP_TREE:
             yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
                 control_qubit, a, b)
-            yield ControlledYXXYGate(duration=
+            yield CRyxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
-            yield ControlledXXYYGate(duration=
+            yield CRxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(
                             control_qubit, a, b)
         yield swap_network(qubits, one_and_two_body_interaction_reverse_order,
@@ -168,9 +168,9 @@ class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         # Apply one- and two-body interactions for the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield XXYYGate(duration=
+            yield Rxxyy(
                     self.hamiltonian.one_body[p, q].real * time).on(a, b)
-            yield YXXYGate(duration=
+            yield Ryxxy(
                     self.hamiltonian.one_body[p, q].imag * time).on(a, b)
             yield rot11(rads=
                     -2 * self.hamiltonian.two_body[p, q] * time).on(a, b)
@@ -214,10 +214,10 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         # Apply one- and two-body interactions for the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
-            yield ControlledXXYYGate(duration=
+            yield CRxxyy(
                     self.hamiltonian.one_body[p, q].real * time).on(
                             control_qubit, a, b)
-            yield ControlledYXXYGate(duration=
+            yield CRyxxy(
                     self.hamiltonian.one_body[p, q].imag * time).on(
                             control_qubit, a, b)
             yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(

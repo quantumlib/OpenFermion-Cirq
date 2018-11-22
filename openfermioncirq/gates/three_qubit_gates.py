@@ -175,5 +175,15 @@ class ControlledYXXYGate(cirq.EigenGate,
         return 'CYXXY**{!r}'.format(self.exponent)
 
 
+def CRxxyy(rads: float) -> ControlledXXYYGate:
+    """Controlled version of ofc.Rxxyy"""
+    return ControlledXXYYGate(exponent=2 * rads / np.pi)
+
+
+def CRyxxy(rads: float) -> ControlledYXXYGate:
+    """Controlled version of ofc.Ryxxy"""
+    return ControlledYXXYGate(exponent=2 * rads / np.pi)
+
+
 CXXYY = ControlledXXYYGate()
 CYXXY = ControlledYXXYGate()

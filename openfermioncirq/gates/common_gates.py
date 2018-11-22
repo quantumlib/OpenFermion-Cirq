@@ -415,6 +415,16 @@ class ZZGate(cirq.EigenGate,
         return 'ZZ**{!r}'.format(self.exponent)
 
 
+def Rxxyy(rads: float) -> XXYYGate:
+    """Returns a gate with the matrix exp(-i rads (X⊗X + Y⊗Y) / 2)."""
+    return XXYYGate(exponent=2 * rads / np.pi)
+
+
+def Ryxxy(rads: float) -> YXXYGate:
+    """Returns a gate with the matrix exp(-i rads (Y⊗X - X⊗Y) / 2)."""
+    return YXXYGate(exponent=2 * rads / np.pi)
+
+
 FSWAP = FermionicSwapGate()
 XXYY = XXYYGate()
 YXXY = YXXYGate()

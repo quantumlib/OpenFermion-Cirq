@@ -11,6 +11,8 @@
 # limitations under the License.
 
 from openfermioncirq.gates import (
+    CRxxyy,
+    CRyxxy,
     CXXYY,
     CYXXY,
     CombinedDoubleExcitationGate,
@@ -20,6 +22,8 @@ from openfermioncirq.gates import (
     DoubleExcitationGate,
     FSWAP,
     FermionicSwapGate,
+    Rxxyy,
+    Ryxxy,
     rot11,
     rot111,
     XXYY,
