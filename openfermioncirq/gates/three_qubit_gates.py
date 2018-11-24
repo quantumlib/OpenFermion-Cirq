@@ -12,7 +12,7 @@
 
 """Common gates that target three qubits."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 
@@ -26,29 +26,9 @@ def rot111(rads: float):
     return cirq.CCZ**(rads / np.pi)
 
 
-class ControlledXXYYGate(cirq.EigenGate,
+class CXXYYPowGate(cirq.EigenGate,
                          cirq.ThreeQubitGate):
     """Controlled XX + YY interaction."""
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Optional[Union[cirq.Symbol, float]]=None,
-                 rads: Optional[float]=None,
-                 degs: Optional[float]=None,
-                 duration: Optional[float]=None) -> None:
-
-        if len([1 for e in [exponent, rads, degs, duration]
-                if e is not None]) > 1:
-            raise ValueError('Redundant exponent specification. '
-                             'Use ONE of exponent, rads, degs, or duration.')
-
-        if duration is not None:
-            exponent = 2 * duration / np.pi
-        else:
-            exponent = cirq.chosen_angle_to_half_turns(
-                    half_turns=exponent,
-                    rads=rads,
-                    degs=degs)
-
-        super().__init__(exponent=exponent)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
@@ -73,11 +53,6 @@ class ControlledXXYYGate(cirq.EigenGate,
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
-    def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]
-                       ) -> 'ControlledXXYYGate':
-        return ControlledXXYYGate(exponent=exponent)
-
     def _decompose_(self, qubits):
         control, a, b = qubits
         yield cirq.CNOT(a, b)
@@ -100,30 +75,9 @@ class ControlledXXYYGate(cirq.EigenGate,
         return 'CXXYY**{!r}'.format(self.exponent)
 
 
-class ControlledYXXYGate(cirq.EigenGate,
+class CYXXYPowGate(cirq.EigenGate,
                          cirq.ThreeQubitGate):
     """Controlled YX - XY interaction."""
-
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Optional[Union[cirq.Symbol, float]]=None,
-                 rads: Optional[float]=None,
-                 degs: Optional[float]=None,
-                 duration: Optional[float]=None) -> None:
-
-        if len([1 for e in [exponent, rads, degs, duration]
-                if e is not None]) > 1:
-            raise ValueError('Redundant exponent specification. '
-                             'Use ONE of exponent, rads, degs, or duration.')
-
-        if duration is not None:
-            exponent = 2 * duration / np.pi
-        else:
-            exponent = cirq.chosen_angle_to_half_turns(
-                half_turns=exponent,
-                    rads=rads,
-                    degs=degs)
-
-        super().__init__(exponent=exponent)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
@@ -148,11 +102,6 @@ class ControlledYXXYGate(cirq.EigenGate,
                 (-0.5, minus_half_component),
                 (0.5, plus_half_component)]
 
-    def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]
-                       ) -> 'ControlledYXXYGate':
-        return ControlledYXXYGate(exponent=exponent)
-
     def _decompose_(self, qubits):
         control, a, b = qubits
         yield cirq.CNOT(a, b)
@@ -175,15 +124,15 @@ class ControlledYXXYGate(cirq.EigenGate,
         return 'CYXXY**{!r}'.format(self.exponent)
 
 
-def CRxxyy(rads: float) -> ControlledXXYYGate:
+def CRxxyy(rads: float) -> CXXYYPowGate:
     """Controlled version of ofc.Rxxyy"""
-    return ControlledXXYYGate(exponent=2 * rads / np.pi)
+    return CXXYYPowGate(exponent=2 * rads / np.pi)
 
 
-def CRyxxy(rads: float) -> ControlledYXXYGate:
+def CRyxxy(rads: float) -> CYXXYPowGate:
     """Controlled version of ofc.Ryxxy"""
-    return ControlledYXXYGate(exponent=2 * rads / np.pi)
+    return CYXXYPowGate(exponent=2 * rads / np.pi)
 
 
-CXXYY = ControlledXXYYGate()
-CYXXY = ControlledYXXYGate()
+CXXYY = CXXYYPowGate()
+CYXXY = CYXXYPowGate()

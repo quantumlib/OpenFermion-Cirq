@@ -19,11 +19,6 @@ from cirq.testing import EqualsTester
 import openfermioncirq as ofc
 
 
-def test_cxxyy_init_with_multiple_args_fails():
-    with pytest.raises(ValueError):
-        _ = ofc.ControlledXXYYGate(exponent=1.0, duration=np.pi/2)
-
-
 def test_apply_unitary_effect():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.CXXYY,
@@ -38,20 +33,14 @@ def test_cxxyy_eq():
     eq = EqualsTester()
 
     eq.add_equality_group(ofc.CXXYY**-0.5,
-                          ofc.ControlledXXYYGate(exponent=3.5),
-                          ofc.ControlledXXYYGate(exponent=-0.5),
-                          ofc.ControlledXXYYGate(rads=-0.5 * np.pi),
-                          ofc.ControlledXXYYGate(degs=-90),
-                          ofc.ControlledXXYYGate(duration=-0.5 * np.pi / 2))
+                          ofc.CXXYYPowGate(exponent=3.5),
+                          ofc.CXXYYPowGate(exponent=-0.5))
 
-    eq.add_equality_group(ofc.ControlledXXYYGate(exponent=1.5),
-                          ofc.ControlledXXYYGate(exponent=-2.5),
-                          ofc.ControlledXXYYGate(rads=1.5 * np.pi),
-                          ofc.ControlledXXYYGate(degs=-450),
-                          ofc.ControlledXXYYGate(duration=-2.5 * np.pi / 2))
+    eq.add_equality_group(ofc.CXXYYPowGate(exponent=1.5),
+                          ofc.CXXYYPowGate(exponent=-2.5))
 
-    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(exponent=0))
-    eq.make_equality_group(lambda: ofc.ControlledXXYYGate(exponent=0.5))
+    eq.make_equality_group(lambda: ofc.CXXYYPowGate(exponent=0))
+    eq.make_equality_group(lambda: ofc.CXXYYPowGate(exponent=0.5))
 
 
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
@@ -65,29 +54,18 @@ def test_cxxyy_repr():
     assert repr(ofc.CXXYY**0.5) == 'CXXYY**0.5'
 
 
-def test_cyxxy_init_with_multiple_args_fails():
-    with pytest.raises(ValueError):
-        _ = ofc.ControlledYXXYGate(exponent=1.0, duration=np.pi/2)
-
-
 def test_cyxxy_eq():
     eq = EqualsTester()
 
     eq.add_equality_group(ofc.CYXXY**-0.5,
-                          ofc.ControlledYXXYGate(exponent=3.5),
-                          ofc.ControlledYXXYGate(exponent=-0.5),
-                          ofc.ControlledYXXYGate(rads=-0.5 * np.pi),
-                          ofc.ControlledYXXYGate(degs=-90),
-                          ofc.ControlledYXXYGate(duration=-0.5 * np.pi / 2))
+                          ofc.CYXXYPowGate(exponent=3.5),
+                          ofc.CYXXYPowGate(exponent=-0.5))
 
-    eq.add_equality_group(ofc.ControlledYXXYGate(exponent=1.5),
-                          ofc.ControlledYXXYGate(exponent=-2.5),
-                          ofc.ControlledYXXYGate(rads=1.5 * np.pi),
-                          ofc.ControlledYXXYGate(degs=-450),
-                          ofc.ControlledYXXYGate(duration=-2.5 * np.pi / 2))
+    eq.add_equality_group(ofc.CYXXYPowGate(exponent=1.5),
+                          ofc.CYXXYPowGate(exponent=-2.5))
 
-    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(exponent=0))
-    eq.make_equality_group(lambda: ofc.ControlledYXXYGate(exponent=0.5))
+    eq.make_equality_group(lambda: ofc.CYXXYPowGate(exponent=0))
+    eq.make_equality_group(lambda: ofc.CYXXYPowGate(exponent=0.5))
 
 
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
@@ -97,8 +75,8 @@ def test_cyxxy_decompose(exponent):
 
 
 def test_cyxxy_repr():
-    assert repr(ofc.ControlledYXXYGate(exponent=1)) == 'CYXXY'
-    assert repr(ofc.ControlledYXXYGate(exponent=0.5)) == 'CYXXY**0.5'
+    assert repr(ofc.CYXXYPowGate(exponent=1)) == 'CYXXY'
+    assert repr(ofc.CYXXYPowGate(exponent=0.5)) == 'CYXXY**0.5'
 
 
 @pytest.mark.parametrize(

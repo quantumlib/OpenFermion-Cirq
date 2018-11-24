@@ -21,7 +21,7 @@ import numpy
 import cirq
 import openfermion
 
-from openfermioncirq import XXYYGate, YXXYGate, swap_network
+from openfermioncirq import XXYYPowGate, YXXYPowGate, swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
@@ -231,9 +231,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 w_symbol = LetterWithSubscripts('W', p, q, i)
                 v_symbol = LetterWithSubscripts('V', p, q, i)
                 if t_symbol in param_set:
-                    yield XXYYGate(exponent=t_symbol).on(a, b)
+                    yield XXYYPowGate(exponent=t_symbol).on(a, b)
                 if w_symbol in param_set:
-                    yield YXXYGate(exponent=w_symbol).on(a, b)
+                    yield YXXYPowGate(exponent=w_symbol).on(a, b)
                 if v_symbol in param_set:
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
             yield swap_network(
@@ -256,9 +256,9 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if v_symbol in param_set:
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
                 if w_symbol in param_set:
-                    yield YXXYGate(exponent=w_symbol).on(a, b)
+                    yield YXXYPowGate(exponent=w_symbol).on(a, b)
                 if t_symbol in param_set:
-                    yield XXYYGate(exponent=t_symbol).on(a, b)
+                    yield XXYYPowGate(exponent=t_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction_reversed_order,
                     fermionic=True, offset=True)

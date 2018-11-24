@@ -14,24 +14,23 @@
 
 from openfermioncirq.gates.common_gates import (
     FSWAP,
-    FermionicSwapGate,
+    FSwapPowGate,
     Rxxyy,
     Ryxxy,
+    Rzz,
     rot11,
     XXYY,
-    XXYYGate,
+    XXYYPowGate,
     YXXY,
-    YXXYGate,
-    ZZ,
-    ZZGate)
+    YXXYPowGate)
 
 from openfermioncirq.gates.three_qubit_gates import (
     CRxxyy,
     CRyxxy,
     CXXYY,
     CYXXY,
-    ControlledXXYYGate,
-    ControlledYXXYGate,
+    CXXYYPowGate,
+    CYXXYPowGate,
     rot111)
 
 from openfermioncirq.gates.four_qubit_gates import (
