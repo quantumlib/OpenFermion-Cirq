@@ -3,9 +3,8 @@ pandas
 scipy
 typing~=3.6
 
-# NOTE: switch to explicit versions when releasing! Last explicit versions were:
-cirq~=0.4.0.dev
-# openfermion==0.8.1
-git+git://github.com/quantumlib/openfermion#egg=openfermion
+# NOTE: switch to non-dev versions when releasing!
+cirq==0.4.0
+openfermion==0.9.0
 
 # Note: if you want to install cirq from github master HEAD, use dev_tools/pip-install-cirq-python2-from-head.sh
