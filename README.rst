@@ -84,8 +84,14 @@ When using OpenFermion-Cirq for research projects, please cite:
 
 We are happy to include future contributors as authors on later releases.
 
-Disclaimer
-==========
+Alpha Disclaimer
+================
+
+**OpenFermion-Cirq is currently in alpha.**
+We are still making breaking changes.
+We *will* break your code when we make new releases.
+We recommend that you target a specific version of OpenFermion-Cirq, and periodically bump to the latest release.
+That way you have control over when a breaking change affects you.
 
 Copyright 2018 The OpenFermion Developers.
 This is not an official Google product.
