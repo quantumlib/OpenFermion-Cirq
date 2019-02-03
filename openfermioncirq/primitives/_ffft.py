@@ -14,7 +14,64 @@
 
 from typing import (List, Sequence)
 
+import numpy as np
+
 import cirq
+
+
+class _F0Gate(cirq.TwoQubitMatrixGate):
+    r"""Two-qubit gate that performs fermionic Fourier transform of size 2.
+
+    More specifically, realizes unitary gate :math:`F_0` that transforms
+    Fermionic creation operators :math:`a_0^\dagger` and :math:`a_1^\dagger`
+    according to:
+
+    .. math::
+        F_0^\dagger a_0^\dagger F_0 =
+            {1 \over \sqrt{2}} (a_0^\dagger + a_1^\dagger)
+
+    .. math::
+        F_0^\dagger a_1^\dagger F_0 =
+            {1 \over \sqrt{2}} (a_0^\dagger - a_1^\dagger) \, .
+
+    This gate assumes JWT representation of fermionic modes which are big-endian
+    encoded on consecutive qubits:
+    :math:`a_0^\dagger \lvert 0 \rangle = \lvert 10_2 \rangle` and
+    :math:`a_1^\dagger \lvert 0 \rangle = \vert 01_2 \rangle`.
+
+    Internally, this leads to expansion of :math:`F_0^\dagger`:
+
+    .. math::
+        \langle 0 \rvert F_0^\dagger \lvert 0 \rangle = 1
+
+    .. math::
+        \langle 01_2 \rvert F_0^\dagger \lvert 01_2 \rangle =
+            -{1 \over \sqrt{2}}
+
+    .. math::
+        \langle 10_2 \rvert F_0^\dagger \lvert 10_2 \rangle =
+        \langle 10_2 \rvert F_0^\dagger \lvert 01_2 \rangle =
+        \langle 01_2 \rvert F_0^\dagger \lvert 10_2 \rangle = {1 \over \sqrt{2}}
+
+    .. math::
+        \langle 11_2 \rvert F_0^\dagger \lvert 11_2 \rangle = -1 \, .
+    """
+
+    def __init__(self):
+        cirq.TwoQubitMatrixGate.__init__(
+            self,
+            np.array([[1,          0,         0,  0],
+                      [0, -2**(-0.5), 2**(-0.5),  0],
+                      [0,  2**(-0.5), 2**(-0.5),  0],
+                      [0,          0,         0, -1]]))
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        if args.use_unicode_characters:
+            symbols = 'F₀', 'F₀'
+        else:
+            symbols = 'F0', 'F0'
+        return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
 
 def _shift(permutation: List[int], shift: int) -> List[int]:
