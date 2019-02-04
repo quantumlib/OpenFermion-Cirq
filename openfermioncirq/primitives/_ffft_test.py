@@ -15,13 +15,12 @@ import pytest
 
 import cirq
 from cirq import LineQubit
+from openfermioncirq import ffft
 from openfermioncirq.primitives._ffft import (
     _F0Gate,
     _TwiddleGate,
-    _compose,
     _inverse,
     _permute,
-    _shift
 )
 
 
@@ -54,7 +53,7 @@ def _fft_amplitudes(amplitudes):
         modes amplitudes.
     """
     def fft(k, n):
-        unit = np.exp(2j * np.pi * k / n)
+        unit = np.exp(-2j * np.pi * k / n)
         return sum(unit**j * amplitudes[j] for j in range(n)) / np.sqrt(n)
     n = len(amplitudes)
     return [fft(k, n) for k in range(n)]
@@ -162,11 +161,74 @@ def test_TwiddleGate_text_diagram():
     """.strip()
 
 
-def test_shift():
-    assert _shift([], 1) == []
-    assert _shift([0, 1, 2], 0) == [0, 1, 2]
-    assert _shift([2, 0, 1], 2) == [4, 2, 3]
-    assert _shift([2, 0, 1], -2) == [0, -2, -1]
+@pytest.mark.parametrize(
+        'amplitudes',
+        [[1],
+         [1, 0],
+         [0, 1],
+         [1, 0, 0, 0],
+         [0, 1, 0, 0],
+         [0, 0, 1, 0],
+         [0, 0, 0, 1],
+         [1, 0, 0, 0, 0, 0, 0, 0],
+         [0, 1, 0, 0, 0, 0, 0, 0],
+         [0, 0, 1, 0, 0, 0, 0, 0],
+         [0, 0, 0, 1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 1, 0, 0, 0],
+         [0, 0, 0, 0, 0, 1, 0, 0],
+         [0, 0, 0, 0, 0, 0, 1, 0],
+         [0, 0, 0, 0, 0, 0, 0, 1],
+         [0, 0, -1j/np.sqrt(2), 0, 0, 1/np.sqrt(2), 0, 0],
+         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+         ])
+def test_ffft_single_mode(amplitudes):
+    initial_state = _state_from_amplitudes(amplitudes)
+    expected_state = _state_from_amplitudes(_fft_amplitudes(amplitudes))
+    qubits = LineQubit.range(len(amplitudes))
+
+    circuit = cirq.Circuit.from_ops(
+        ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
+    state = circuit.apply_unitary_effect_to_state(
+        initial_state, qubits_that_should_be_present=qubits)
+
+    assert np.allclose(state, expected_state, rtol=0.0)
+
+
+def test_ffft_text_diagram():
+    qubits = LineQubit.range(8)
+
+    circuit = cirq.Circuit.from_ops(
+        ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert circuit.to_text_diagram(transpose=True) == """
+0   1     2   3     4   5     6   7
+│   │     │   │     │   │     │   │
+0↦0─1↦4───2↦1─3↦5───4↦2─5↦6───6↦3─7↦7
+│   │     │   │     │   │     │   │
+0↦0─1↦2───2↦1─3↦3   0↦0─1↦2───2↦1─3↦3
+│   │     │   │     │   │     │   │
+F₀──F₀    F₀──F₀    F₀──F₀    F₀──F₀
+│   │     │   │     │   │     │   │
+0↦0─1↦2───2↦1─3↦3   0↦0─1↦2───2↦1─3↦3
+│   │     │   │     │   │     │   │
+│   ω^0_4 │   ω^1_4 │   ω^0_4 │   ω^1_4
+│   │     │   │     │   │     │   │
+F₀──F₀    F₀──F₀    F₀──F₀    F₀──F₀
+│   │     │   │     │   │     │   │
+0↦0─1↦2───2↦1─3↦3   0↦0─1↦2───2↦1─3↦3
+│   │     │   │     │   │     │   │
+0↦0─1↦2───2↦4─3↦6───4↦1─5↦3───6↦5─7↦7
+│   │     │   │     │   │     │   │
+│   ω^0_8 │   ω^1_8 │   ω^2_8 │   ω^3_8
+│   │     │   │     │   │     │   │
+F₀──F₀    F₀──F₀    F₀──F₀    F₀──F₀
+│   │     │   │     │   │     │   │
+0↦0─1↦4───2↦1─3↦5───4↦2─5↦6───6↦3─7↦7
+│   │     │   │     │   │     │   │
+    """.strip()
 
 
 def test_inverse():
@@ -174,32 +236,6 @@ def test_inverse():
     assert _inverse([1, 2, 0]) == [2, 0, 1]
     assert _inverse([2, 0, 1]) == [1, 2, 0]
     assert _inverse([3, 2, 1, 0]) == [3, 2, 1, 0]
-
-
-def test_compose():
-    assert _compose([0, 1, 2], [1, 2, 0]) == [1, 2, 0]
-    assert _compose([1, 2, 0], [0, 1, 2]) == [1, 2, 0]
-    assert _compose([1, 2, 0], [1, 2, 0]) == [2, 0, 1]
-    assert _compose([2, 0, 1], [1, 2, 0]) == [0, 1, 2]
-    assert _compose([1, 2, 0], [2, 0, 1]) == [0, 1, 2]
-    assert _compose([0, 2, 1], [1, 2, 0]) == [2, 1, 0]
-    assert _compose([1, 2, 0], [0, 2, 1]) == [1, 0, 2]
-
-
-@pytest.mark.parametrize(
-    'permutation',
-    [[],
-     [0],
-     [0, 1],
-     [1, 0],
-     [2, 0, 1],
-     [2, 3, 0, 1],
-     [5, 0, 2, 4, 3, 1]]
-)
-def test_compose_inverse_identity(permutation):
-    identity = list(range(len(permutation)))
-    assert _compose(_inverse(permutation), permutation) == identity
-    assert _compose(permutation, _inverse(permutation)) == identity
 
 
 @pytest.mark.parametrize(

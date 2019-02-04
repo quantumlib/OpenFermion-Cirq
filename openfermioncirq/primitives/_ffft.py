@@ -109,19 +109,46 @@ class _TwiddleGate(cirq.ZPowGate):
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
 
-def _shift(permutation: List[int], shift: int) -> List[int]:
-    """Add a constant to every element of permutation.
+F0 = _F0Gate()
 
-    Args:
-        permutation: The list representation of a permutation function.
-        shift: Constant offset.
 
-    Return:
-        Permutation function with every element shifted by a constant. For
-        non-zero shift this is technically not a permutation anymore, but might
-        be used as a part of higher dimensional permutation.
-    """
-    return [p + shift for p in permutation]
+def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    r"""TODO"""
+    n = len(qubits)
+
+    if n == 0:
+        raise ValueError('Number of qubits is 0.')
+
+    if n == 1:
+        return []
+
+    if n == 2:
+        return F0(qubits[0], qubits[1])
+
+    if n % 2 != 0:
+        raise ValueError('Number of qubits is not a power of 2.')
+
+    ny = 2
+    nx = n // ny
+    ops = list()
+
+    permutation = [(i % ny)*nx + (i // ny) for i in range(n)]
+
+    ops.append(_permute(qubits, permutation))
+
+    for y in range(ny):
+        ops.append(ffft(qubits[nx * y:nx * (y + 1)]))
+
+    ops.append(_permute(qubits, _inverse(permutation)))
+
+    for x in range(nx):
+        for y in range(1, ny):
+            ops.append(_TwiddleGate(x*y, n).on(qubits[ny * x + y]))
+        ops.append(ffft(qubits[ny * x:ny * (x + 1)]))
+
+    ops.append(_permute(qubits, permutation))
+
+    return ops
 
 
 def _inverse(permutation: List[int]) -> List[int]:
@@ -140,38 +167,21 @@ def _inverse(permutation: List[int]) -> List[int]:
     return inverse
 
 
-def _compose(outer: List[int], inner: List[int]) -> List[int]:
-    """Creates the composition of the permutation functions.
-
-    Args:
-        outer: The outer permutation function represented as a list. Length must
-            match the length of the inner permutation function.
-        inner: The inner permutation function represented as a list. Length must
-            match the length of the outer permutation function.
-
-    Return:
-         Permutation function which is a composition of outer and inner. The
-         returned permutation function is outer[inner[x]] for each permuted
-         index x in range.
-    """
-    return [outer[i] for i in inner]
-
-
 def _permute(qubits: Sequence[cirq.QubitId],
              permutation: List[int]) -> cirq.OP_TREE:
     """
-    Generates a circuit which reorders qubits using bubble sort algorithm.
+    Generates a circuit which reorders Fermionic modes.
+
+    JWT representation of Fermionic modes is assumed. This is just a wrapper
+    around cirq.contrib.acquaintance.permutation.LinearPermutationGate which
+    internally uses bubble sort algorithm to generate permutation gate.
 
     Args:
-        qubits: Sequence of qubits to reorder. It is assumed they have line
-            connectivity.
+        qubits: Sequence of qubits to reorder. Line connectivity is assumed.
         permutation: The permutation function represented as a list that
             reorders the initial qubits. Specifically, if k-th element of
             permutation is j, then k-th qubit should become the j-th qubit after
             applying the circuit to the initial state.
-            This is so called active representation of permutation which is a
-            function that performs rearrangement, not a rearrangement itself.
-            This representation behaves well under composition.
 
     Return:
         Gate that reorders the qubits accordingly.

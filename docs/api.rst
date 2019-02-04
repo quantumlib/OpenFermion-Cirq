@@ -41,8 +41,6 @@ Primitives
 .. autosummary::
     :toctree: generated/
 
-    primitives._ffft._F0Gate
-    primitives._ffft._TwiddleGate
     bogoliubov_transform
     prepare_gaussian_state
     prepare_slater_determinant
