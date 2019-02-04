@@ -124,7 +124,7 @@ latex_elements = {  # type: ignore
 
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    #'preamble': '\usepackage[T1]{fontenc}\usepackage{amsmath}',
 
     # Latex figure (float) alignment
     #

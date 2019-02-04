@@ -101,7 +101,7 @@ def test_F0Gate_transform(amplitudes):
     assert np.allclose(state, expected_state, rtol=0.0)
 
 
-def test_F0Gate_text_diagram():
+def test_F0Gate_text_unicode_diagram():
     qubits = LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
 
@@ -109,6 +109,17 @@ def test_F0Gate_text_diagram():
 0: ───F₀───
       │
 1: ───F₀───
+    """.strip()
+
+
+def test_F0Gate_text_diagram():
+    qubits = LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
+
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+0: ---F0---
+      |
+1: ---F0---
     """.strip()
 
 
