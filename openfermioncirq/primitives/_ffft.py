@@ -176,7 +176,7 @@ def _permute(qubits: Sequence[cirq.QubitId],
     Return:
         Gate that reorders the qubits accordingly.
     """
-    yield cirq.contrib.acquaintance.permutation.LinearPermutationGate(
+    return cirq.contrib.acquaintance.permutation.LinearPermutationGate(
         {i: permutation[i] for i in range(len(permutation))},
         swap_gate=FSWAP
     ).on(*qubits)
