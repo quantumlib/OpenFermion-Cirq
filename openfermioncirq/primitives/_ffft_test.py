@@ -14,11 +14,10 @@ import numpy as np
 import pytest
 
 import cirq
-from openfermioncirq import FSWAP
 from openfermioncirq.primitives._ffft import (
     _compose,
     _inverse,
-    _permute_bubble,
+    _permute,
     _shift
 )
 
@@ -95,47 +94,6 @@ def test_compose_inverse_identity(permutation):
          ([1, 2, 0], (1, [0]), (1, [1])),
          ([1, 2, 0], (1, [1]), (1, [2])),
          ([1, 2, 0], (1, [2]), (1, [0])),
-         ([1, 0], (1, [0, 1]), (1, [0, 1])),
-         ([2, 1, 0], (1, [0, 2]), (1, [0, 2])),
-         ([2, 1, 0], (1j, [0, 2]), (1j, [0, 2])),
-         ([1, 0, 2], (1, [0, 2]), (1, [1, 2])),
-         ([0, 1, 2, 3, 4], (1, [0]), (1, [0])),
-         ([1, 0, 2, 3, 4], (1, [0]), (1, [1])),
-         ([2, 1, 0, 3, 4], (1, [0]), (1, [2])),
-         ([3, 1, 2, 0, 4], (1, [0]), (1, [3])),
-         ([4, 1, 2, 3, 0], (1, [0]), (1, [4])),
-         ([3, 1, 2, 0, 4], (1, [0, 4]), (1, [3, 4])),
-         ([3, 1, 2, 0, 4], (1, [0, 3]), (1, [0, 3])),
-         ([3, 1, 2, 0, 4], (1, [0, 2]), (1, [2, 3])),
-         ([0, 2, 4, 6, 1, 3, 5, 7], (1, [3, 4]), (1, [1, 6])),
-         ([0, 2, 4, 6, 1, 3, 5, 7], (1, [2, 3, 4]), (1, [1, 4, 6])),
-         ([7, 6, 5, 4, 3, 2, 1, 0], (1, [2, 3, 4]), (1, [3, 4, 5]))]
-)
-def test_permute_bubble(permutation, initial, expected):
-    n = len(permutation)
-    initial_state = _state_from_modes(n, *initial)
-    expected_state = _state_from_modes(n, *expected)
-    qubits = LineQubit.range(n)
-
-    ops = _permute_bubble(qubits, permutation, swap=cirq.SWAP)
-    circuit = cirq.Circuit.from_ops(ops)
-
-    state = circuit.apply_unitary_effect_to_state(
-        initial_state,
-        qubits_that_should_be_present=qubits
-    )
-
-    assert np.allclose(state, expected_state, rtol=0.0)
-
-
-@pytest.mark.parametrize(
-        'permutation, initial, expected',
-        [([0, 1], (1, []), (1, [])),
-         ([0, 1], (1, [1]), (1, [1])),
-         ([1, 0], (1, [1]), (1, [0])),
-         ([1, 2, 0], (1, [0]), (1, [1])),
-         ([1, 2, 0], (1, [1]), (1, [2])),
-         ([1, 2, 0], (1, [2]), (1, [0])),
          ([1, 0], (1, [0, 1]), (-1, [0, 1])),
          ([2, 1, 0], (1, [0, 2]), (-1, [0, 2])),
          ([2, 1, 0], (1j, [0, 2]), (-1j, [0, 2])),
@@ -152,13 +110,13 @@ def test_permute_bubble(permutation, initial, expected):
          ([0, 2, 4, 6, 1, 3, 5, 7], (1, [2, 3, 4]), (1, [1, 4, 6])),
          ([7, 6, 5, 4, 3, 2, 1, 0], (1, [2, 3, 4]), (-1, [3, 4, 5]))]
 )
-def test_fermion_permute_bubble(permutation, initial, expected):
+def test_permute(permutation, initial, expected):
     n = len(permutation)
     initial_state = _state_from_modes(n, *initial)
     expected_state = _state_from_modes(n, *expected)
     qubits = LineQubit.range(n)
 
-    ops = _permute_bubble(qubits, permutation, swap=FSWAP)
+    ops = _permute(qubits, permutation)
     circuit = cirq.Circuit.from_ops(ops)
 
     state = circuit.apply_unitary_effect_to_state(
