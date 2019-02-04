@@ -112,9 +112,9 @@ def _compose(outer: List[int], inner: List[int]) -> List[int]:
 
     Args:
         outer: The outer permutation function represented as a list. Length must
-        match the length of the inner permutation function.
+            match the length of the inner permutation function.
         inner: The inner permutation function represented as a list. Length must
-        match the length of the outer permutation function.
+            match the length of the outer permutation function.
 
     Return:
          Permutation function which is a composition of outer and inner. The
