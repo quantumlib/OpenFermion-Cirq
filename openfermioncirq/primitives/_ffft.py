@@ -17,8 +17,9 @@ from typing import (List, Sequence)
 import numpy as np
 
 import cirq
-import cirq.contrib.acquaintance
+import cirq.contrib.acquaintance.permutation
 from openfermioncirq import FSWAP
+
 
 class _F0Gate(cirq.TwoQubitMatrixGate):
     r"""Two-qubit gate that performs fermionic Fourier transform of size 2.
@@ -142,7 +143,7 @@ def _permute(qubits: Sequence[cirq.QubitId],
     Return:
         Gate that reorders the qubits accordingly.
     """
-    yield cirq.contrib.acquaintance.LinearPermutationGate(
+    yield cirq.contrib.acquaintance.permutation.LinearPermutationGate(
         {i: permutation[i] for i in range(len(permutation))},
         swap_gate=FSWAP
     ).on(*qubits)

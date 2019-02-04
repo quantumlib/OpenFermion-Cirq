@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import LineQubit
 from openfermioncirq.primitives._ffft import (
     _F0Gate,
     _compose,
@@ -21,8 +22,6 @@ from openfermioncirq.primitives._ffft import (
     _permute,
     _shift
 )
-
-from cirq import LineQubit
 
 
 def _state_from_amplitudes(amplitudes):
