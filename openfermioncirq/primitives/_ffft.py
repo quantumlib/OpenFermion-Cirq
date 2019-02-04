@@ -17,7 +17,8 @@ from typing import (List, Sequence)
 import numpy as np
 
 import cirq
-
+import cirq.contrib.acquaintance
+from openfermioncirq import FSWAP
 
 class _F0Gate(cirq.TwoQubitMatrixGate):
     r"""Two-qubit gate that performs fermionic Fourier transform of size 2.
@@ -122,17 +123,10 @@ def _compose(outer: List[int], inner: List[int]) -> List[int]:
     return [outer[i] for i in inner]
 
 
-def _permute_bubble(qubits: Sequence[cirq.QubitId],
-                    permutation: List[int],
-                    swap: cirq.TwoQubitGate) -> cirq.OP_TREE:
+def _permute(qubits: Sequence[cirq.QubitId],
+             permutation: List[int]) -> cirq.OP_TREE:
     """
     Generates a circuit which reorders qubits using bubble sort algorithm.
-
-    The algorithm works on a sequence of qubits and at each step applies the
-    swap gate between two adjacent qubits.
-
-    Iterates over permutation multiple times and swaps neighbouring elements if
-    they're inverted, until no more swap is necessary.
 
     Args:
         qubits: Sequence of qubits to reorder. It is assumed they have line
@@ -144,25 +138,11 @@ def _permute_bubble(qubits: Sequence[cirq.QubitId],
             This is so called active representation of permutation which is a
             function that performs rearrangement, not a rearrangement itself.
             This representation behaves well under composition.
-        swap: Swap gate to be applied when performing a single swap.
-            To realize qubit swap use cirq.SWAP gate.
-            To realize fermionic swap with assumption that qubits are
-            represented under JWT transform, use openfermioncirq.FSWAP gate.
 
     Return:
-        Generator of the operations that represent the sorting circuit. The
-        algorithm generates a one dimensional sequence of swap gates on
-        particular qubits.
+        Gate that reorders the qubits accordingly.
     """
-    per = list(permutation)
-    swapped = True
-    while swapped:
-        swapped = False
-        j = 1
-        while j < len(per):
-            if per[j-1] > per[j]:
-                yield swap(qubits[j - 1], qubits[j])
-                per[j-1], per[j] = per[j], per[j-1]
-                swapped = True
-                j += 1
-            j += 1
+    yield cirq.contrib.acquaintance.LinearPermutationGate(
+        {i: permutation[i] for i in range(len(permutation))},
+        swap_gate=FSWAP
+    ).on(*qubits)
