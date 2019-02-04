@@ -24,9 +24,8 @@ from openfermioncirq import FSWAP
 class _F0Gate(cirq.TwoQubitMatrixGate):
     r"""Two-qubit gate that performs fermionic Fourier transform of size 2.
 
-    More specifically, realizes unitary gate :math:`F_0` that transforms
-    Fermionic creation operators :math:`a_0^\dagger` and :math:`a_1^\dagger`
-    according to:
+    Realizes unitary gate :math:`F_0` that transforms Fermionic creation
+    operators :math:`a_0^\dagger` and :math:`a_1^\dagger` according to:
 
     .. math::
         F_0^\dagger a_0^\dagger F_0 =
@@ -60,6 +59,7 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
     """
 
     def __init__(self):
+        """Initializes :math:`F_0` gate."""
         cirq.TwoQubitMatrixGate.__init__(
             self,
             np.array([[1,          0,         0,  0],
@@ -73,6 +73,39 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
             symbols = 'F₀', 'F₀'
         else:
             symbols = 'F0', 'F0'
+        return cirq.CircuitDiagramInfo(wire_symbols=symbols)
+
+
+class _TwiddleGate(cirq.ZPowGate):
+    r"""Gate that introduces arbitrary FFT twiddle factors.
+
+    Realizes unitary gate :math:`\omega^{k\dagger}_n` that phases creation
+    operator :math:`a^\dagger_x` according to:
+
+    .. math::
+        \omega^{k\dagger}_n a^\dagger_x \omega^k_n =
+            e^{-2 \pi i {k \over n}} a^\dagger_x \, .
+
+    Under JWT representation this is realized by appropriately rotated pauli Z
+    gate acting on qubit x.
+    """
+    def __init__(self, k, n):
+        """Initializes Twiddle gate.
+
+        Args:
+            k: Nominator appearing in the exponent.
+            n: Denominator appearing in the exponent.
+        """
+        cirq.ZPowGate.__init__(self, exponent=-2*k/n, global_shift=0)
+        self.k = k
+        self.n = n
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        if args.use_unicode_characters:
+            symbols = 'ω^%d_%d' % (self.k, self.n),
+        else:
+            symbols = 'w^%d_%d' % (self.k, self.n),
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
 

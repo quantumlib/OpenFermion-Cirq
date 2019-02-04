@@ -17,6 +17,7 @@ import cirq
 from cirq import LineQubit
 from openfermioncirq.primitives._ffft import (
     _F0Gate,
+    _TwiddleGate,
     _compose,
     _inverse,
     _permute,
@@ -119,6 +120,45 @@ def test_F0Gate_text_diagram():
 0: ---F0---
       |
 1: ---F0---
+    """.strip()
+
+
+@pytest.mark.parametrize(
+        'k, n, qubit, initial, expected',
+        [(0, 2, 0, [1, 0], [1, 0]),
+         (2, 8, 0, [1, 0], [np.exp(-2 * np.pi * 1j * 2 / 8), 0]),
+         (4, 8, 1, [0, 1], [0, np.exp(-2 * np.pi * 1j * 4 / 8)]),
+         (3, 5, 0, [1, 1], [np.exp(-2 * np.pi * 1j * 3 / 5), 1]),]
+)
+def test_TwiddleGate_transform(k, n, qubit, initial, expected):
+    qubits = LineQubit.range(2)
+    initial_state = _state_from_amplitudes(initial)
+    expected_state = _state_from_amplitudes(expected)
+
+    circuit = cirq.Circuit.from_ops(_TwiddleGate(k, n).on(qubits[qubit]))
+    state = circuit.apply_unitary_effect_to_state(
+        initial_state,
+        qubits_that_should_be_present=qubits
+    )
+
+    assert np.allclose(state, expected_state, rtol=0.0)
+
+
+def test_TwiddleGate_text_unicode_diagram():
+    qubit = LineQubit.range(1)
+    circuit = cirq.Circuit.from_ops(_TwiddleGate(2, 8).on(*qubit))
+
+    assert circuit.to_text_diagram().strip() == """
+0: ───ω^2_8───
+    """.strip()
+
+
+def test_TwiddleGate_text_diagram():
+    qubit = LineQubit.range(1)
+    circuit = cirq.Circuit.from_ops(_TwiddleGate(2, 8).on(*qubit))
+
+    assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
+0: ---w^2_8---
     """.strip()
 
 
