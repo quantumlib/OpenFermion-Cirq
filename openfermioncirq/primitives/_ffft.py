@@ -15,7 +15,7 @@
 from typing import (List, Sequence)
 
 import cirq
-import cirq.contrib.acquaintance
+from cirq.contrib import acquaintance
 from openfermioncirq import FSWAP
 
 def _shift(permutation: List[int], shift: int) -> List[int]:
@@ -85,7 +85,7 @@ def _permute(qubits: Sequence[cirq.QubitId],
     Return:
         Gate that reorders the qubits accordingly.
     """
-    yield cirq.contrib.acquaintance.LinearPermutationGate(
+    yield acquaintance.LinearPermutationGate(
         {i: permutation[i] for i in range(len(permutation))},
         swap_gate=FSWAP
     ).on(*qubits)
