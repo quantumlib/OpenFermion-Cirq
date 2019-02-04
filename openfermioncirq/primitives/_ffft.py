@@ -96,7 +96,7 @@ class _TwiddleGate(cirq.ZPowGate):
             k: Nominator appearing in the exponent.
             n: Denominator appearing in the exponent.
         """
-        cirq.ZPowGate.__init__(self, exponent=-2*k/n, global_shift=0)
+        cirq.ZPowGate.__init__(self, exponent=-2 * k / n, global_shift=0)
         self.k = k
         self.n = n
 
@@ -132,7 +132,7 @@ def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
     nx = n // ny
     ops = list()
 
-    permutation = [(i % ny)*nx + (i // ny) for i in range(n)]
+    permutation = [(i % ny) * nx + (i // ny) for i in range(n)]
 
     ops.append(_permute(qubits, permutation))
 
@@ -143,7 +143,7 @@ def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
 
     for x in range(nx):
         for y in range(1, ny):
-            ops.append(_TwiddleGate(x*y, n).on(qubits[ny * x + y]))
+            ops.append(_TwiddleGate(x * y, n).on(qubits[ny * x + y]))
         ops.append(ffft(qubits[ny * x:ny * (x + 1)]))
 
     ops.append(_permute(qubits, permutation))
@@ -161,7 +161,7 @@ def _inverse(permutation: List[int]) -> List[int]:
         The inverse permutation function so that _compose(_inverse(permutation),
         permutation) is an identity.
     """
-    inverse = [0]*len(permutation)
+    inverse = [0] * len(permutation)
     for i in range(len(permutation)):
         inverse[permutation[i]] = i
     return inverse
