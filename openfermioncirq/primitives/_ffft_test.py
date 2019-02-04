@@ -14,14 +14,13 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import LineQubit
 from openfermioncirq.primitives._ffft import (
     _compose,
     _inverse,
     _permute,
     _shift
 )
-
-from cirq import LineQubit
 
 
 def _state_from_modes(n, amplitude, modes):
