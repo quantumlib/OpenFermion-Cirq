@@ -130,25 +130,25 @@ def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
 
     ny = 2
     nx = n // ny
-    ops = list()
-
     permutation = [(i % ny) * nx + (i // ny) for i in range(n)]
 
-    ops.append(_permute(qubits, permutation))
+    operations = list()
+
+    operations.append(_permute(qubits, permutation))
 
     for y in range(ny):
-        ops.append(ffft(qubits[nx * y:nx * (y + 1)]))
+        operations.append(ffft(qubits[nx * y:nx * (y + 1)]))
 
-    ops.append(_permute(qubits, _inverse(permutation)))
+    operations.append(_permute(qubits, _inverse(permutation)))
 
     for x in range(nx):
         for y in range(1, ny):
-            ops.append(_TwiddleGate(x * y, n).on(qubits[ny * x + y]))
-        ops.append(ffft(qubits[ny * x:ny * (x + 1)]))
+            operations.append(_TwiddleGate(x * y, n).on(qubits[ny * x + y]))
+        operations.append(ffft(qubits[ny * x:ny * (x + 1)]))
 
-    ops.append(_permute(qubits, permutation))
+    operations.append(_permute(qubits, permutation))
 
-    return ops
+    return operations
 
 
 def _inverse(permutation: List[int]) -> List[int]:
