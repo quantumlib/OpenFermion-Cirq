@@ -231,6 +231,16 @@ F₀──F₀    F₀──F₀    F₀──F₀    F₀──F₀
     """.strip()
 
 
+def test_ffft_fails_without_qubits():
+    with pytest.raises(ValueError):
+        ffft([])
+
+
+def test_ffft_fails_for_odd_size():
+    with pytest.raises(ValueError):
+        ffft(LineQubit.range(3))
+
+
 def test_inverse():
     assert _inverse([0, 1, 2]) == [0, 1, 2]
     assert _inverse([1, 2, 0]) == [2, 0, 1]

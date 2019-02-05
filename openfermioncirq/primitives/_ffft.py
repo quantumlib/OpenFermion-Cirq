@@ -123,7 +123,7 @@ def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         return []
 
     if n == 2:
-        return F0(qubits[0], qubits[1])
+        return F0(*qubits)
 
     if n % 2 != 0:
         raise ValueError('Number of qubits is not a power of 2.')
