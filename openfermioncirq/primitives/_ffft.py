@@ -103,9 +103,9 @@ class _TwiddleGate(cirq.ZPowGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
         if args.use_unicode_characters:
-            symbols = 'ω^%d_%d' % (self.k, self.n),
+            symbols = 'ω^{}_{}'.format(self.k, self.n),
         else:
-            symbols = 'w^%d_%d' % (self.k, self.n),
+            symbols = 'w^{}_{}'.format(self.k, self.n),
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
 
