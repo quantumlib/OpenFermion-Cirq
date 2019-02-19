@@ -16,6 +16,9 @@ from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
 
 from openfermioncirq.primitives._ffft import ffft
 
+from openfermioncirq.primitives.optimal_givens_decomposition import (
+    optimal_givens_decomposition)
+
 from openfermioncirq.primitives.state_preparation import (
     prepare_gaussian_state,
     prepare_slater_determinant)
