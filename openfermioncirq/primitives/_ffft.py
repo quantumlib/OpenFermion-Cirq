@@ -12,7 +12,7 @@
 
 """The fast fermionic Fourier transform."""
 
-from typing import (List, Sequence)
+from typing import (Iterable, List, Sequence)
 
 import numpy as np
 
@@ -76,7 +76,7 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
 
-class _TwiddleGate(cirq.ZPowGate):
+class _TwiddleGate(cirq.SingleQubitGate):
     r"""Gate that introduces arbitrary FFT twiddle factors.
 
     Realizes unitary gate :math:`\omega^{k\dagger}_n` that phases creation
@@ -96,7 +96,6 @@ class _TwiddleGate(cirq.ZPowGate):
             k: Nominator appearing in the exponent.
             n: Denominator appearing in the exponent.
         """
-        cirq.ZPowGate.__init__(self, exponent=-2 * k / n, global_shift=0)
         self.k = k
         self.n = n
 
@@ -107,6 +106,11 @@ class _TwiddleGate(cirq.ZPowGate):
         else:
             symbols = 'w^{}_{}'.format(self.k, self.n),
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
+
+    def _decompose_(self, qubits: Iterable[cirq.QubitId]):
+        q, = qubits
+        exponent = -2 * self.k / self.n
+        yield cirq.ZPowGate(exponent=exponent, global_shift=0).on(q)
 
 
 F0 = _F0Gate()
