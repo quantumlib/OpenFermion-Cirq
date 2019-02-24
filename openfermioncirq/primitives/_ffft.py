@@ -37,8 +37,8 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
 
     This gate assumes JWT representation of fermionic modes which are big-endian
     encoded on consecutive qubits:
-    :math:`a_0^\dagger \lvert 0 \rangle = \lvert 10_2 \rangle` and
-    :math:`a_1^\dagger \lvert 0 \rangle = \vert 01_2 \rangle`.
+    :math:`a_0^\dagger \lvert 0 \rangle = \lvert 10 \rangle` and
+    :math:`a_1^\dagger \lvert 0 \rangle = \vert 01 \rangle`.
 
     Internally, this leads to expansion of :math:`F_0^\dagger`:
 
@@ -46,16 +46,16 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
         \langle 0 \rvert F_0^\dagger \lvert 0 \rangle = 1
 
     .. math::
-        \langle 01_2 \rvert F_0^\dagger \lvert 01_2 \rangle =
+        \langle 01 \rvert F_0^\dagger \lvert 01 \rangle =
             -{1 \over \sqrt{2}}
 
     .. math::
-        \langle 10_2 \rvert F_0^\dagger \lvert 10_2 \rangle =
-        \langle 10_2 \rvert F_0^\dagger \lvert 01_2 \rangle =
-        \langle 01_2 \rvert F_0^\dagger \lvert 10_2 \rangle = {1 \over \sqrt{2}}
+        \langle 10 \rvert F_0^\dagger \lvert 10 \rangle =
+        \langle 10 \rvert F_0^\dagger \lvert 01 \rangle =
+        \langle 01 \rvert F_0^\dagger \lvert 10 \rangle = {1 \over \sqrt{2}}
 
     .. math::
-        \langle 11_2 \rvert F_0^\dagger \lvert 11_2 \rangle = -1 \, .
+        \langle 11 \rvert F_0^\dagger \lvert 11 \rangle = -1 \, .
     """
 
     def __init__(self):
