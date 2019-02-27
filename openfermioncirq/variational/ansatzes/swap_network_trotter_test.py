@@ -11,8 +11,8 @@
 #   limitations under the License.
 
 import numpy
+import sympy
 
-import cirq
 import openfermion
 
 from openfermioncirq.variational.ansatzes import SwapNetworkTrotterAnsatz
@@ -33,14 +33,14 @@ def test_swap_network_trotter_ansatz_params():
 
     ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian)
     assert (set(ansatz.params()) ==
-            {cirq.Symbol(name) for name in
+            {sympy.Symbol(name) for name in
                 {'T_0_2_0', 'T_4_6_0', 'T_1_3_0', 'T_5_7_0',
                  'T_0_4_0', 'T_2_6_0', 'T_1_5_0', 'T_3_7_0',
                  'V_0_1_0', 'V_2_3_0', 'V_4_5_0', 'V_6_7_0'}})
 
     ansatz = SwapNetworkTrotterAnsatz(hubbard_hamiltonian, iterations=2)
     assert (set(ansatz.params()) ==
-            {cirq.Symbol(name) for name in
+            {sympy.Symbol(name) for name in
                 {'T_0_2_0', 'T_4_6_0', 'T_1_3_0', 'T_5_7_0',
                  'T_0_4_0', 'T_2_6_0', 'T_1_5_0', 'T_3_7_0',
                  'V_0_1_0', 'V_2_3_0', 'V_4_5_0', 'V_6_7_0',

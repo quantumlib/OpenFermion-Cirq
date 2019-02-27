@@ -17,6 +17,7 @@ from typing import Iterable, Optional, Sequence, Tuple, cast
 import itertools
 
 import numpy
+import sympy
 
 import cirq
 import openfermion
@@ -192,7 +193,7 @@ class SplitOperatorTrotterAnsatz(VariationalAnsatz):
 
         super().__init__(qubits)
 
-    def params(self) -> Iterable[cirq.Symbol]:
+    def params(self) -> Iterable[sympy.Symbol]:
         """The names of the parameters of the ansatz."""
         for i in range(self.iterations):
             for p in range(len(self.qubits)):

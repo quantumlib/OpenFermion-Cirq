@@ -16,8 +16,10 @@
 from typing import Optional, Union, Tuple
 
 import numpy as np
+import sympy
 
 import cirq
+from cirq._compat import proper_repr
 
 
 def state_swap_eigen_component(x: str, y: str, sign: int = 1):
@@ -70,7 +72,7 @@ class DoubleExcitationGate(cirq.EigenGate):
     """Evolve under -|0011><1100| + h.c. for some time."""
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[sympy.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None) -> None:
@@ -103,6 +105,9 @@ class DoubleExcitationGate(cirq.EigenGate):
 
         super().__init__(exponent=exponent)
 
+    def num_qubits(self):
+        return 4
+
     def _eigen_components(self):
         minus_one_component = np.zeros((16, 16))
         minus_one_component[3, 3] = minus_one_component[12, 12] = 0.5
@@ -130,7 +135,7 @@ class DoubleExcitationGate(cirq.EigenGate):
                                            out=args.available_buffer)
 
     def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]
+                       exponent: Union[sympy.Symbol, float]
                        ) -> 'DoubleExcitationGate':
         return DoubleExcitationGate(exponent=exponent)
 
@@ -183,13 +188,14 @@ class DoubleExcitationGate(cirq.EigenGate):
 
     def __repr__(self):
         if self.exponent == 1:
-            return 'DoubleExcitation'
-        return 'DoubleExcitation**{!r}'.format(self.exponent)
+            return 'ofc.DoubleExcitation'
+        return '(ofc.DoubleExcitation**{})'.format(proper_repr(self.exponent))
 
 
 DoubleExcitation = DoubleExcitationGate()
 
 
+@cirq.value_equality(approximate=True)
 class CombinedDoubleExcitationGate(cirq.EigenGate):
     """Rotates Hamming-weight 2 states into their bitwise complements.
 
@@ -203,7 +209,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
                  weights: Tuple[float, float, float]=(1, 1, 1),
                  absorb_exponent: bool=True,
                  *,  # Forces keyword args.
-                 exponent: Optional[Union[cirq.Symbol, float]]=None,
+                 exponent: Optional[Union[sympy.Symbol, float]]=None,
                  rads: Optional[float]=None,
                  degs: Optional[float]=None,
                  duration: Optional[float]=None
@@ -225,6 +231,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
             duration: The exponent as a duration of time.
         """
 
+        assert len(weights) == 3
         self.weights = weights
 
         if len([1 for e in [exponent, rads, degs, duration]
@@ -245,6 +252,9 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         if absorb_exponent:
             self.absorb_exponent_into_weights()
 
+    def num_qubits(self):
+        return 4
+
     def _eigen_components(self):
         # projector onto subspace spanned by basis states with
         # Hamming weight != 2
@@ -264,7 +274,7 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
         return ((0, zero_component),) + plus_minus_components
 
     def _with_exponent(self,
-                       exponent: Union[cirq.Symbol, float]
+                       exponent: Union[sympy.Symbol, float]
                        ) -> 'CombinedDoubleExcitationGate':
         gate = CombinedDoubleExcitationGate(self.weights)
         gate._exponent = exponent
@@ -358,13 +368,14 @@ class CombinedDoubleExcitationGate(cirq.EigenGate):
                                            slices=[c1, c2],
                                            out=args.available_buffer)
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return all(np.isclose((w * self._exponent) % 4,
-                              (ww * other._exponent) % 4)
-                   for w, ww in zip(self.weights, other.weights))
+    def _value_equality_values_(self):
+        return tuple(cirq.PeriodicValue(w * self._exponent, 4)
+                     for w in self.weights)
 
     def __repr__(self):
-        weights = tuple(w * self._exponent for w in self.weights)
-        return 'CombinedDoubleExcitation' + str(weights)
+        return (
+            'ofc.CombinedDoubleExcitationGate(({}), '
+            'absorb_exponent=False, '
+            'exponent={})'.format(
+                ', '.join(proper_repr(v) for v in self.weights),
+                proper_repr(self.exponent)))

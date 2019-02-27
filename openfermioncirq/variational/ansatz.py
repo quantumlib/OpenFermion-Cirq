@@ -17,6 +17,7 @@ from typing import Iterable, Optional, Sequence, Tuple
 import abc
 
 import numpy
+import sympy
 
 import cirq
 
@@ -55,7 +56,7 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
                 strategy=cirq.InsertStrategy.EARLIEST)
 
     @abc.abstractmethod
-    def params(self) -> Iterable[cirq.Symbol]:
+    def params(self) -> Iterable[sympy.Symbol]:
         """The parameters of the ansatz."""
         pass
 

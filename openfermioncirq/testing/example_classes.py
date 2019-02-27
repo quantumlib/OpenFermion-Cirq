@@ -15,6 +15,7 @@
 from typing import Iterable, Optional, Sequence, Union, cast
 
 import numpy
+import sympy
 
 import cirq
 
@@ -110,21 +111,21 @@ class ExampleAnsatz(VariationalAnsatz):
         1: ───X^theta1───@───X^theta1───M──────────
     """
 
-    def params(self) -> Iterable[cirq.Symbol]:
+    def params(self) -> Iterable[sympy.Symbol]:
         for i in range(2):
-            yield cirq.Symbol('theta{}'.format(i))
+            yield sympy.Symbol('theta{}'.format(i))
 
     def _generate_qubits(self) -> Sequence[cirq.QubitId]:
         return cirq.LineQubit.range(2)
 
     def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
         a, b = qubits
-        yield cirq.XPowGate(exponent=cirq.Symbol('theta0')).on(a)
-        yield cirq.XPowGate(exponent=cirq.Symbol('theta1')).on(b)
+        yield cirq.XPowGate(exponent=sympy.Symbol('theta0')).on(a)
+        yield cirq.XPowGate(exponent=sympy.Symbol('theta1')).on(b)
         yield cirq.CZ(a, b)
-        yield cirq.XPowGate(exponent=cirq.Symbol('theta0')).on(a)
-        yield cirq.XPowGate(exponent=cirq.Symbol('theta1')).on(b)
-        yield cirq.MeasurementGate('all').on(a, b)
+        yield cirq.XPowGate(exponent=sympy.Symbol('theta0')).on(a)
+        yield cirq.XPowGate(exponent=sympy.Symbol('theta1')).on(b)
+        yield cirq.measure(a, b, key='all')
 
 
 class ExampleVariationalObjective(VariationalObjective):

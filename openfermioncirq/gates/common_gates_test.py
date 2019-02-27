@@ -13,6 +13,7 @@
 import numpy as np
 import pytest
 from scipy.linalg import expm, kron
+import sympy
 
 import cirq
 import openfermioncirq as ofc
@@ -58,7 +59,7 @@ def test_fswap_matrix():
 
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         val=ofc.FSWAP,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
 
 
 def test_xxyy_init():
@@ -99,7 +100,7 @@ def test_xxyy_decompose(exponent):
 def test_xxyy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.XXYY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
 
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=2)),
                                   np.array([[1, 0, 0, 0],
@@ -170,7 +171,7 @@ def test_yxxy_decompose(exponent):
 def test_yxxy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.YXXY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
 
 
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=2)),

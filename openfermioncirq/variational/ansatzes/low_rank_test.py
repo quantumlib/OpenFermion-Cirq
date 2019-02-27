@@ -10,8 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import cirq
 import openfermion
+import sympy
 
 from openfermioncirq.variational.ansatzes import LowRankTrotterAnsatz
 
@@ -36,7 +36,7 @@ def test_low_rank_trotter_ansatz_params():
 
     ansatz = LowRankTrotterAnsatz(lih_hamiltonian, final_rank=2)
     assert set(ansatz.params()) == {
-            cirq.Symbol(name) for name in {
+            sympy.Symbol(name) for name in {
                 'U_0_0', 'U_0_0_0', 'U_0_1_0', 'U_1_0',
                 'U_1_0_0', 'U_1_1_0', 'U_2_0', 'U_2_0_0',
                 'U_2_1_0', 'U_3_0', 'U_3_0_0', 'U_3_1_0',

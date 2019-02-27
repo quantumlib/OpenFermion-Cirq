@@ -10,6 +10,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import sympy
+
+import cirq
+import openfermioncirq as ofc
+
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
 
@@ -18,4 +23,23 @@ def test_letter_with_subscripts_init():
     symbol = LetterWithSubscripts('T', 0, 1)
     assert symbol.letter == 'T'
     assert symbol.subscripts == (0, 1)
-    assert symbol.name == 'T_0_1'
+    assert str(symbol) == 'T_0_1'
+
+
+def test_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(LetterWithSubscripts('T', 0, 1),
+                          LetterWithSubscripts('T', 0, 1),
+                          sympy.Symbol('T_0_1'))
+    eq.add_equality_group(LetterWithSubscripts('S', 0))
+    eq.add_equality_group(LetterWithSubscripts('T', 0, 2))
+
+
+@cirq.testing.only_test_in_python3
+def test_substitute_works():
+    assert LetterWithSubscripts('T', 1, 2).subs({'T_1_2': 5}) == 5
+
+
+@cirq.testing.only_test_in_python3
+def test_repr():
+    ofc.testing.assert_equivalent_repr(LetterWithSubscripts('T', 1, 2))

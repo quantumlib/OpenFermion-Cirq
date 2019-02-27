@@ -17,6 +17,7 @@ from typing import Optional
 import numpy as np
 
 import cirq
+import sympy
 
 
 class FSwapPowGate(cirq.EigenGate,
@@ -39,6 +40,9 @@ class FSwapPowGate(cirq.EigenGate,
     `ofc.FSWAP` is an instance of this gate at exponent=1. It swaps adjacent
     fermionic modes under the Jordan-Wigner Transform.
     """
+
+    def num_qubits(self):
+        return 2
 
     def _eigen_components(self):
         return [
@@ -107,6 +111,9 @@ class XXYYPowGate(cirq.EigenGate,
     `ofc.XXYY` is an instance of this gate at exponent=1.
     """
 
+    def num_qubits(self):
+        return 2
+
     def _eigen_components(self):
         return [
             (0, np.diag([1, 0, 0, 1])),
@@ -134,9 +141,14 @@ class XXYYPowGate(cirq.EigenGate,
 
     def _decompose_(self, qubits):
         a, b = qubits
-        yield cirq.Z(a) ** 0.5
-        yield YXXY(a, b) ** self.exponent
-        yield cirq.Z(a) ** -0.5
+        yield cirq.X(a)**0.5
+        yield cirq.CNOT(a, b)
+        yield cirq.XPowGate(exponent=self.exponent/2,
+                            global_shift=self._global_shift - 0.5).on(a)
+        yield cirq.YPowGate(exponent=self.exponent/2,
+                            global_shift=self._global_shift - 0.5).on(b)
+        yield cirq.CNOT(a, b)
+        yield cirq.X(a)**-0.5
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:
@@ -167,6 +179,9 @@ class YXXYPowGate(cirq.EigenGate,
 
     `ofc.YXXY` is an instance of this gate at exponent=1.
     """
+
+    def num_qubits(self):
+        return 2
 
     def _eigen_components(self):
         return [
@@ -213,22 +228,26 @@ class YXXYPowGate(cirq.EigenGate,
 
 def Rxxyy(rads: float) -> XXYYPowGate:
     """Returns a gate with the matrix exp(-i rads (X⊗X + Y⊗Y) / 2)."""
-    return XXYYPowGate(exponent=2 * rads / np.pi)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return XXYYPowGate(exponent=2 * rads / pi)
 
 
 def Ryxxy(rads: float) -> YXXYPowGate:
     """Returns a gate with the matrix exp(-i rads (Y⊗X - X⊗Y) / 2)."""
-    return YXXYPowGate(exponent=2 * rads / np.pi)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return YXXYPowGate(exponent=2 * rads / pi)
 
 
 def Rzz(rads: float):
     """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
-    return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return cirq.ZZPowGate(exponent=2 * rads / pi, global_shift=-0.5)
 
 
 def rot11(rads: float):
     """Phases the |11> state of two qubits by e^{i rads}."""
-    return cirq.CZ**(rads / np.pi)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return cirq.CZ**(rads / pi)
 
 
 FSWAP = FSwapPowGate()
