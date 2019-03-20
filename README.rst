@@ -58,16 +58,6 @@ We'd love to accept your contributions and patches to OpenFermion-Cirq.
 There are a few small guidelines to follow which you can read about
 `here <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/CONTRIBUTING.md>`_.
 
-Authors
-=======
-
-`Kevin J. Sung <https://github.com/kevinsung>`__ (Google),
-`Jarrod McClean <http://jarrodmcclean.com>`__ (Google),
-`Ian Kivlichan <http://github.com/idk3>`__ (Google),
-`Casey Duckering <http://github.com/cduck>`__ (Google),
-`Craig Gidney <https://github.com/strilanc>`__ (Google),
-and `Ryan Babbush <http://ryanbabbush.com>`__ (Google).
-
 How to cite
 ===========
 When using OpenFermion-Cirq for research projects, please cite:
