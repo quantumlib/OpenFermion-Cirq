@@ -17,6 +17,7 @@ from typing import Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 import itertools
 
 import numpy
+import sympy
 
 import cirq
 import openfermion
@@ -170,7 +171,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
 
         super().__init__(qubits)
 
-    def params(self) -> Iterable[cirq.Symbol]:
+    def params(self) -> Iterable[sympy.Symbol]:
         """The parameters of the ansatz."""
 
         for i in range(self.iterations):

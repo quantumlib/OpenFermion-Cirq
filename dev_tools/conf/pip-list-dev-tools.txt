@@ -9,3 +9,6 @@ pytest-cov==2.5.*
 
 # For uploading packages to pypi.
 twine
+
+# For verifying behavior of qasm output.
+qiskit==0.6.*

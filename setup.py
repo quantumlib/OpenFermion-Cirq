@@ -61,7 +61,7 @@ setup(
     # wheels, ensure that their names encode the version they are targeting. For
     # example, a wheel named 'cirq-#.#.#-py27-none-any.whl' will only be
     # installed in python 2.7.
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.6.4',
 
     install_requires=requirements,
     license='Apache 2',

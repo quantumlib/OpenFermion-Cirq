@@ -15,6 +15,7 @@
 from typing import Iterable, Optional, Sequence, Tuple, cast
 
 import numpy
+import sympy
 
 import cirq
 
@@ -71,7 +72,7 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
 
         super().__init__(qubits)
 
-    def params(self) -> Iterable[cirq.Symbol]:
+    def params(self) -> Iterable[sympy.Symbol]:
         """The parameters of the ansatz."""
         for i in range(self.iterations):
             if self.x_dim > 1:

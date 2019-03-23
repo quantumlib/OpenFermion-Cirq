@@ -12,8 +12,8 @@
 
 import numpy
 
-import cirq
 import openfermion
+import sympy
 
 from openfermioncirq.variational.ansatzes import SplitOperatorTrotterAnsatz
 
@@ -38,13 +38,13 @@ def test_split_operator_trotter_ansatz_params():
 
     ansatz = SplitOperatorTrotterAnsatz(hubbard_hamiltonian)
     assert (set(ansatz.params()) ==
-            {cirq.Symbol(name) for name in
+            {sympy.Symbol(name) for name in
                 {'U_0_0', 'U_1_0', 'U_6_0', 'U_7_0',
                  'V_0_1_0', 'V_2_3_0', 'V_4_5_0', 'V_6_7_0'}})
 
     ansatz = SplitOperatorTrotterAnsatz(hubbard_hamiltonian, iterations=2)
     assert (set(ansatz.params()) ==
-            {cirq.Symbol(name) for name in
+            {sympy.Symbol(name) for name in
                 {'U_0_0', 'U_1_0', 'U_6_0', 'U_7_0',
                  'V_0_1_0', 'V_2_3_0', 'V_4_5_0', 'V_6_7_0',
                  'U_0_1', 'U_1_1', 'U_6_1', 'U_7_1',

@@ -64,4 +64,4 @@ from openfermioncirq import (
     testing,
 )
 
-from ._version import __version__
+from openfermioncirq._version import __version__

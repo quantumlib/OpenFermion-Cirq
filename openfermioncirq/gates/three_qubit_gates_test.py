@@ -12,6 +12,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.testing import EqualsTester
@@ -22,11 +23,11 @@ import openfermioncirq as ofc
 def test_apply_unitary_effect():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.CXXYY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
 
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.CYXXY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, cirq.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
 
 
 def test_cxxyy_eq():

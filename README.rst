@@ -58,27 +58,18 @@ We'd love to accept your contributions and patches to OpenFermion-Cirq.
 There are a few small guidelines to follow which you can read about
 `here <https://github.com/quantumlib/OpenFermion-Cirq/blob/master/CONTRIBUTING.md>`_.
 
-Authors
-=======
-
-`Kevin J. Sung <https://github.com/kevinsung>`__ (Google),
-`Jarrod McClean <http://jarrodmcclean.com>`__ (Google),
-`Ian Kivlichan <http://github.com/idk3>`__ (Google),
-`Casey Duckering <http://github.com/cduck>`__ (Google),
-`Craig Gidney <https://github.com/strilanc>`__ (Google),
-and `Ryan Babbush <http://ryanbabbush.com>`__ (Google).
-
 How to cite
 ===========
 When using OpenFermion-Cirq for research projects, please cite:
 
-    Jarrod R. McClean, Ian D. Kivlichan, Kevin J. Sung, Damian S. Steiger,
-    Yudong Cao, Chengyu Dai, E. Schuyler Fried, Craig Gidney, Brendan Gimby,
+    Jarrod R. McClean, Kevin J. Sung, Ian D. Kivlichan, Yudong Cao,
+    Chengyu Dai, E. Schuyler Fried, Craig Gidney, Brendan Gimby,
     Pranav Gokhale, Thomas Häner, Tarini Hardikar, Vojtĕch Havlíček,
-    Cupjin Huang, Josh Izaac, Zhang Jiang, Xinle Liu, Matthew Neeley,
-    Thomas O'Brien, Isil Ozfidan, Maxwell D. Radin, Jhonathan Romero,
-    Nicholas Rubin, Nicolas P. D. Sawaya, Kanav Setia, Sukin Sim,
-    Mark Steudtner, Qiming Sun, Wei Sun, Fang Zhang and Ryan Babbush.
+    Oscar Higgott, Cupjin Huang, Josh Izaac, Zhang Jiang, Xinle Liu,
+    Sam McArdle, Matthew Neeley, Thomas O'Brien, Bryan O'Gorman, Isil Ozfidan,
+    Maxwell D. Radin, Jhonathan Romero, Nicholas Rubin, Nicolas P. D. Sawaya,
+    Kanav Setia, Sukin Sim, Damian S. Steiger, Mark Steudtner, Qiming Sun,
+    Wei Sun, Daochen Wang, Fang Zhang and Ryan Babbush.
     *OpenFermion: The Electronic Structure Package for Quantum Computers*.
     `arXiv:1710.07629 <https://arxiv.org/abs/1710.07629>`__. 2017.
 
