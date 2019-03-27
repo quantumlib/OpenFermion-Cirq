@@ -15,7 +15,7 @@ import pytest
 
 import cirq
 from cirq import LineQubit
-from openfermioncirq import ffft
+from openfermioncirq import (bogoliubov_transform, ffft)
 from openfermioncirq.primitives._ffft import (
     _F0Gate,
     _TwiddleGate,
@@ -239,6 +239,32 @@ def test_ffft_fails_without_qubits():
 def test_ffft_fails_for_odd_size():
     with pytest.raises(ValueError):
         ffft(LineQubit.range(3))
+
+
+@pytest.mark.parametrize('size', [1, 2, 4, 8])
+def test_ffft_equal_to_bogoliubov(size):
+
+    def fourier_transform_matrix():
+        root_of_unity = np.exp(-2j * np.pi / size)
+        return np.array([[root_of_unity ** (j * k) for k in range(size)]
+                        for j in range(size)]) / np.sqrt(size)
+
+    qubits = LineQubit.range(size)
+
+    ffft_circuit = cirq.Circuit.from_ops(
+        ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
+    ffft_matrix = ffft_circuit.to_unitary_matrix(
+        qubits_that_should_be_present=qubits)
+
+    bogoliubov_circuit = cirq.Circuit.from_ops(
+        bogoliubov_transform(qubits, fourier_transform_matrix()),
+        strategy=cirq.InsertStrategy.EARLIEST)
+    bogoliubov_matrix = bogoliubov_circuit.to_unitary_matrix(
+        qubits_that_should_be_present=qubits)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        ffft_matrix, bogoliubov_matrix, atol=1e-8
+    )
 
 
 def test_inverse():
