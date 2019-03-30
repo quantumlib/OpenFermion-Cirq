@@ -37,13 +37,13 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
 
     This gate assumes JWT representation of fermionic modes which are big-endian
     encoded on consecutive qubits:
-    :math:`a_0^\dagger \lvert 0 \rangle = \lvert 10 \rangle` and
-    :math:`a_1^\dagger \lvert 0 \rangle = \vert 01 \rangle`.
+    :math:`a_0^\dagger \lvert 00 \rangle = \lvert 10 \rangle` and
+    :math:`a_1^\dagger \lvert 00 \rangle = \vert 01 \rangle`.
 
     Internally, this leads to expansion of :math:`F_0^\dagger`:
 
     .. math::
-        \langle 0 \rvert F_0^\dagger \lvert 0 \rangle = 1
+        \langle 00 \rvert F_0^\dagger \lvert 00 \rangle = 1
 
     .. math::
         \langle 01 \rvert F_0^\dagger \lvert 01 \rangle =
