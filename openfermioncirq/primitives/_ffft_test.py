@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import List
+from typing import (Dict, List)
 
 import numpy as np
 import pytest
@@ -26,15 +26,16 @@ from openfermioncirq.primitives._ffft import (
 )
 
 
-def _fft_amplitudes(amplitudes: List[complex]) -> List[complex]:
-    """Fermionic Fourier transform of Fermionic modes.
+def _fourier_transform_single_fermionic_modes(
+        amplitudes: List[complex]) -> List[complex]:
+    """Fermionic Fourier transform of a list of single Fermionic modes.
 
     Args:
         amplitudes: List of amplitudes for each Fermionic mode.
 
     Return:
         List representing a new, Fourier transformed amplitudes of the input
-        modes amplitudes.
+        amplitudes.
     """
     def fft(k, n):
         unit = np.exp(-2j * np.pi * k / n)
@@ -43,7 +44,61 @@ def _fft_amplitudes(amplitudes: List[complex]) -> List[complex]:
     return [fft(k, n) for k in range(n)]
 
 
-def _single_fermionic_mode_state(amplitudes: List[complex]) -> np.ndarray:
+def _fourier_transform_multi_fermionic_mode(
+        n: int, amplitude: complex, modes: List[int]) -> np.ndarray:
+    """Fermionic Fourier transform of a multi Fermionic mode base state.
+
+    Args:
+        n: State length, number of qubits used.
+        amplitude: State amplitude. Absolute value must be equal to 1.
+        modes: List of mode numbers which should appear in the resulting state.
+            List order defines the sequence of applied creation operators which
+            does not need to be normally ordered.
+
+    Return:
+        List representing a new, Fourier transformed amplitudes of the input
+        modes.
+    """
+
+    def fft(k):
+        unit = np.exp(-2j * np.pi * k / n)
+        return [unit**j / np.sqrt(n) for j in range(n)]
+
+    def append_in_normal_order(index, mode):
+        phase = 1
+        mode = n - 1 - mode
+        for i in range(n):
+            bit = 1 << i
+            if i == mode:
+                if index & bit != 0:
+                    return None, None
+                return index | bit, phase
+            elif index & bit:
+                phase *= -1
+
+    state = {0: amplitude}
+    for m in modes:
+        transform = fft(m)
+        new_state = {}  # type: Dict[int, complex]
+        for index in state:
+            for mode in range(len(transform)):
+                new_index, new_phase = append_in_normal_order(index, mode)
+                if new_index:
+                    if not new_index in new_state:
+                        new_state[new_index] = 0
+                    new_amplitude = state[index] * transform[mode] * new_phase
+                    new_state[new_index] += new_amplitude
+        state = new_state
+
+    result = np.zeros(1 << n, dtype=complex)
+    for i in range(len(result)):
+        if i in state:
+            result[i] = state[i]
+
+    return result / np.linalg.norm(result)
+
+
+def _single_fermionic_modes_state(amplitudes: List[complex]) -> np.ndarray:
     """Prepares state which is a superposition of single Fermionic modes.
 
     Args:
@@ -63,16 +118,18 @@ def _single_fermionic_mode_state(amplitudes: List[complex]) -> np.ndarray:
 
 def _multi_fermionic_mode_base_state(
         n: int, amplitude: complex, modes: List[int]) -> np.ndarray:
-    """Prepares state which is a vector with a list of desired modes.
+    """Prepares state which is a base vector with list of desired modes.
 
     Prepares a state to be one of the basis vectors of an n-dimensional qubits
     Hilbert space. The basis state has qubits from the list modes set to 1, and
     all other qubits set to 0.
 
     Args:
-         n: State length, number of qubits used.
-         amplitude: State amplitude. Absolute value must be equal to 1.
-         modes: List of mode numbers which should appear in the resulting state.
+        n: State length, number of qubits used.
+        amplitude: State amplitude. Absolute value must be equal to 1.
+        modes: List of mode numbers which should appear in the resulting state.
+            This method assumes the list is sorted resulting in normally ordered
+            operator.
 
     Return:
         State vector that represents n-dimensional Hilbert space base state,
@@ -94,8 +151,9 @@ def _multi_fermionic_mode_base_state(
 )
 def test_F0Gate_transform(amplitudes):
     qubits = LineQubit.range(2)
-    initial_state = _single_fermionic_mode_state(amplitudes)
-    expected_state = _single_fermionic_mode_state(_fft_amplitudes(amplitudes))
+    initial_state = _single_fermionic_modes_state(amplitudes)
+    expected_state = _single_fermionic_modes_state(
+        _fourier_transform_single_fermionic_modes(amplitudes))
 
     circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
     state = circuit.apply_unitary_effect_to_state(initial_state)
@@ -134,8 +192,8 @@ def test_F0Gate_text_diagram():
 )
 def test_TwiddleGate_transform(k, n, qubit, initial, expected):
     qubits = LineQubit.range(2)
-    initial_state = _single_fermionic_mode_state(initial)
-    expected_state = _single_fermionic_mode_state(expected)
+    initial_state = _single_fermionic_modes_state(initial)
+    expected_state = _single_fermionic_modes_state(expected)
 
     circuit = cirq.Circuit.from_ops(_TwiddleGate(k, n).on(qubits[qubit]))
     state = circuit.apply_unitary_effect_to_state(
@@ -187,15 +245,49 @@ def test_TwiddleGate_text_diagram():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
          ])
-def test_ffft_single_mode(amplitudes):
-    initial_state = _single_fermionic_mode_state(amplitudes)
-    expected_state = _single_fermionic_mode_state(_fft_amplitudes(amplitudes))
+def test_ffft_single_fermionic_modes(amplitudes):
+    initial_state = _single_fermionic_modes_state(amplitudes)
+    expected_state = _single_fermionic_modes_state(
+        _fourier_transform_single_fermionic_modes(amplitudes))
     qubits = LineQubit.range(len(amplitudes))
 
     circuit = cirq.Circuit.from_ops(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
+
+    assert np.allclose(state, expected_state, rtol=0.0)
+
+
+@pytest.mark.parametrize(
+        'n, initial',
+        [(2, (1, [0, 1])),
+         (4, (1, [0, 1])),
+         (4, (1, [1, 2])),
+         (4, (1, [2, 3])),
+         (8, (1, [0, 7])),
+         (8, (1, [3, 5])),
+         (8, (1, [0, 3, 5, 7])),
+         (8, (1, [0, 1, 2, 3])),
+         (8, (1, [0, 1, 6, 7])),
+         (8, (1j, [0, 3, 5, 7])),
+         (8, (-1j, [0, 1, 2, 3])),
+         (8, (np.sqrt(0.5) + np.sqrt(0.5)*1j, [0, 1, 6, 7])),
+         (8, (1, [0, 1, 2, 3, 5, 6, 7])),
+         (8, (1, [0, 1, 2, 3, 4, 5, 6, 7])),
+         ])
+def test_ffft_multi_fermionic_mode(n, initial):
+    initial_state = _multi_fermionic_mode_base_state(n, *initial)
+    expected_state = _fourier_transform_multi_fermionic_mode(n, *initial)
+    qubits = LineQubit.range(n)
+
+    circuit = cirq.Circuit.from_ops(
+        ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
+    state = circuit.apply_unitary_effect_to_state(
+        initial_state, qubits_that_should_be_present=qubits)
+
+    print(state)
+    print(expected_state)
 
     assert np.allclose(state, expected_state, rtol=0.0)
 
