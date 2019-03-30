@@ -10,6 +10,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from typing import List
+
 import numpy as np
 import pytest
 
@@ -24,25 +26,7 @@ from openfermioncirq.primitives._ffft import (
 )
 
 
-def _state_from_amplitudes(amplitudes):
-    """Prepares state in a superposition of Fermionic modes.
-
-    Args:
-        amplitudes: List of amplitudes to be assigned for a state representing
-            a Fermionic mode.
-
-    Return:
-        State vector which is a superposition of single fermionic modes under
-        JWT representation, each with appropriate amplitude assigned.
-    """
-    n = len(amplitudes)
-    state = np.zeros(1 << n, dtype=complex)
-    for m in range(len(amplitudes)):
-        state[1 << (n - 1 - m)] = amplitudes[m]
-    return state
-
-
-def _fft_amplitudes(amplitudes):
+def _fft_amplitudes(amplitudes: List[complex]) -> List[complex]:
     """Fermionic Fourier transform of Fermionic modes.
 
     Args:
@@ -59,8 +43,27 @@ def _fft_amplitudes(amplitudes):
     return [fft(k, n) for k in range(n)]
 
 
-def _state_from_modes(n, amplitude, modes):
-    """Prepares a state from a list of desired modes.
+def _single_fermionic_mode_state(amplitudes: List[complex]) -> np.ndarray:
+    """Prepares state which is a superposition of single Fermionic modes.
+
+    Args:
+        amplitudes: List of amplitudes to be assigned for a state representing
+            a Fermionic mode.
+
+    Return:
+        State vector which is a superposition of single fermionic modes under
+        JWT representation, each with appropriate amplitude assigned.
+    """
+    n = len(amplitudes)
+    state = np.zeros(1 << n, dtype=complex)
+    for m in range(len(amplitudes)):
+        state[1 << (n - 1 - m)] = amplitudes[m]
+    return state
+
+
+def _multi_fermionic_mode_base_state(
+        n: int, amplitude: complex, modes: List[int]) -> np.ndarray:
+    """Prepares state which is a vector with a list of desired modes.
 
     Prepares a state to be one of the basis vectors of an n-dimensional qubits
     Hilbert space. The basis state has qubits from the list modes set to 1, and
@@ -69,7 +72,7 @@ def _state_from_modes(n, amplitude, modes):
     Args:
          n: State length, number of qubits used.
          amplitude: State amplitude. Absolute value must be equal to 1.
-         modes: List of modes number which should appear in the resulting state.
+         modes: List of mode numbers which should appear in the resulting state.
 
     Return:
         State vector that represents n-dimensional Hilbert space base state,
@@ -91,8 +94,8 @@ def _state_from_modes(n, amplitude, modes):
 )
 def test_F0Gate_transform(amplitudes):
     qubits = LineQubit.range(2)
-    initial_state = _state_from_amplitudes(amplitudes)
-    expected_state = _state_from_amplitudes(_fft_amplitudes(amplitudes))
+    initial_state = _single_fermionic_mode_state(amplitudes)
+    expected_state = _single_fermionic_mode_state(_fft_amplitudes(amplitudes))
 
     circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
     state = circuit.apply_unitary_effect_to_state(initial_state)
@@ -131,8 +134,8 @@ def test_F0Gate_text_diagram():
 )
 def test_TwiddleGate_transform(k, n, qubit, initial, expected):
     qubits = LineQubit.range(2)
-    initial_state = _state_from_amplitudes(initial)
-    expected_state = _state_from_amplitudes(expected)
+    initial_state = _single_fermionic_mode_state(initial)
+    expected_state = _single_fermionic_mode_state(expected)
 
     circuit = cirq.Circuit.from_ops(_TwiddleGate(k, n).on(qubits[qubit]))
     state = circuit.apply_unitary_effect_to_state(
@@ -185,8 +188,8 @@ def test_TwiddleGate_text_diagram():
          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
          ])
 def test_ffft_single_mode(amplitudes):
-    initial_state = _state_from_amplitudes(amplitudes)
-    expected_state = _state_from_amplitudes(_fft_amplitudes(amplitudes))
+    initial_state = _single_fermionic_mode_state(amplitudes)
+    expected_state = _single_fermionic_mode_state(_fft_amplitudes(amplitudes))
     qubits = LineQubit.range(len(amplitudes))
 
     circuit = cirq.Circuit.from_ops(
@@ -300,8 +303,8 @@ def test_inverse():
 )
 def test_permute(permutation, initial, expected):
     n = len(permutation)
-    initial_state = _state_from_modes(n, *initial)
-    expected_state = _state_from_modes(n, *expected)
+    initial_state = _multi_fermionic_mode_base_state(n, *initial)
+    expected_state = _multi_fermionic_mode_base_state(n, *expected)
     qubits = LineQubit.range(n)
 
     ops = _permute(qubits, permutation)
