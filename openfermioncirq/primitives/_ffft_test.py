@@ -60,7 +60,7 @@ def _fourier_transform_multi_fermionic_mode(
         modes.
     """
 
-    def fft(k):
+    def fourier_transform_mode(k):
         unit = np.exp(-2j * np.pi * k / n)
         return [unit**j / np.sqrt(n) for j in range(n)]
 
@@ -78,7 +78,7 @@ def _fourier_transform_multi_fermionic_mode(
 
     state = {0: amplitude}
     for m in modes:
-        transform = fft(m)
+        transform = fourier_transform_mode(m)
         new_state = {}  # type: Dict[int, complex]
         for index in state:
             for mode in range(len(transform)):
@@ -342,7 +342,7 @@ def test_ffft_equal_to_bogoliubov(size):
     def fourier_transform_matrix():
         root_of_unity = np.exp(-2j * np.pi / size)
         return np.array([[root_of_unity ** (j * k) for k in range(size)]
-                        for j in range(size)]) / np.sqrt(size)
+                         for j in range(size)]) / np.sqrt(size)
 
     qubits = LineQubit.range(size)
 

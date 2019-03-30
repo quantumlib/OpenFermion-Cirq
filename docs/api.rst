@@ -42,6 +42,7 @@ Primitives
     :toctree: generated/
 
     bogoliubov_transform
+    ffft
     prepare_gaussian_state
     prepare_slater_determinant
     swap_network
