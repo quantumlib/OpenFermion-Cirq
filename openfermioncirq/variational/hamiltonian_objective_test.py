@@ -31,7 +31,7 @@ def test_hamiltonian_objective_value():
     obj_linear_op = HamiltonianObjective(test_hamiltonian, use_linear_op=True)
     hamiltonian_sparse = openfermion.get_sparse_operator(test_hamiltonian)
 
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     qubits = cirq.LineQubit.range(4)
     numpy.random.seed(10581)
     result = simulator.simulate(

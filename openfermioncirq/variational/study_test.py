@@ -26,6 +26,7 @@ from openfermioncirq.variational import variational_black_box
 from openfermioncirq.variational.study import (
         VariationalStudy)
 from openfermioncirq.variational.variational_black_box import (
+        UnitarySimulateVariationalBlackBox,
         XmonSimulateVariationalBlackBox)
 from openfermioncirq.testing import (
         ExampleAlgorithm,
@@ -73,7 +74,7 @@ def test_variational_study_optimize_and_extend_and_summary():
 
     study = VariationalStudy(
             'study', test_ansatz, test_objective,
-            black_box_type=variational_black_box.XMON_SIMULATE_STATEFUL,
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL,
             target=-10.5)
     assert len(study.trial_results) == 0
     assert study.target == -10.5
@@ -116,7 +117,7 @@ def test_variational_study_optimize_and_extend_and_summary():
     assert result.repetitions == 1
     assert all(
             result.data_frame['optimal_parameters'].apply(
-                lambda x: XmonSimulateVariationalBlackBox(
+                lambda x: UnitarySimulateVariationalBlackBox(
                     test_ansatz, test_objective).evaluate(x))
             == result.data_frame['optimal_value'])
     assert isinstance(result.results[0].cost_spent, float)
@@ -195,7 +196,7 @@ def test_variational_study_save_load():
             initial_state=numpy.array([0.0, 1.0, 0.0, 0.0]).astype(
                 numpy.complex64),
             datadir=datadir,
-            black_box_type=variational_black_box.XMON_SIMULATE_STATEFUL)
+            black_box_type=variational_black_box.UNITARY_SIMULATE_STATEFUL)
     study.optimize(
             OptimizationParams(
                 ScipyOptimizationAlgorithm(
@@ -251,7 +252,7 @@ def test_variational_black_box_noise_bounds():
 
 
 def test_variational_black_box_evaluate():
-    black_box = XmonSimulateVariationalBlackBox(test_ansatz, test_objective)
+    black_box = UnitarySimulateVariationalBlackBox(test_ansatz, test_objective)
     numpy.testing.assert_allclose(
             black_box.evaluate(test_ansatz.default_initial_params()), 0.0)
     numpy.testing.assert_allclose(
@@ -259,13 +260,14 @@ def test_variational_black_box_evaluate():
 
 
 def test_variational_black_box_evaluate_with_cost():
-    black_box = XmonSimulateVariationalBlackBox(test_ansatz, test_objective)
+    black_box = UnitarySimulateVariationalBlackBox(test_ansatz, test_objective)
+
     numpy.testing.assert_allclose(
             black_box.evaluate_with_cost(
                 test_ansatz.default_initial_params(), 2.0),
             0.0)
 
-    black_box_noisy = XmonSimulateVariationalBlackBox(
+    black_box_noisy = UnitarySimulateVariationalBlackBox(
             test_ansatz, test_objective_noisy)
     numpy.random.seed(33534)
     noisy_val = black_box_noisy.evaluate_with_cost(

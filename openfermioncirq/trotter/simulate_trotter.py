@@ -26,13 +26,13 @@ from openfermioncirq.trotter.algorithms import (
         LOW_RANK)
 
 
-def simulate_trotter(qubits: Sequence[cirq.QubitId],
+def simulate_trotter(qubits: Sequence[cirq.Qid],
                      hamiltonian: Hamiltonian,
                      time: float,
                      n_steps: int=1,
                      order: int=0,
                      algorithm: Optional[TrotterAlgorithm]=None,
-                     control_qubit: Optional[cirq.QubitId]=None,
+                     control_qubit: Optional[cirq.Qid]=None,
                      omit_final_swaps: bool=False
                      ) -> cirq.OP_TREE:
     """Simulate Hamiltonian evolution using a Trotter-Suzuki product formula.
@@ -113,11 +113,11 @@ def simulate_trotter(qubits: Sequence[cirq.QubitId],
     yield trotter_step.finish(qubits, n_steps, control_qubit, omit_final_swaps)
 
 
-def _perform_trotter_step(qubits: Sequence[cirq.QubitId],
+def _perform_trotter_step(qubits: Sequence[cirq.Qid],
                           time: float,
                           order: int,
                           trotter_step: TrotterStep,
-                          control_qubit: Optional[cirq.QubitId]
+                          control_qubit: Optional[cirq.Qid]
                           ) -> cirq.OP_TREE:
     """Perform a Trotter step."""
     if order <= 1:

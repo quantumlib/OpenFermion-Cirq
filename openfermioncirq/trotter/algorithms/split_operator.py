@@ -73,8 +73,8 @@ class SplitOperatorTrotterStep(TrotterStep):
 class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def prepare(self,
-                qubits: Sequence[cirq.QubitId],
-                control_qubits: Optional[cirq.QubitId]=None
+                qubits: Sequence[cirq.Qid],
+                control_qubits: Optional[cirq.Qid]=None
                 ) -> cirq.OP_TREE:
         # Change to the basis in which the one-body term is diagonal
         yield cirq.inverse(
@@ -82,9 +82,9 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -115,17 +115,17 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                for i in range(n_qubits))
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], None
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # Rotate back to the computational basis
@@ -139,8 +139,8 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def prepare(self,
-                qubits: Sequence[cirq.QubitId],
-                control_qubits: Optional[cirq.QubitId]=None
+                qubits: Sequence[cirq.Qid],
+                control_qubits: Optional[cirq.Qid]=None
                 ) -> cirq.OP_TREE:
         # Change to the basis in which the one-body term is diagonal
         yield cirq.inverse(
@@ -148,9 +148,9 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -187,17 +187,17 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], control_qubit
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # Rotate back to the computational basis
@@ -211,9 +211,9 @@ class AsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -239,17 +239,17 @@ class AsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], None
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # If the number of Trotter steps is odd, possibly swap qubits back
@@ -261,9 +261,9 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -294,17 +294,17 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], control_qubit
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # If the number of Trotter steps is odd, possibly swap qubits back

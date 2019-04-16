@@ -105,7 +105,7 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                  include_all_z: bool=False,
                  adiabatic_evolution_time: Optional[float]=None,
                  spin_basis: bool=True,
-                 qubits: Optional[Sequence[cirq.QubitId]]=None
+                 qubits: Optional[Sequence[cirq.Qid]]=None
                  ) -> None:
         """
         Args:
@@ -202,11 +202,11 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
         """Bounds on the parameters."""
         return [(-1.0, 1.0)] * len(list(self.params()))
 
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+    def _generate_qubits(self) -> Sequence[cirq.Qid]:
         """Produce qubits that can be used by the ansatz circuit."""
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def operations(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit."""
 
         n_qubits = len(qubits)
@@ -259,8 +259,8 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
             # Undo final basis transformation.
             yield bogoliubov_transform(qubits, prior_basis_matrix)
 
-    def qubit_permutation(self, qubits: Sequence[cirq.QubitId]
-                          ) -> Sequence[cirq.QubitId]:
+    def qubit_permutation(self, qubits: Sequence[cirq.Qid]
+                          ) -> Sequence[cirq.Qid]:
         """The qubit permutation induced by the ansatz circuit."""
         # An odd number of swap networks reverses the qubit ordering
         if self.iterations & 1 and len(self.eigenvalues) & 1:
@@ -311,7 +311,8 @@ class LowRankTrotterAnsatz(VariationalAnsatz):
                         + interpolation_progress * self.one_body_correction)
                 quad_ham = openfermion.QuadraticHamiltonian(
                         one_body_coefficients)
-                one_body_energies, _ = quad_ham.orbital_energies()
+                one_body_energies, _, _ = (
+                        quad_ham.diagonalizing_bogoliubov_transform())
                 params.append(_canonicalize_exponent(
                     -one_body_energies[p]
                     * step_time / numpy.pi, 2))
