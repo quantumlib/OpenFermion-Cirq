@@ -27,7 +27,7 @@ from openfermioncirq import Ryxxy
 
 
 def bogoliubov_transform(
-        qubits: Sequence[cirq.QubitId],
+        qubits: Sequence[cirq.Qid],
         transformation_matrix: numpy.ndarray,
         initial_state: Optional[Union[int, Sequence[int]]]=None
         ) -> cirq.OP_TREE:
@@ -150,7 +150,7 @@ def _occupied_orbitals(computational_basis_state: int, n_qubits) -> List[int]:
     return [j for j in range(len(bitstring)) if bitstring[j] == '1']
 
 
-def _slater_basis_change(qubits: Sequence[cirq.QubitId],
+def _slater_basis_change(qubits: Sequence[cirq.Qid],
                          transformation_matrix: numpy.ndarray,
                          initially_occupied_orbitals: Optional[Sequence[int]]
                          ) -> cirq.OP_TREE:
@@ -181,7 +181,7 @@ def _slater_basis_change(qubits: Sequence[cirq.QubitId],
             qubits, circuit_description)
 
 
-def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
+def _gaussian_basis_change(qubits: Sequence[cirq.Qid],
                            transformation_matrix: numpy.ndarray,
                            initially_occupied_orbitals: Optional[Sequence[int]]
                            ) -> cirq.OP_TREE:
@@ -216,7 +216,7 @@ def _gaussian_basis_change(qubits: Sequence[cirq.QubitId],
 
 
 def _ops_from_givens_rotations_circuit_description(
-        qubits: Sequence[cirq.QubitId],
+        qubits: Sequence[cirq.Qid],
         circuit_description: Iterable[Iterable[
             Union[str, Tuple[int, int, float, float]]]]) -> cirq.OP_TREE:
     """Yield operations from a Givens rotations circuit obtained from

@@ -43,7 +43,7 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                  periodic: bool=True,
                  iterations: int=1,
                  adiabatic_evolution_time: Optional[float]=None,
-                 qubits: Optional[Sequence[cirq.QubitId]]=None
+                 qubits: Optional[Sequence[cirq.Qid]]=None
                  ) -> None:
         """
         Args:
@@ -89,12 +89,12 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
             bounds.append((-s, s))
         return bounds
 
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+    def _generate_qubits(self) -> Sequence[cirq.Qid]:
         """Produce qubits that can be used by the ansatz circuit."""
         n_qubits = 2*self.x_dim*self.y_dim
         return cirq.LineQubit.range(n_qubits)
 
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def operations(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit."""
 
         for i in range(self.iterations):

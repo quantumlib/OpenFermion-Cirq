@@ -144,9 +144,9 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -196,10 +196,10 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
         yield bogoliubov_transform(qubits, prior_basis_matrix)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering when the number of
         # eigenvalues is odd
         if len(self.eigenvalues) & 1:
@@ -208,9 +208,9 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
             return qubits, None
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         if not omit_final_swaps:
@@ -223,9 +223,9 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -280,10 +280,10 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering when the number of
         # eigenvalues is odd
         if len(self.eigenvalues) & 1:
@@ -292,9 +292,9 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
             return qubits, control_qubit
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         if not omit_final_swaps:

@@ -25,7 +25,7 @@ from openfermion import (
 from openfermioncirq import Ryxxy
 
 
-def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
+def prepare_gaussian_state(qubits: Sequence[cirq.Qid],
                            quadratic_hamiltonian: QuadraticHamiltonian,
                            occupied_orbitals: Optional[Union[
                                Sequence[int],
@@ -81,7 +81,7 @@ def prepare_gaussian_state(qubits: Sequence[cirq.QubitId],
 
 
 def _generic_gaussian_circuit(
-        qubits: Sequence[cirq.QubitId],
+        qubits: Sequence[cirq.Qid],
         quadratic_hamiltonian: QuadraticHamiltonian,
         occupied_orbitals: Optional[Sequence[int]],
         initial_state: Union[int, Sequence[int]]) -> cirq.OP_TREE:
@@ -105,7 +105,7 @@ def _generic_gaussian_circuit(
 
 
 def _spin_symmetric_gaussian_circuit(
-        qubits: Sequence[cirq.QubitId],
+        qubits: Sequence[cirq.Qid],
         quadratic_hamiltonian: QuadraticHamiltonian,
         occupied_orbitals: Tuple[Sequence[int], Sequence[int]],
         initial_state: Union[int, Sequence[int]]) -> cirq.OP_TREE:
@@ -140,7 +140,7 @@ def _spin_symmetric_gaussian_circuit(
                 spin_qubits, circuit_description)
 
 
-def prepare_slater_determinant(qubits: Sequence[cirq.QubitId],
+def prepare_slater_determinant(qubits: Sequence[cirq.Qid],
                                slater_determinant_matrix: numpy.ndarray,
                                initial_state: Union[int, Sequence[int]]=0
                                ) -> cirq.OP_TREE:
@@ -207,7 +207,7 @@ def _occupied_orbitals(computational_basis_state: int, n_qubits) -> Set[int]:
 
 
 def _ops_from_givens_rotations_circuit_description(
-        qubits: Sequence[cirq.QubitId],
+        qubits: Sequence[cirq.Qid],
         circuit_description: Iterable[Iterable[
             Union[str, Tuple[int, int, float, float]]]]) -> cirq.OP_TREE:
     """Yield operations from a Givens rotations circuit obtained from

@@ -115,10 +115,10 @@ class ExampleAnsatz(VariationalAnsatz):
         for i in range(2):
             yield sympy.Symbol('theta{}'.format(i))
 
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+    def _generate_qubits(self) -> Sequence[cirq.Qid]:
         return cirq.LineQubit.range(2)
 
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def operations(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         a, b = qubits
         yield cirq.XPowGate(exponent=sympy.Symbol('theta0')).on(a)
         yield cirq.XPowGate(exponent=sympy.Symbol('theta1')).on(b)
@@ -139,6 +139,9 @@ class ExampleVariationalObjective(VariationalObjective):
                                     cirq.SimulationTrialResult,
                                     numpy.ndarray]
               ) -> float:
+        if isinstance(circuit_output, numpy.ndarray):
+            return sum(bin(i).count('1') * p for i, p in
+                    enumerate(circuit_output))
         measurements = circuit_output.measurements['all']
         return numpy.sum(measurements)
 

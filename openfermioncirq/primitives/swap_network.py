@@ -19,9 +19,9 @@ import cirq
 from openfermioncirq import FSWAP
 
 
-def swap_network(qubits: Sequence[cirq.QubitId],
+def swap_network(qubits: Sequence[cirq.Qid],
                  operation: Callable[
-                     [int, int, cirq.QubitId, cirq.QubitId], cirq.OP_TREE
+                     [int, int, cirq.Qid, cirq.Qid], cirq.OP_TREE
                  ] = lambda p, q, p_qubit, q_qubit: (),
                  fermionic: bool=False,
                  offset: bool=False) -> List[cirq.Operation]:

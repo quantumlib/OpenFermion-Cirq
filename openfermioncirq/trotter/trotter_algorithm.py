@@ -50,8 +50,8 @@ class TrotterStep(metaclass=abc.ABCMeta):
         self.hamiltonian = hamiltonian
 
     def prepare(self,
-                qubits: Sequence[cirq.QubitId],
-                control_qubit: Optional[cirq.QubitId]=None
+                qubits: Sequence[cirq.Qid],
+                control_qubit: Optional[cirq.Qid]=None
                 ) -> cirq.OP_TREE:
         """Operations to perform before doing the Trotter steps.
 
@@ -68,9 +68,9 @@ class TrotterStep(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
         """Yield operations to perform a Trotter step.
 
@@ -83,10 +83,10 @@ class TrotterStep(metaclass=abc.ABCMeta):
         pass
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         """The qubit permutation induced by a single Trotter step.
 
         Returns:
@@ -97,9 +97,9 @@ class TrotterStep(metaclass=abc.ABCMeta):
         return qubits, control_qubit
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         """Operations to perform after all Trotter steps are done.

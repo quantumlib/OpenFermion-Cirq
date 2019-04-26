@@ -141,7 +141,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                  include_all_cz: bool=False,
                  include_all_z: bool=False,
                  adiabatic_evolution_time: Optional[float]=None,
-                 qubits: Optional[Sequence[cirq.QubitId]]=None
+                 qubits: Optional[Sequence[cirq.Qid]]=None
                  ) -> None:
         """
         Args:
@@ -213,11 +213,11 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 bounds.append((-2.0, 2.0))
         return bounds
 
-    def _generate_qubits(self) -> Sequence[cirq.QubitId]:
+    def _generate_qubits(self) -> Sequence[cirq.Qid]:
         """Produce qubits that can be used by the ansatz circuit."""
         return cirq.LineQubit.range(openfermion.count_qubits(self.hamiltonian))
 
-    def operations(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def operations(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         """Produce the operations of the ansatz circuit."""
         # TODO implement asymmetric ansatz
 

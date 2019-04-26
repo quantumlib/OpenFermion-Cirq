@@ -66,9 +66,9 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -108,9 +108,9 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -159,9 +159,9 @@ class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -183,17 +183,17 @@ class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                for i in range(n_qubits))
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], None
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # If the number of Trotter steps is odd, possibly swap qubits back
@@ -205,9 +205,9 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
     def trotter_step(
             self,
-            qubits: Sequence[cirq.QubitId],
+            qubits: Sequence[cirq.Qid],
             time: float,
-            control_qubit: Optional[cirq.QubitId]=None
+            control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
         n_qubits = len(qubits)
@@ -236,17 +236,17 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
-                               qubits: Sequence[cirq.QubitId],
-                               control_qubit: Optional[cirq.QubitId]=None
-                               ) -> Tuple[Sequence[cirq.QubitId],
-                                          Optional[cirq.QubitId]]:
+                               qubits: Sequence[cirq.Qid],
+                               control_qubit: Optional[cirq.Qid]=None
+                               ) -> Tuple[Sequence[cirq.Qid],
+                                          Optional[cirq.Qid]]:
         # A Trotter step reverses the qubit ordering
         return qubits[::-1], control_qubit
 
     def finish(self,
-               qubits: Sequence[cirq.QubitId],
+               qubits: Sequence[cirq.Qid],
                n_steps: int,
-               control_qubit: Optional[cirq.QubitId]=None,
+               control_qubit: Optional[cirq.Qid]=None,
                omit_final_swaps: bool=False
                ) -> cirq.OP_TREE:
         # If the number of Trotter steps is odd, possibly swap qubits back

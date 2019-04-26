@@ -129,8 +129,8 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
     quad_ham_sparse = get_sparse_operator(quad_ham)
 
     # Compute the orbital energies and circuit
-    orbital_energies, constant = quad_ham.orbital_energies()
-    _, transformation_matrix, _ = quad_ham.diagonalizing_bogoliubov_transform()
+    orbital_energies, transformation_matrix, constant = (
+            quad_ham.diagonalizing_bogoliubov_transform())
     circuit = cirq.Circuit.from_ops(
             bogoliubov_transform(qubits, transformation_matrix))
 
