@@ -18,7 +18,7 @@ import pytest
 import cirq
 from cirq import LineQubit
 from openfermioncirq import (bogoliubov_transform, ffft)
-from openfermioncirq.primitives._ffft import (
+from openfermioncirq.primitives.ffft import (
     _F0Gate,
     _TwiddleGate,
 )
