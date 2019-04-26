@@ -107,7 +107,7 @@ class _TwiddleGate(cirq.SingleQubitGate):
             symbols = 'w^{}_{}'.format(self.k, self.n),
         return cirq.CircuitDiagramInfo(wire_symbols=symbols)
 
-    def _decompose_(self, qubits: Iterable[cirq.QubitId]):
+    def _decompose_(self, qubits: Iterable[cirq.Qid]):
         q, = qubits
         exponent = -2 * self.k / self.n
         yield cirq.ZPowGate(exponent=exponent, global_shift=0).on(q)
@@ -116,7 +116,7 @@ class _TwiddleGate(cirq.SingleQubitGate):
 F0 = _F0Gate()
 
 
-def ffft(qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+def ffft(qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
     r"""Performs fast fermionic Fourier transform.
 
     Generates a circuit that performs fast fermionic Fourier transform (FFFT)
@@ -250,7 +250,7 @@ def _inverse(permutation: List[int]) -> List[int]:
     return inverse
 
 
-def _permute(qubits: Sequence[cirq.QubitId],
+def _permute(qubits: Sequence[cirq.Qid],
              permutation: List[int]) -> cirq.OP_TREE:
     """
     Generates a circuit which reorders Fermionic modes.
@@ -270,6 +270,7 @@ def _permute(qubits: Sequence[cirq.QubitId],
         Gate that reorders the qubits accordingly.
     """
     return cirq.contrib.acquaintance.permutation.LinearPermutationGate(
+        len(qubits),
         {i: permutation[i] for i in range(len(permutation))},
         swap_gate=FSWAP
     ).on(*qubits)

@@ -239,11 +239,7 @@ def test_TwiddleGate_text_diagram():
          [0, 0, 0, 0, 0, 1, 0, 0],
          [0, 0, 0, 0, 0, 0, 1, 0],
          [0, 0, 0, 0, 0, 0, 0, 1],
-         [0, 0, -1j/np.sqrt(2), 0, 0, 1/np.sqrt(2), 0, 0],
-         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+         [0, 0, -1j/np.sqrt(2), 0, 0, 1/np.sqrt(2), 0, 0]
          ])
 def test_ffft_single_fermionic_modes(amplitudes):
     initial_state = _single_fermionic_modes_state(amplitudes)
