@@ -257,5 +257,5 @@ def _permute(qubits: Sequence[cirq.Qid],
     return cirq.contrib.acquaintance.permutation.LinearPermutationGate(
         len(qubits),
         {i: permutation[i] for i in range(len(permutation))},
-        swap_gate=FSWAP
+        FSWAP
     ).on(*qubits)
