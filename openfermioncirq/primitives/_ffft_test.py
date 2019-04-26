@@ -21,8 +21,6 @@ from openfermioncirq import (bogoliubov_transform, ffft)
 from openfermioncirq.primitives._ffft import (
     _F0Gate,
     _TwiddleGate,
-    _inverse,
-    _permute,
 )
 
 
@@ -356,51 +354,3 @@ def test_ffft_equal_to_bogoliubov(size):
     cirq.testing.assert_allclose_up_to_global_phase(
         ffft_matrix, bogoliubov_matrix, atol=1e-8
     )
-
-
-def test_inverse():
-    assert _inverse([0, 1, 2]) == [0, 1, 2]
-    assert _inverse([1, 2, 0]) == [2, 0, 1]
-    assert _inverse([2, 0, 1]) == [1, 2, 0]
-    assert _inverse([3, 2, 1, 0]) == [3, 2, 1, 0]
-
-
-@pytest.mark.parametrize(
-        'permutation, initial, expected',
-        [([0, 1], (1, []), (1, [])),
-         ([0, 1], (1, [1]), (1, [1])),
-         ([1, 0], (1, [1]), (1, [0])),
-         ([1, 2, 0], (1, [0]), (1, [1])),
-         ([1, 2, 0], (1, [1]), (1, [2])),
-         ([1, 2, 0], (1, [2]), (1, [0])),
-         ([1, 0], (1, [0, 1]), (-1, [0, 1])),
-         ([2, 1, 0], (1, [0, 2]), (-1, [0, 2])),
-         ([2, 1, 0], (1j, [0, 2]), (-1j, [0, 2])),
-         ([1, 0, 2], (1, [0, 2]), (1, [1, 2])),
-         ([0, 1, 2, 3, 4], (1, [0]), (1, [0])),
-         ([1, 0, 2, 3, 4], (1, [0]), (1, [1])),
-         ([2, 1, 0, 3, 4], (1, [0]), (1, [2])),
-         ([3, 1, 2, 0, 4], (1, [0]), (1, [3])),
-         ([4, 1, 2, 3, 0], (1, [0]), (1, [4])),
-         ([3, 1, 2, 0, 4], (1, [0, 4]), (1, [3, 4])),
-         ([3, 1, 2, 0, 4], (1, [0, 3]), (-1, [0, 3])),
-         ([3, 1, 2, 0, 4], (1, [0, 2]), (-1, [2, 3])),
-         ([0, 2, 4, 6, 1, 3, 5, 7], (1, [3, 4]), (-1, [1, 6])),
-         ([0, 2, 4, 6, 1, 3, 5, 7], (1, [2, 3, 4]), (1, [1, 4, 6])),
-         ([7, 6, 5, 4, 3, 2, 1, 0], (1, [2, 3, 4]), (-1, [3, 4, 5]))]
-)
-def test_permute(permutation, initial, expected):
-    n = len(permutation)
-    initial_state = _multi_fermionic_mode_base_state(n, *initial)
-    expected_state = _multi_fermionic_mode_base_state(n, *expected)
-    qubits = LineQubit.range(n)
-
-    ops = _permute(qubits, permutation)
-    circuit = cirq.Circuit.from_ops(ops)
-
-    state = circuit.apply_unitary_effect_to_state(
-        initial_state,
-        qubits_that_should_be_present=qubits
-    )
-
-    assert np.allclose(state, expected_state, rtol=0.0)

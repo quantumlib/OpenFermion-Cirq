@@ -200,6 +200,7 @@ def ffft(qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
     ny = 2
     nx = n // ny
     permutation = [(i % ny) * nx + (i // ny) for i in range(n)]
+    permutation_gate = _permute(qubits, permutation)
 
     operations = []
 
@@ -207,7 +208,7 @@ def ffft(qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
     # is to recursively conduct the two FFFTs on odd and even indices
     # separately. This operation shuffles qubits so that odd qubits are placed
     # in the first half of a sequence, and the even qubits in the second half.
-    operations.append(_permute(qubits, permutation))
+    operations.append(permutation_gate)
 
     # Performs two recursive FFFTs, each of size n/2.
     for y in range(ny):
@@ -217,7 +218,7 @@ def ffft(qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
     # even qubits of the original input. By undoing (inverting) the first
     # permutation each odd and even qubit will be placed next to each other
     # again.
-    operations.append(_permute(qubits, _inverse(permutation)))
+    operations.append(cirq.inverse(permutation_gate))
 
     # Performs the n/2 FFFTs, each of size 2.
     for x in range(nx):
@@ -229,25 +230,9 @@ def ffft(qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
     # indices k and k+n/2. To arrange them where they should be actually placed,
     # a permutation which splits odd and even indices is applied once again.
     # This does exactly the necessary ordering.
-    operations.append(_permute(qubits, permutation))
+    operations.append(permutation_gate)
 
     return operations
-
-
-def _inverse(permutation: List[int]) -> List[int]:
-    """Calculates the inverse permutation function.
-
-    Args:
-        permutation: The list representation of a permutation function.
-
-    Return:
-        The inverse permutation function so that _compose(_inverse(permutation),
-        permutation) is an identity.
-    """
-    inverse = [0] * len(permutation)
-    for i in range(len(permutation)):
-        inverse[permutation[i]] = i
-    return inverse
 
 
 def _permute(qubits: Sequence[cirq.Qid],
