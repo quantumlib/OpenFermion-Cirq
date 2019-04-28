@@ -280,9 +280,6 @@ def test_ffft_multi_fermionic_mode(n, initial):
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
 
-    print(state)
-    print(expected_state)
-
     assert np.allclose(state, expected_state, rtol=0.0)
 
 
