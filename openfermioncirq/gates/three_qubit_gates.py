@@ -12,7 +12,7 @@
 
 """Common gates that target three qubits."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 

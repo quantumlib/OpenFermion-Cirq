@@ -12,7 +12,7 @@
 
 """Gates that are commonly used for quantum simulation of fermions."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
