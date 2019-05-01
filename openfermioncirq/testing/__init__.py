@@ -23,4 +23,5 @@ from openfermioncirq.testing.example_classes import (
 from openfermioncirq.testing.wrapped import (
     assert_equivalent_repr,
     assert_implements_consistent_protocols,
+    assert_eigengate_implements_consistent_protocols,
 )
