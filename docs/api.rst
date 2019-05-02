@@ -34,6 +34,16 @@ Three-Qubit Gates
     CYXXY
     CCZ
 
+Fermionic Simulation Gates
+^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    QuadraticFermionicSimulationGate
+    CubicFermionicSimulationGate
+    QuarticFermionicSimulationGate
+
 
 Primitives
 ----------
