@@ -93,7 +93,7 @@ class _TwiddleGate(cirq.SingleQubitGate):
         """Initializes Twiddle gate.
 
         Args:
-            k: Nominator appearing in the exponent.
+            k: Numerator appearing in the exponent.
             n: Denominator appearing in the exponent.
         """
         self.k = k
