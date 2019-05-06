@@ -12,11 +12,11 @@
 
 from typing import Optional, Tuple, Union
 
-import cirq
 import numpy as np
 import scipy.linalg as la
 import sympy
 
+import cirq
 from openfermioncirq.gates.common_gates import XXYYPowGate
 
 
@@ -32,9 +32,10 @@ def _canonicalize_weight(w):
     if w == 0:
         return (0, 0)
     if cirq.is_parameterized(w):
-        return (cirq.PeriodicValue(abs(w), 4), sympy.arg(w))
-    return (np.round((w % 4) if (w == np.real(w)) else
-        (abs(w) % 4) * w / abs(w), 8), 0)
+        return (cirq.PeriodicValue(abs(w), 2 * sympy.pi), sympy.arg(w))
+    period = 2 * np.pi
+    return (np.round((w % period) if (w == np.real(w)) else
+        (abs(w) % period) * w / abs(w), 8), 0)
 
 
 def state_swap_eigen_component(x: str, y: str, sign: int = 1, angle: float=0):
@@ -173,7 +174,7 @@ class CubicFermionicSimulationGate(
     matrix is defined as
 
     .. math::
-        e^{-i \pi t H / 2},
+        e^{-i t H},
 
     where
 
@@ -221,7 +222,7 @@ class CubicFermionicSimulationGate(
         assert(np.allclose(nontrivial_part, nontrivial_part.conj().T))
         eig_vals, eig_vecs = np.linalg.eigh(nontrivial_part)
         for eig_val, eig_vec in zip(eig_vals, eig_vecs.T):
-            exp_factor = -0.5 * eig_val
+            exp_factor = -eig_val / np.pi
             proj = np.zeros((8, 8), dtype=np.complex128)
             nontrivial_indices = np.array([3, 5, 6], dtype=np.intp)
             proj[nontrivial_indices[:, np.newaxis], nontrivial_indices] = (
@@ -259,7 +260,7 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
     matrix is defined as
 
     .. math::
-        e^{i \pi t H / 2},
+        e^{-i t H},
 
     where
 
@@ -351,7 +352,7 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
                        ('0011', '1100'))
 
         plus_minus_components = tuple(
-            (abs(weight) * sign / 2,
+            (-abs(weight) * sign / np.pi,
              state_swap_eigen_component(
                  state_pair[0], state_pair[1], sign, np.angle(weight)))
             for weight, state_pair in zip(self.weights, state_pairs)
@@ -400,7 +401,7 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
             return NotImplemented
 
         individual_rotations = [
-            la.expm(-0.25j * self.exponent * np.pi * np.array([
+            la.expm(0.5j * self.exponent * np.array([
                 [np.real(w), 1j * s * np.imag(w)],
                 [-1j * s * np.imag(w), -np.real(w)]]))
             for s, w in zip([1, -1, -1], self.weights)]
@@ -469,13 +470,14 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
                                        exponent=self._diagram_exponent(args))
 
     def absorb_exponent_into_weights(self):
+        period = (2 * sympy.pi) if self._is_parameterized_() else 2 * (np.pi)
         new_weights = []
         for weight in self.weights:
             if not weight:
                 new_weights.append(weight)
                 continue
             old_abs = abs(weight)
-            new_abs = (old_abs * self._exponent) % 4
+            new_abs = (old_abs * self._exponent) % period
             new_weights.append(weight * new_abs / old_abs)
         self.weights = tuple(new_weights)
         self._exponent = 1
@@ -485,7 +487,7 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
         if cirq.is_parameterized(self):
             return NotImplemented
 
-        am, bm, cm = (la.expm(0.5j * self.exponent * np.pi *
+        am, bm, cm = (la.expm(-1j * self.exponent *
                       np.array([[0, w], [w.conjugate(), 0]]))
                       for w in self.weights)
 
