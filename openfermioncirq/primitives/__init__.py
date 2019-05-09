@@ -14,6 +14,8 @@
 
 from openfermioncirq.primitives.bogoliubov_transform import bogoliubov_transform
 
+from openfermioncirq.primitives.ffft import ffft
+
 from openfermioncirq.primitives.optimal_givens_decomposition import (
     optimal_givens_decomposition)
 

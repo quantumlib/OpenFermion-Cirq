@@ -36,6 +36,7 @@ from openfermioncirq.gates import (
 )
 
 from openfermioncirq.primitives import (
+    ffft,
     prepare_gaussian_state,
     prepare_slater_determinant)
 
