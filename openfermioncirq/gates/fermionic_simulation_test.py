@@ -12,12 +12,12 @@
 
 import itertools
 
-import cirq
-import scipy.linalg as la
 import numpy as np
 import pytest
+import scipy.linalg as la
 import sympy
 
+import cirq
 import openfermioncirq as ofc
 from openfermioncirq.gates.fermionic_simulation import (
         state_swap_eigen_component)
@@ -113,7 +113,7 @@ def test_cubic_fermionic_simulation_gate_equality():
         )
     eq.add_equality_group(
         ofc.CubicFermionicSimulationGate((1j, 0, 0)),
-        ofc.CubicFermionicSimulationGate((5j, 0, 0))
+        ofc.CubicFermionicSimulationGate(((1 + 2 * np.pi) * 1j, 0, 0))
         )
     eq.add_equality_group(
         ofc.CubicFermionicSimulationGate((sympy.Symbol('s'), 0, 0), exponent=2),
@@ -132,7 +132,7 @@ def test_cubic_fermionic_simulation_gate_equality():
         [0, 1, -1, 0.25, -0.5, 0.1],
         [0, 1, 2]))
 def test_cubic_fermionic_simulation_gate_consistency_special(exponent, control):
-    weights = tuple(np.eye(1, 3, control)[0])
+    weights = tuple(np.eye(1, 3, control)[0] * 0.5 * np.pi)
     general_gate  = ofc.CubicFermionicSimulationGate(weights, exponent=exponent)
     general_unitary = cirq.unitary(general_gate)
 
@@ -162,7 +162,7 @@ def test_cubic_fermionic_simulation_gate_consistency_docstring(
     # w2 |101><011| + h.c.
     generator[5, 3] = weights[2]
     generator[3, 5] = weights[2].conjugate()
-    expected_unitary = la.expm(-0.5j * exponent * np.pi * generator)
+    expected_unitary = la.expm(-1j * exponent * generator)
 
     gate  = ofc.CubicFermionicSimulationGate(weights, exponent=exponent)
     actual_unitary = cirq.unitary(gate)
@@ -170,7 +170,7 @@ def test_cubic_fermionic_simulation_gate_consistency_docstring(
     assert np.allclose(expected_unitary, actual_unitary)
 
 
-def test_combined_double_excitation_consistency():
+def test_quartic_fermionic_simulation_consistency():
     ofc.testing.assert_implements_consistent_protocols(
         ofc.QuarticFermionicSimulationGate())
 
@@ -193,7 +193,7 @@ def test_weights_and_exponent(weights):
         new_gate = gate._with_exponent(new_exponent)
         assert new_gate.exponent == new_exponent
 
-combined_double_excitation_simulator_test_cases = [
+quartic_fermionic_simulation_simulator_test_cases = [
         (ofc.QuarticFermionicSimulationGate((0, 0, 0)), 1.,
          np.ones(16) / 4.,
          np.ones(16) / 4.,
@@ -207,12 +207,12 @@ combined_double_excitation_simulator_test_cases = [
         (ofc.QuarticFermionicSimulationGate((0.2, -0.1, 0.7)), 0.3,
          np.array([1, -1, -1, -1, -1, -1, 1, 1,
                       1, 1, 1, 1, 1, 1, 1, 1]) / 4.,
-         np.array([1, -1, -1, -np.exp(-np.pi * 0.105j),
-                      -1, -np.exp(np.pi * 0.015j),
-                      np.exp(np.pi * 0.03j), 1,
-                      1, np.exp(np.pi * 0.03j),
-                      np.exp(np.pi * 0.015j), 1,
-                      np.exp(-np.pi * 0.105j), 1, 1, 1]) / 4.,
+         np.array([1, -1, -1, -np.exp(0.21j),
+                      -1, -np.exp(-0.03j),
+                      np.exp(-0.06j), 1,
+                      1, np.exp(-0.06j),
+                      np.exp(-0.03j), 1,
+                      np.exp(0.21j), 1, 1, 1]) / 4.,
          5e-6),
         (ofc.QuarticFermionicSimulationGate((1. / 3, 0, 0)), 1.,
          np.array([0, 0, 0, 0, 0, 0, 1., 0,
@@ -220,26 +220,27 @@ combined_double_excitation_simulator_test_cases = [
          np.array([0, 0, 0, 0, 0, 0, 1., 0,
                       0, 1., 0, 0, 0, 0, 0, 0]) / np.sqrt(2),
          5e-6),
-        (ofc.QuarticFermionicSimulationGate((0, -2. / 3, 0)), 1.,
+        (ofc.QuarticFermionicSimulationGate((0, np.pi / 3, 0)), 1.,
          np.array([1., 1., 0, 0, 0, 1., 0, 0,
                       0, 0., -1., 0, 0, 0, 0, 0]) / 2.,
          np.array([1., 1., 0, 0, 0, -np.exp(4j * np.pi / 3), 0, 0,
                       0, 0., -np.exp(1j * np.pi / 3), 0, 0, 0, 0, 0]
                      ) / 2.,
          5e-6),
-        (ofc.QuarticFermionicSimulationGate((0, 0, 1)), 1.,
+        (ofc.QuarticFermionicSimulationGate((0, 0, -np.pi / 2)), 1.,
          np.array([0, 0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 1., 0, 0, 0]),
          np.array([0, 0, 0, 1, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0, 0]),
          5e-6),
-        (ofc.QuarticFermionicSimulationGate((0, 0, 0.5)), 1.,
+        (ofc.QuarticFermionicSimulationGate((0, 0, -0.25 * np.pi)), 1.,
          np.array([0, 0, 0, 1, 0, 0, 0, 0,
                       0, 0, 0, 0, 0, 0, 0, 0]),
          np.array([0, 0, 0, 1, 0, 0, 0, 0,
                       0, 0, 0, 0, 1j, 0, 0, 0]) / np.sqrt(2),
          5e-6),
-        (ofc.QuarticFermionicSimulationGate((0.5, -1./3, 1.)), 1.,
+        (ofc.QuarticFermionicSimulationGate(
+            (-np.pi / 4, np.pi /6, -np.pi / 2)), 1.,
          np.array([0, 0, 0, 0, 0, 0, 1, 0,
                       0, 0, 1, 0, 1, 0, 0, 0]) / np.sqrt(3),
          np.array([0, 0, 0, 1j, 0, -1j / 2., 1 / np.sqrt(2), 0,
@@ -249,8 +250,8 @@ combined_double_excitation_simulator_test_cases = [
         ]
 @pytest.mark.parametrize(
     'gate, exponent, initial_state, correct_state, atol',
-    combined_double_excitation_simulator_test_cases)
-def test_four_qubit_rotation_gates_on_simulator(
+    quartic_fermionic_simulation_simulator_test_cases)
+def test_quartic_fermionic_simulation_on_simulator(
         gate, exponent, initial_state, correct_state, atol):
 
     a, b, c, d = cirq.LineQubit.range(4)
@@ -260,20 +261,20 @@ def test_four_qubit_rotation_gates_on_simulator(
         result, correct_state, atol=atol)
 
 
-def test_combined_double_excitation_init_with_multiple_args_fails():
+def test_quartic_fermionic_simulation_init_with_multiple_args_fails():
     with pytest.raises(ValueError):
         _ = ofc.QuarticFermionicSimulationGate(
                 (1,1,1), exponent=1.0, duration=np.pi/2)
 
 
-def test_combined_double_excitation_eq():
+def test_quartic_fermionic_simulation_eq():
     eq = cirq.testing.EqualsTester()
 
     eq.add_equality_group(
             ofc.QuarticFermionicSimulationGate((1.2, 0.4, -0.4), exponent=0.5),
             ofc.QuarticFermionicSimulationGate((0.3, 0.1, -0.1), exponent=2),
             ofc.QuarticFermionicSimulationGate((-0.6, -0.2, 0.2), exponent=-1),
-            ofc.QuarticFermionicSimulationGate((0.6, 0.2, 3.8)),
+            ofc.QuarticFermionicSimulationGate((0.6, 0.2, 2 * np.pi - 0.2)),
             ofc.QuarticFermionicSimulationGate(
                 (1.2, 0.4, -0.4), rads=0.5 * np.pi),
             ofc.QuarticFermionicSimulationGate((1.2, 0.4, -0.4), degs=90),
@@ -295,7 +296,7 @@ def test_combined_double_excitation_eq():
                 (1., -1., 0.5), exponent=0.75))
 
 
-def test_combined_double_excitation_gate_text_diagram():
+def test_quartic_fermionic_simulation_gate_text_diagram():
     gate = ofc.QuarticFermionicSimulationGate((1,1,1))
     qubits = cirq.LineQubit.range(6)
     circuit = cirq.Circuit.from_ops(
@@ -339,7 +340,7 @@ test_weights = [1.0, 0.5, 0.25, 0.1, 0.0, -0.5]
         itertools.product(test_weights, repeat=3),
         np.random.rand(10, 3)
         ))
-def test_combined_double_excitation_decompose(weights):
+def test_quartic_fermionic_simulation_decompose(weights):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
         ofc.QuarticFermionicSimulationGate(weights))
 
@@ -348,7 +349,7 @@ def test_combined_double_excitation_decompose(weights):
     (np.random.uniform(-5, 5, 3) + 1j * np.random.uniform(-5, 5, 3),
         np.random.uniform(-5, 5)) for _ in range(5)
 ])
-def test_combined_double_excitation_unitary(
+def test_quartic_fermionic_simulation_unitary(
         weights, exponent):
     generator = np.zeros((1 << 4,) * 2, dtype=np.complex128)
 
@@ -361,7 +362,7 @@ def test_combined_double_excitation_unitary(
     # w2 |1100><0011| + h.c.
     generator[12, 3] = weights[2]
     generator[3, 12] = weights[2].conjugate()
-    expected_unitary = la.expm(0.5j * exponent * np.pi * generator)
+    expected_unitary = la.expm(-1j * exponent * generator)
 
     gate  = ofc.QuarticFermionicSimulationGate(weights, exponent=exponent)
     actual_unitary = cirq.unitary(gate)
@@ -375,6 +376,6 @@ def test_combined_double_excitation_unitary(
     (np.random.uniform(-5, 5, 3) + 1j * np.random.uniform(-5, 5, 3),
         np.random.uniform(-5, 5)) for _ in range(5)
 ])
-def test_double_excitation_apply_unitary(weights, exponent):
+def test_quartic_fermionic_simulation_apply_unitary(weights, exponent):
     gate = ofc.QuarticFermionicSimulationGate(weights, exponent=exponent)
     cirq.testing.assert_has_consistent_apply_unitary(gate, atol=5e-6)
