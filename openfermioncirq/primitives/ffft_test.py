@@ -400,3 +400,19 @@ def test_ffft_equal_to_bogoliubov(size):
     cirq.testing.assert_allclose_up_to_global_phase(
         ffft_matrix, bogoliubov_matrix, atol=1e-8
     )
+
+
+@pytest.mark.parametrize('size', [1, 2, 3, 4, 5, 6, 7, 8])
+def test_ffft_inverse(size):
+
+    qubits = LineQubit.range(size)
+
+    ffft_circuit = cirq.Circuit.from_ops(ffft(qubits),
+                                         strategy=cirq.InsertStrategy.EARLIEST)
+    ffft_circuit.append(cirq.inverse(ffft(qubits)))
+    ffft_matrix = ffft_circuit.to_unitary_matrix(
+        qubits_that_should_be_present=qubits)
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        ffft_matrix, np.identity(1 << size), atol=1e-8
+    )
