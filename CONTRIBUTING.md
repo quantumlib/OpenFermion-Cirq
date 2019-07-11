@@ -125,12 +125,6 @@ When pylint produces a false positive, it can be squashed with annotations like 
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
 We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
 When type checking produces a false positive, it can be ignored with annotations like `# type: ignore`.
-- **Python 2 Convertability**.
-Code must avoid constructs which fail to translate to python 2.
-OpenFermion-Cirq is written in python 3, but we use [3to2](https://pypi.org/project/3to2/) (and some custom tooling) to automatically translate the code into runnable python 2 code.
-This translation step is not perfect.
-For example, `max([], default=2)` fails to translate.
-We check that the translation worked by testing the translated code against the translated tests.
 
 You can also run the continuous integration checks for yourself locally.
 Simply run the following command from a terminal at the root of your clone of OpenFermion-Cirq's repo, with your local changes:

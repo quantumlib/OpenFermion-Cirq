@@ -74,9 +74,6 @@ class Check(metaclass=abc.ABCMeta):
         """
         pass
 
-    def needs_python2_env(self):
-        return False
-
     def run(self,
             env: env_tools.PreparedEnv,
             verbose: bool,
@@ -119,7 +116,6 @@ class Check(metaclass=abc.ABCMeta):
 
     def pick_env_and_run_and_report(self,
                                     env: env_tools.PreparedEnv,
-                                    env_py2: Optional[env_tools.PreparedEnv],
                                     verbose: bool,
                                     previous_failures: Set['Check']
                                     ) -> CheckResult:
@@ -130,7 +126,6 @@ class Check(metaclass=abc.ABCMeta):
 
         Args:
             env: A prepared python 3 environment.
-            env_py2: A prepared python 2.7 environment.
             verbose: When set, more progress output is produced.
             previous_failures: Checks that have already run and failed.
 
@@ -138,8 +133,7 @@ class Check(metaclass=abc.ABCMeta):
             A CheckResult instance.
         """
         env.report_status_to_github('pending', 'Running...', self.context())
-        chosen_env = cast(env_tools.PreparedEnv,
-                          env_py2 if self.needs_python2_env() else env)
+        chosen_env = cast(env_tools.PreparedEnv, env)
         os.chdir(cast(str, chosen_env.destination_directory))
 
         result = self.run(chosen_env, verbose, previous_failures)
