@@ -113,7 +113,6 @@ def test_cubic_fermionic_simulation_gate_equality():
         )
     eq.add_equality_group(
         ofc.CubicFermionicSimulationGate((1j, 0, 0)),
-        ofc.CubicFermionicSimulationGate(((1 + 2 * np.pi) * 1j, 0, 0))
         )
     eq.add_equality_group(
         ofc.CubicFermionicSimulationGate((sympy.Symbol('s'), 0, 0), exponent=2),
@@ -125,6 +124,12 @@ def test_cubic_fermionic_simulation_gate_equality():
         ofc.CubicFermionicSimulationGate(
             (0, 0.35, 0), global_shift=1, exponent=2)
         )
+    eq.add_equality_group(
+        ofc.CubicFermionicSimulationGate((1, 1, 1))
+    )
+    eq.add_equality_group(
+        ofc.CubicFermionicSimulationGate(((1 + 2 * np.pi), 1, 1))
+    )
 
 
 @pytest.mark.parametrize('exponent,control',

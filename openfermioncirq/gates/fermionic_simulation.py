@@ -231,7 +231,7 @@ class CubicFermionicSimulationGate(
         return components
 
     def _value_equality_values_(self):
-        return tuple(_canonicalize_weight(w * self.exponent)
+        return tuple((w * self.exponent,)
                 for w in list(self.weights) + [self._global_shift])
 
     def _is_parameterized_(self) -> bool:

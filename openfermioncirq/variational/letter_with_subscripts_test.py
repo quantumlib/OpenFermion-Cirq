@@ -35,11 +35,9 @@ def test_equality():
     eq.add_equality_group(LetterWithSubscripts('T', 0, 2))
 
 
-@cirq.testing.only_test_in_python3
 def test_substitute_works():
     assert LetterWithSubscripts('T', 1, 2).subs({'T_1_2': 5}) == 5
 
 
-@cirq.testing.only_test_in_python3
 def test_repr():
     ofc.testing.assert_equivalent_repr(LetterWithSubscripts('T', 1, 2))
