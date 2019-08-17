@@ -27,9 +27,14 @@ long_description += stream.read()
 description = ('Quantum circuits for simulations ' +
                'of quantum chemistry and materials.')
 
-# Read in runtime-requirements.txt
+# Read in requirements.txt
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+
+# install_requires should not be overly specific.
+# Change any == pinned deps to >=.
+# https://packaging.python.org/discussions/install-requires-vs-requirements/
+requirements = [r.replace('==', '>=') for r in requirements]
 
 openfermioncirq_packages = ['openfermioncirq'] + [
     'openfermioncirq.' + package
