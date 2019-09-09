@@ -130,7 +130,7 @@ You can also run the continuous integration checks for yourself locally.
 Simply run the following command from a terminal at the root of your clone of OpenFermion-Cirq's repo, with your local changes:
 
 ```shell
-bash continous-integration/simple_check.sh
+bash continuous-integration/simple_check.sh
 ```
 
 You can run a subset of the checks using the ```--only``` flag.
