@@ -4,5 +4,5 @@ scipy
 sympy
 
 # NOTE: switch to non-dev versions when releasing!
-cirq==0.5.0.dev20190416130350
+cirq==0.6.0
 openfermion==0.10.0

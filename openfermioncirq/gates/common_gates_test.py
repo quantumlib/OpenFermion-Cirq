@@ -58,8 +58,7 @@ def test_fswap_matrix():
                                                [0, 0, 0, 1j]]))
 
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-        val=ofc.FSWAP,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
+        val=ofc.FSWAP, exponents=[1])
 
 
 def test_xxyy_init():
