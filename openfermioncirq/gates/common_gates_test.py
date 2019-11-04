@@ -137,6 +137,13 @@ def test_xxyy_matrix():
                                   expm(-1j * np.pi * 0.25 * (XX + YY) / 4))
 
 
+@pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_compare_xxyy_to_cirq_equivalent(exponent):
+    old_gate = ofc.XXYYPowGate(exponent=exponent)
+    new_gate = cirq.ISwapPowGate(exponent=-exponent)
+    np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
+
+
 def test_yxxy_init():
     assert ofc.YXXYPowGate(exponent=0.5).exponent == 0.5
     assert ofc.YXXYPowGate(exponent=1.5).exponent == 1.5
@@ -207,6 +214,21 @@ def test_yxxy_matrix():
     XY = kron(X, Y)
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=0.25)),
                                   expm(-1j * np.pi * 0.25 * (YX - XY) / 4))
+
+
+@pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
+def test_compare_yxxy_to_cirq_equivalent(exponent):
+    old_gate = ofc.YXXYPowGate(exponent=exponent)
+    new_gate = cirq.PhasedISwapPowGate(exponent=exponent)
+    np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
+
+
+@pytest.mark.parametrize('rads', [
+    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+def test_compare_ryxxy_to_cirq_equivalent(rads):
+    old_gate = ofc.Ryxxy(rads=rads)
+    new_gate = cirq.GivensRotation(angle_rads=rads)
+    np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
 
 
 @pytest.mark.parametrize(
