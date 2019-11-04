@@ -80,7 +80,7 @@ for PYTHON_VERSION in python3; do
 
     # Check that code runs without dev deps.
     echo Checking that code executes
-    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq, openfermioncirq as ofc; print(cirq.Circuit.from_ops(ofc.swap_network(cirq.LineQubit.range(5))))"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq, openfermioncirq as ofc; print(cirq.Circuit(ofc.swap_network(cirq.LineQubit.range(5))))"
 
     # Run tests.
     echo Installing pytest requirements

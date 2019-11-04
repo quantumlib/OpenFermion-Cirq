@@ -84,7 +84,7 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
     else:
         occupied_orbitals = range(len(qubits)//2)
 
-    preparation_circuit = cirq.Circuit.from_ops(
+    preparation_circuit = cirq.Circuit(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
@@ -119,7 +119,7 @@ def test_trotter_ansatzes_default_initial_params_iterations_1(
                 one_body_tensor=hamiltonian.one_body_tensor,
                 two_body_tensor=0.5 * hamiltonian.two_body_tensor)
 
-    simulation_circuit = cirq.Circuit.from_ops(
+    simulation_circuit = cirq.Circuit(
             simulate_trotter(
                 qubits,
                 half_way_hamiltonian,
@@ -175,7 +175,7 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
     else:
         occupied_orbitals = range(len(qubits)//2)
 
-    preparation_circuit = cirq.Circuit.from_ops(
+    preparation_circuit = cirq.Circuit(
             prepare_gaussian_state(
                 qubits,
                 openfermion.QuadraticHamiltonian(one_body),
@@ -217,7 +217,7 @@ def test_trotter_ansatzes_default_initial_params_iterations_2(
                 one_body_tensor=hamiltonian.one_body_tensor,
                 two_body_tensor=0.75 * hamiltonian.two_body_tensor)
 
-    simulation_circuit = cirq.Circuit.from_ops(
+    simulation_circuit = cirq.Circuit(
             simulate_trotter(
                 qubits,
                 quarter_way_hamiltonian,

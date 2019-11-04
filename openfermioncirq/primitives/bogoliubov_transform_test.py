@@ -49,7 +49,7 @@ def test_bogoliubov_transform_fourier_transform(transformation_matrix,
     if isinstance(initial_state, Container):
         initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
-    circuit = cirq.Circuit.from_ops(bogoliubov_transform(
+    circuit = cirq.Circuit(bogoliubov_transform(
         qubits, transformation_matrix, initial_state=initial_state))
     state = circuit.apply_unitary_effect_to_state(initial_state)
 
@@ -105,7 +105,7 @@ def test_spin_symmetric_bogoliubov_transform(
     )
 
     # Apply the circuit
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             bogoliubov_transform(
                 qubits, transformation_matrix, initial_state=initial_state))
     state = circuit.apply_unitary_effect_to_state(initial_state)
@@ -131,7 +131,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
     # Compute the orbital energies and circuit
     orbital_energies, transformation_matrix, constant = (
             quad_ham.diagonalizing_bogoliubov_transform())
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             bogoliubov_transform(qubits, transformation_matrix))
 
     # Pick some random eigenstates to prepare, which correspond to random
@@ -157,7 +157,7 @@ def test_bogoliubov_transform_quadratic_hamiltonian(n_qubits,
         state1 = circuit.apply_unitary_effect_to_state(initial_state)
 
         # Also test the option to start with a computational basis state
-        special_circuit = cirq.Circuit.from_ops(bogoliubov_transform(
+        special_circuit = cirq.Circuit(bogoliubov_transform(
             qubits,
             transformation_matrix,
             initial_state=initial_state))
@@ -182,10 +182,10 @@ def test_bogoliubov_transform_fourier_transform_inverse_is_dagger(
 
     qubits = cirq.LineQubit.range(n_qubits)
 
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
             cirq.inverse(bogoliubov_transform(qubits, u)))
 
-    circuit2 = cirq.Circuit.from_ops(
+    circuit2 = cirq.Circuit(
             bogoliubov_transform(qubits, u.T.conj()))
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -219,10 +219,10 @@ def test_bogoliubov_transform_quadratic_hamiltonian_inverse_is_dagger(
         daggered_transformation_matrix = numpy.block(
             [left_block.T.conj(), right_block.T])
 
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
             cirq.inverse(bogoliubov_transform(qubits, transformation_matrix)))
 
-    circuit2 = cirq.Circuit.from_ops(
+    circuit2 = cirq.Circuit(
             bogoliubov_transform(qubits, daggered_transformation_matrix))
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -241,11 +241,11 @@ def test_bogoliubov_transform_compose(n_qubits, atol):
 
     qubits = cirq.LineQubit.range(n_qubits)
 
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
             bogoliubov_transform(qubits, u),
             bogoliubov_transform(qubits, v))
 
-    circuit2 = cirq.Circuit.from_ops(
+    circuit2 = cirq.Circuit(
             bogoliubov_transform(qubits, u.dot(v)))
 
     cirq.testing.assert_allclose_up_to_global_phase(

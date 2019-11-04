@@ -51,7 +51,7 @@ class VariationalAnsatz(metaclass=abc.ABCMeta):
         self.qubits = qubits or self._generate_qubits()
 
         # Generate the ansatz circuit
-        self.circuit = cirq.Circuit.from_ops(
+        self.circuit = cirq.Circuit(
                 self.operations(self.qubits),
                 strategy=cirq.InsertStrategy.EARLIEST)
 

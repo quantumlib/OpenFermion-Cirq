@@ -28,7 +28,7 @@ test_objective_noisy = ExampleVariationalObjectiveNoisy()
 def test_variational_objective_value():
     simulator = cirq.Simulator()
     qubits = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             cirq.X.on_each(*qubits[:3]),
             cirq.measure(*qubits, key='all'))
     result = simulator.simulate(circuit)

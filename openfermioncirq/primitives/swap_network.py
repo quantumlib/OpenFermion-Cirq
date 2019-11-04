@@ -45,7 +45,7 @@ def swap_network(qubits: Sequence[cirq.Qid],
         from openfermioncirq import swap_network
 
         qubits = cirq.LineQubit.range(4)
-        circuit = cirq.Circuit.from_ops(swap_network(qubits))
+        circuit = cirq.Circuit(swap_network(qubits))
         print(circuit)
 
     Output:
@@ -64,7 +64,7 @@ def swap_network(qubits: Sequence[cirq.Qid],
 
     .. testcode::
 
-        circuit = cirq.Circuit.from_ops(swap_network(qubits, offset=True))
+        circuit = cirq.Circuit(swap_network(qubits, offset=True))
         print(circuit)
 
     Output:
@@ -85,7 +85,7 @@ def swap_network(qubits: Sequence[cirq.Qid],
 
         from openfermioncirq import XXYY
 
-        circuit = cirq.Circuit.from_ops(
+        circuit = cirq.Circuit(
             swap_network(
                 qubits,
                 lambda p, q, a, b: XXYY(a, b) if abs(p - q) == 1

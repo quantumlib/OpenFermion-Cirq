@@ -54,7 +54,7 @@ def test_prepare_gaussian_state(n_qubits,
         energy = sum(orbital_energies[i] for i in occupied_orbitals) + constant
 
     # Get the state using a circuit simulation
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             prepare_gaussian_state(
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
@@ -108,7 +108,7 @@ def test_prepare_gaussian_state_with_spin_symmetry(n_spatial_orbitals,
     energy += quad_ham.constant
 
     # Get the state using a circuit simulation
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             prepare_gaussian_state(
                 qubits, quad_ham, occupied_orbitals,
                 initial_state=initial_state))
@@ -154,7 +154,7 @@ def test_prepare_slater_determinant(slater_determinant_matrix,
     if isinstance(initial_state, list):
         initial_state = sum(1 << (n_qubits - 1 - i) for i in initial_state)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             prepare_slater_determinant(
                 qubits, slater_determinant_matrix,
                 initial_state=initial_state))

@@ -119,7 +119,7 @@ def test_four_qubit_rotation_gates_on_simulator(
         gate, exponent, initial_state, correct_state, atol):
 
     a, b, c, d = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(gate(a, b, c, d)**exponent)
+    circuit = cirq.Circuit(gate(a, b, c, d)**exponent)
     result = circuit.apply_unitary_effect_to_state(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
         result, correct_state, atol=atol)
@@ -131,8 +131,7 @@ def test_double_excitation_gate_text_diagrams():
     c = cirq.NamedQubit('c')
     d = cirq.NamedQubit('d')
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, b, c, d))
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, b, c, d))
     cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───
       │
@@ -143,8 +142,7 @@ c: ───⇵───
 d: ───⇵───
 """)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, b, c, d)**-0.5)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, b, c, d)**-0.5)
     cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅────────
       │
@@ -155,8 +153,7 @@ c: ───⇵────────
 d: ───⇵^-0.5───
 """)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, c, b, d)**0.2)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, c, b, d)**0.2)
     cirq.testing.assert_has_diagram(circuit, """
 a: ───⇅───────
       │
@@ -167,8 +164,7 @@ c: ───⇅───────
 d: ───⇵^0.2───
 """)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(d, b, a, c)**0.7)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(d, b, a, c)**0.7)
     cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
@@ -179,8 +175,7 @@ c: ───⇵───────
 d: ───⇅^0.7───
 """)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(d, b, a, c)**2.3)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(d, b, a, c)**2.3)
     cirq.testing.assert_has_diagram(circuit, """
 a: ───⇵───────
       │
@@ -198,8 +193,7 @@ def test_double_excitation_gate_text_diagrams_no_unicode():
     c = cirq.NamedQubit('c')
     d = cirq.NamedQubit('d')
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, b, c, d))
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, b, c, d))
     cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/---
       |
@@ -210,8 +204,7 @@ c: ---\/ /\---
 d: ---\/ /\---
 """, use_unicode_characters=False)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, b, c, d)**-0.5)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, b, c, d)**-0.5)
     cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/--------
       |
@@ -222,8 +215,7 @@ c: ---\/ /\--------
 d: ---\/ /\^-0.5---
 """, use_unicode_characters=False)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(a, c, b, d)**0.2)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(a, c, b, d)**0.2)
     cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/-------
       |
@@ -234,8 +226,7 @@ c: ---/\ \/-------
 d: ---\/ /\^0.2---
 """, use_unicode_characters=False)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(d, b, a, c)**0.7)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(d, b, a, c)**0.7)
     cirq.testing.assert_has_diagram(circuit, """
 a: ---\/ /\-------
       |
@@ -246,8 +237,7 @@ c: ---\/ /\-------
 d: ---/\ \/^0.7---
 """, use_unicode_characters=False)
 
-    circuit = cirq.Circuit.from_ops(
-        ofc.DoubleExcitation(d, b, a, c)**2.3)
+    circuit = cirq.Circuit(ofc.DoubleExcitation(d, b, a, c)**2.3)
     cirq.testing.assert_has_diagram(circuit, """
 a: ---\/ /\-------
       |

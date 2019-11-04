@@ -153,7 +153,7 @@ def test_F0Gate_transform(amplitudes):
     expected_state = _single_fermionic_modes_state(
         _fourier_transform_single_fermionic_modes(amplitudes))
 
-    circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
+    circuit = cirq.Circuit(_F0Gate().on(*qubits))
     state = circuit.apply_unitary_effect_to_state(initial_state)
 
     assert np.allclose(state, expected_state, rtol=0.0)
@@ -161,7 +161,7 @@ def test_F0Gate_transform(amplitudes):
 
 def test_F0Gate_text_unicode_diagram():
     qubits = LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
+    circuit = cirq.Circuit(_F0Gate().on(*qubits))
 
     assert circuit.to_text_diagram().strip() == """
 0: ───F₀───
@@ -172,7 +172,7 @@ def test_F0Gate_text_unicode_diagram():
 
 def test_F0Gate_text_diagram():
     qubits = LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(_F0Gate().on(*qubits))
+    circuit = cirq.Circuit(_F0Gate().on(*qubits))
 
     assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
 0: ---F0---
@@ -193,7 +193,7 @@ def test_TwiddleGate_transform(k, n, qubit, initial, expected):
     initial_state = _single_fermionic_modes_state(initial)
     expected_state = _single_fermionic_modes_state(expected)
 
-    circuit = cirq.Circuit.from_ops(_TwiddleGate(k, n).on(qubits[qubit]))
+    circuit = cirq.Circuit(_TwiddleGate(k, n).on(qubits[qubit]))
     state = circuit.apply_unitary_effect_to_state(
         initial_state,
         qubits_that_should_be_present=qubits
@@ -204,7 +204,7 @@ def test_TwiddleGate_transform(k, n, qubit, initial, expected):
 
 def test_TwiddleGate_text_unicode_diagram():
     qubit = LineQubit.range(1)
-    circuit = cirq.Circuit.from_ops(_TwiddleGate(2, 8).on(*qubit))
+    circuit = cirq.Circuit(_TwiddleGate(2, 8).on(*qubit))
 
     assert circuit.to_text_diagram().strip() == """
 0: ───ω^2_8───
@@ -213,7 +213,7 @@ def test_TwiddleGate_text_unicode_diagram():
 
 def test_TwiddleGate_text_diagram():
     qubit = LineQubit.range(1)
-    circuit = cirq.Circuit.from_ops(_TwiddleGate(2, 8).on(*qubit))
+    circuit = cirq.Circuit(_TwiddleGate(2, 8).on(*qubit))
 
     assert circuit.to_text_diagram(use_unicode_characters=False).strip() == """
 0: ---w^2_8---
@@ -245,7 +245,7 @@ def test_ffft_single_fermionic_modes(amplitudes):
         _fourier_transform_single_fermionic_modes(amplitudes))
     qubits = LineQubit.range(len(amplitudes))
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
@@ -275,7 +275,7 @@ def test_ffft_single_fermionic_modes_non_power_of_2(amplitudes):
         _fourier_transform_single_fermionic_modes(amplitudes))
     qubits = LineQubit.range(len(amplitudes))
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
@@ -306,7 +306,7 @@ def test_ffft_multi_fermionic_mode(n, initial):
     expected_state = _fourier_transform_multi_fermionic_mode(n, *initial)
     qubits = LineQubit.range(n)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
@@ -328,7 +328,7 @@ def test_ffft_multi_fermionic_mode_non_power_of_2(n, initial):
     expected_state = _fourier_transform_multi_fermionic_mode(n, *initial)
     qubits = LineQubit.range(n)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     state = circuit.apply_unitary_effect_to_state(
         initial_state, qubits_that_should_be_present=qubits)
@@ -340,7 +340,7 @@ def test_ffft_multi_fermionic_mode_non_power_of_2(n, initial):
 def test_ffft_text_diagram():
     qubits = LineQubit.range(8)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
 
     assert circuit.to_text_diagram(transpose=True) == """
@@ -386,12 +386,12 @@ def test_ffft_equal_to_bogoliubov(size):
 
     qubits = LineQubit.range(size)
 
-    ffft_circuit = cirq.Circuit.from_ops(
+    ffft_circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
     ffft_matrix = ffft_circuit.to_unitary_matrix(
         qubits_that_should_be_present=qubits)
 
-    bogoliubov_circuit = cirq.Circuit.from_ops(
+    bogoliubov_circuit = cirq.Circuit(
         bogoliubov_transform(qubits, fourier_transform_matrix()),
         strategy=cirq.InsertStrategy.EARLIEST)
     bogoliubov_matrix = bogoliubov_circuit.to_unitary_matrix(
@@ -407,8 +407,8 @@ def test_ffft_inverse(size):
 
     qubits = LineQubit.range(size)
 
-    ffft_circuit = cirq.Circuit.from_ops(ffft(qubits),
-                                         strategy=cirq.InsertStrategy.EARLIEST)
+    ffft_circuit = cirq.Circuit(ffft(qubits),
+                                strategy=cirq.InsertStrategy.EARLIEST)
     ffft_circuit.append(cirq.inverse(ffft(qubits)))
     ffft_matrix = ffft_circuit.to_unitary_matrix(
         qubits_that_should_be_present=qubits)

@@ -129,7 +129,7 @@ def test_three_qubit_rotation_gates_on_simulator(gate: cirq.Gate,
                                                  initial_state: np.ndarray,
                                                  correct_state: np.ndarray):
     op = gate(*cirq.LineQubit.range(3))
-    result = cirq.Circuit.from_ops(op).apply_unitary_effect_to_state(
+    result = cirq.Circuit(op).apply_unitary_effect_to_state(
         initial_state, dtype=np.complex128)
     cirq.testing.assert_allclose_up_to_global_phase(result,
                                                     correct_state,
@@ -159,7 +159,7 @@ def test_three_qubit_gate_text_diagrams():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ofc.CXXYY(a, b, c),
         ofc.CYXXY(a, b, c))
     cirq.testing.assert_has_diagram(circuit, """
@@ -170,7 +170,7 @@ b: ───XXYY───YXXY───
 c: ───XXYY───#2─────
 """)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ofc.CXXYY(a, b, c)**-0.5,
         ofc.CYXXY(a, b, c)**-0.5)
     cirq.testing.assert_has_diagram(circuit, """

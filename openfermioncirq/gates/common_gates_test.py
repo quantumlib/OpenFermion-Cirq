@@ -232,7 +232,7 @@ def test_yxxy_matrix():
 def test_two_qubit_rotation_gates_on_simulator(
         gate, exponent, initial_state, correct_state, atol):
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(gate(a, b)**exponent)
+    circuit = cirq.Circuit(gate(a, b)**exponent)
     result = circuit.apply_unitary_effect_to_state(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
         result, correct_state, atol=atol)
@@ -274,7 +274,7 @@ def test_common_gate_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ofc.FSWAP(a, b),
         ofc.FSWAP(a, b)**0.5,
         ofc.XXYY(a, b),
@@ -291,7 +291,7 @@ a: ---fswap---fswap-------XXYY---YXXY---
 b: ---fswap---fswap^0.5---XXYY---#2-----
 """, use_unicode_characters=False)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         ofc.XXYY(a, b)**0.5,
         ofc.YXXY(a, b)**0.5)
     cirq.testing.assert_has_diagram(circuit, """

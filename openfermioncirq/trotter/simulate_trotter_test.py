@@ -148,7 +148,7 @@ def test_simulate_trotter_simulate(
 
     start_state = initial_state
 
-    circuit = cirq.Circuit.from_ops(simulate_trotter(
+    circuit = cirq.Circuit(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm))
 
     final_state = circuit.apply_unitary_effect_to_state(start_state)
@@ -199,7 +199,7 @@ def test_simulate_trotter_simulate_controlled(
     start_state = (numpy.kron(zero, initial_state)
                    + numpy.kron(one, initial_state)) / numpy.sqrt(2)
 
-    circuit = cirq.Circuit.from_ops(simulate_trotter(
+    circuit = cirq.Circuit(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm, control))
 
     final_state = circuit.apply_unitary_effect_to_state(start_state)
@@ -218,11 +218,11 @@ def test_simulate_trotter_omit_final_swaps():
             two_body=numpy.ones((n_qubits, n_qubits)))
     time = 1.0
 
-    circuit_with_swaps = cirq.Circuit.from_ops(
+    circuit_with_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits, hamiltonian, time, order=0,
                 algorithm=LINEAR_SWAP_NETWORK))
-    circuit_without_swaps = cirq.Circuit.from_ops(
+    circuit_without_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits, hamiltonian, time, order=0,
                 algorithm=LINEAR_SWAP_NETWORK,
@@ -230,7 +230,7 @@ def test_simulate_trotter_omit_final_swaps():
 
     assert len(circuit_without_swaps) < len(circuit_with_swaps)
 
-    circuit_with_swaps = cirq.Circuit.from_ops(
+    circuit_with_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits,
                 hamiltonian,
@@ -239,7 +239,7 @@ def test_simulate_trotter_omit_final_swaps():
                 n_steps=3,
                 algorithm=SPLIT_OPERATOR),
             strategy=cirq.InsertStrategy.NEW)
-    circuit_without_swaps = cirq.Circuit.from_ops(
+    circuit_without_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits,
                 hamiltonian,
@@ -254,11 +254,11 @@ def test_simulate_trotter_omit_final_swaps():
 
     hamiltonian = lih_hamiltonian
     qubits = cirq.LineQubit.range(4)
-    circuit_with_swaps = cirq.Circuit.from_ops(
+    circuit_with_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits, hamiltonian, time, order=0,
                 algorithm=LOW_RANK))
-    circuit_without_swaps = cirq.Circuit.from_ops(
+    circuit_without_swaps = cirq.Circuit(
             simulate_trotter(
                 qubits, hamiltonian, time, order=0,
                 algorithm=LOW_RANK,

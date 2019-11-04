@@ -19,7 +19,7 @@ def test_swap_network():
     n_qubits = 4
     qubits = cirq.LineQubit.range(n_qubits)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
             strategy=cirq.InsertStrategy.EARLIEST)
     cirq.testing.assert_has_diagram(circuit, """
@@ -32,7 +32,7 @@ def test_swap_network():
 3: ───XXYY───×──────────────XXYY───×──────────────
 """)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1),
                          fermionic=True, offset=True),
             strategy=cirq.InsertStrategy.EARLIEST)
@@ -60,7 +60,7 @@ XXYY─XXYY XXYY─XXYY
     n_qubits = 5
     qubits = cirq.LineQubit.range(n_qubits)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             swap_network(qubits, lambda i, j, q0, q1: (),
                          fermionic=True),
             strategy=cirq.InsertStrategy.EARLIEST)
@@ -76,7 +76,7 @@ XXYY─XXYY XXYY─XXYY
 4: ────────×ᶠ────────×ᶠ────────
 """)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
             swap_network(qubits, lambda i, j, q0, q1: (),
                          offset=True),
             strategy=cirq.InsertStrategy.EARLIEST)

@@ -42,7 +42,7 @@ test_objective = ExampleVariationalObjective()
 test_objective_noisy = ExampleVariationalObjectiveNoisy()
 
 a, b = test_ansatz.qubits
-preparation_circuit = cirq.Circuit.from_ops(cirq.X(a))
+preparation_circuit = cirq.Circuit(cirq.X(a))
 test_study = VariationalStudy(
         'test_study',
         test_ansatz,
@@ -146,7 +146,7 @@ def test_variational_study_optimize_and_extend_and_summary():
 
 
 def test_variational_study_initial_state():
-    preparation_circuit = cirq.Circuit.from_ops(cirq.X(test_ansatz.qubits[0]))
+    preparation_circuit = cirq.Circuit(cirq.X(test_ansatz.qubits[0]))
     initial_state = numpy.array([0.0, 0.0, 1.0, 0.0])
 
     class TestObjective(VariationalObjective):
