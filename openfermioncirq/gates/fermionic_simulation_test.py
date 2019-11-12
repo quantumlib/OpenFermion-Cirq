@@ -144,7 +144,7 @@ def test_cubic_fermionic_simulation_gate_consistency_special(exponent, control):
     indices = np.dot(
             list(itertools.product((0, 1), repeat=3)),
             (2 ** np.roll(np.arange(3), -control))[::-1])
-    special_gate = ofc.CXXYYPowGate(exponent=exponent)
+    special_gate = cirq.ControlledGate(cirq.ISWAP**-exponent)
     special_unitary = (
             cirq.unitary(special_gate)[indices[:, np.newaxis], indices])
 

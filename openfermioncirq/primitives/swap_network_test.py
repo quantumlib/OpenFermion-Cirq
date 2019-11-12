@@ -12,7 +12,7 @@
 
 import cirq
 
-from openfermioncirq import XXYY, swap_network
+from openfermioncirq import swap_network
 
 
 def test_swap_network():
@@ -20,41 +20,39 @@ def test_swap_network():
     qubits = cirq.LineQubit.range(n_qubits)
 
     circuit = cirq.Circuit(
-            swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1)),
-            strategy=cirq.InsertStrategy.EARLIEST)
+            swap_network(qubits, lambda i, j, q0, q1: cirq.ISWAP(q0, q1)**-1))
     cirq.testing.assert_has_diagram(circuit, """
-0: ───XXYY───×──────────────XXYY───×──────────────
-      │      │              │      │
-1: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
-                 │      │              │      │
-2: ───XXYY───×───XXYY───×───XXYY───×───XXYY───×───
-      │      │              │      │
-3: ───XXYY───×──────────────XXYY───×──────────────
+0: ───iSwap──────×──────────────────iSwap──────×──────────────────
+      │          │                  │          │
+1: ───iSwap^-1───×───iSwap──────×───iSwap^-1───×───iSwap──────×───
+                     │          │                  │          │
+2: ───iSwap──────×───iSwap^-1───×───iSwap──────×───iSwap^-1───×───
+      │          │                  │          │
+3: ───iSwap^-1───×──────────────────iSwap^-1───×──────────────────
 """)
 
     circuit = cirq.Circuit(
-            swap_network(qubits, lambda i, j, q0, q1: XXYY(q0, q1),
-                         fermionic=True, offset=True),
-            strategy=cirq.InsertStrategy.EARLIEST)
+            swap_network(qubits, lambda i, j, q0, q1: cirq.ISWAP(q0, q1)**-1,
+                         fermionic=True, offset=True))
     cirq.testing.assert_has_diagram(circuit, """
-0    1    2    3
-│    │    │    │
-│    XXYY─XXYY │
-│    │    │    │
-│    ×ᶠ───×ᶠ   │
-│    │    │    │
-XXYY─XXYY XXYY─XXYY
-│    │    │    │
-×ᶠ───×ᶠ   ×ᶠ───×ᶠ
-│    │    │    │
-│    XXYY─XXYY │
-│    │    │    │
-│    ×ᶠ───×ᶠ   │
-│    │    │    │
-XXYY─XXYY XXYY─XXYY
-│    │    │    │
-×ᶠ───×ᶠ   ×ᶠ───×ᶠ
-│    │    │    │
+0     1        2        3
+│     │        │        │
+│     iSwap────iSwap^-1 │
+│     │        │        │
+│     ×ᶠ───────×ᶠ       │
+│     │        │        │
+iSwap─iSwap^-1 iSwap────iSwap^-1
+│     │        │        │
+×ᶠ────×ᶠ       ×ᶠ───────×ᶠ
+│     │        │        │
+│     iSwap────iSwap^-1 │
+│     │        │        │
+│     ×ᶠ───────×ᶠ       │
+│     │        │        │
+iSwap─iSwap^-1 iSwap────iSwap^-1
+│     │        │        │
+×ᶠ────×ᶠ       ×ᶠ───────×ᶠ
+│     │        │        │
 """, transpose=True)
 
     n_qubits = 5

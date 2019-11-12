@@ -16,6 +16,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+import deprecation
 import cirq
 
 from openfermioncirq.gates import common_gates
@@ -29,6 +30,12 @@ def rot111(rads: float):
 class CXXYYPowGate(cirq.EigenGate,
                          cirq.ThreeQubitGate):
     """Controlled XX + YY interaction."""
+
+    @deprecation.deprecated(deprecated_in='v0.4.0', removed_in='v0.5.0',
+            details=('Use cirq.ControlledGate and cirq.ISwapPowGate with '
+                     'negated exponent, instead.'))
+    def __init__(self, *args, **kwargs):
+        super(CXXYYPowGate, self).__init__(*args, **kwargs)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
@@ -126,7 +133,7 @@ class CYXXYPowGate(cirq.EigenGate,
 
 def CRxxyy(rads: float) -> CXXYYPowGate:
     """Controlled version of ofc.Rxxyy"""
-    return CXXYYPowGate(exponent=2 * rads / np.pi)
+    return cirq.ControlledGate(cirq.ISwapPowGate(exponent=-2 * rads / np.pi))
 
 
 def CRyxxy(rads: float) -> CYXXYPowGate:

@@ -17,7 +17,6 @@ import scipy.linalg as la
 import sympy
 
 import cirq
-from openfermioncirq.gates.common_gates import XXYYPowGate
 
 
 def _arg(x):
@@ -134,7 +133,7 @@ class QuadraticFermionicSimulationGate(
         r = 2 * abs(self.weights[0]) / np.pi
         theta = _arg(self.weights[0]) / np.pi
         yield cirq.Z(qubits[0]) ** -theta
-        yield XXYYPowGate(exponent=r * self.exponent)(*qubits)
+        yield cirq.ISwapPowGate(exponent=-r * self.exponent)(*qubits)
         yield cirq.Z(qubits[0]) ** theta
         yield cirq.CZPowGate(
                 exponent=-self.weights[1] * self.exponent / np.pi)(*qubits)

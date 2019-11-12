@@ -19,7 +19,7 @@ import sympy
 
 import cirq
 
-from openfermioncirq import XXYYPowGate, swap_network
+from openfermioncirq import swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
@@ -107,10 +107,10 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                 v_symbol = LetterWithSubscripts('V', i)
                 if _is_horizontal_edge(
                         p, q, self.x_dim, self.y_dim, self.periodic):
-                    yield XXYYPowGate(exponent=th_symbol).on(a, b)
+                    yield cirq.ISwapPowGate(exponent=-th_symbol).on(a, b)
                 if _is_vertical_edge(
                         p, q, self.x_dim, self.y_dim, self.periodic):
-                    yield XXYYPowGate(exponent=tv_symbol).on(a, b)
+                    yield cirq.ISwapPowGate(exponent=-tv_symbol).on(a, b)
                 if _are_same_site_opposite_spin(p, q, self.x_dim*self.y_dim):
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
             yield swap_network(
@@ -128,10 +128,10 @@ class SwapNetworkTrotterHubbardAnsatz(VariationalAnsatz):
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
                 if _is_vertical_edge(
                         p, q, self.x_dim, self.y_dim, self.periodic):
-                    yield XXYYPowGate(exponent=tv_symbol).on(a, b)
+                    yield cirq.ISwapPowGate(exponent=-tv_symbol).on(a, b)
                 if _is_horizontal_edge(
                         p, q, self.x_dim, self.y_dim, self.periodic):
-                    yield XXYYPowGate(exponent=th_symbol).on(a, b)
+                    yield cirq.ISwapPowGate(exponent=-th_symbol).on(a, b)
             yield swap_network(
                     qubits, one_and_two_body_interaction_reversed_order,
                     fermionic=True, offset=True)

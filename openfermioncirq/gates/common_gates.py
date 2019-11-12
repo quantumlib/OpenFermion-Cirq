@@ -17,6 +17,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 import cirq
+import deprecation
 import sympy
 
 
@@ -110,6 +111,10 @@ class XXYYPowGate(cirq.EigenGate,
 
     `ofc.XXYY` is an instance of this gate at exponent=1.
     """
+    @deprecation.deprecated(deprecated_in='v0.4.0', removed_in='v0.5.0',
+            details='Use cirq.ISwapPowGate with negated exponent, instead.')
+    def __init__(self, *args, **kwargs):
+        super(XXYYPowGate, self).__init__(*args, **kwargs)
 
     def num_qubits(self):
         return 2
@@ -229,7 +234,7 @@ class YXXYPowGate(cirq.EigenGate,
 def Rxxyy(rads: float) -> XXYYPowGate:
     """Returns a gate with the matrix exp(-i rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
-    return XXYYPowGate(exponent=2 * rads / pi)
+    return cirq.ISwapPowGate(exponent=-2 * rads / pi)
 
 
 def Ryxxy(rads: float) -> YXXYPowGate:
