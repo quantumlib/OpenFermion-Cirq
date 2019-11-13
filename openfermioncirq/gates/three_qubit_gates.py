@@ -22,13 +22,12 @@ import cirq
 from openfermioncirq.gates import common_gates
 
 
-def rot111(rads: float):
+def rot111(rads: float) -> cirq.CCZPowGate:
     """Phases the |111> state of three qubits by e^{i rads}."""
     return cirq.CCZ**(rads / np.pi)
 
 
-class CXXYYPowGate(cirq.EigenGate,
-                         cirq.ThreeQubitGate):
+class CXXYYPowGate(cirq.EigenGate, cirq.ThreeQubitGate):
     """Controlled XX + YY interaction."""
 
     @deprecation.deprecated(deprecated_in='v0.4.0', removed_in='v0.5.0',
@@ -82,9 +81,14 @@ class CXXYYPowGate(cirq.EigenGate,
         return 'CXXYY**{!r}'.format(self.exponent)
 
 
-class CYXXYPowGate(cirq.EigenGate,
-                         cirq.ThreeQubitGate):
+class CYXXYPowGate(cirq.EigenGate, cirq.ThreeQubitGate):
     """Controlled YX - XY interaction."""
+
+    @deprecation.deprecated(deprecated_in='v0.4.0', removed_in='v0.5.0',
+            details=('Use cirq.ControlledGate and cirq.PhasedISwapPowGate, '
+                     'instead.'))
+    def __init__(self, *args, **kwargs):
+        super(CYXXYPowGate, self).__init__(*args, **kwargs)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
@@ -131,14 +135,15 @@ class CYXXYPowGate(cirq.EigenGate,
         return 'CYXXY**{!r}'.format(self.exponent)
 
 
-def CRxxyy(rads: float) -> CXXYYPowGate:
+def CRxxyy(rads: float) -> cirq.ControlledGate:
     """Controlled version of ofc.Rxxyy"""
     return cirq.ControlledGate(cirq.ISwapPowGate(exponent=-2 * rads / np.pi))
 
 
-def CRyxxy(rads: float) -> CYXXYPowGate:
+def CRyxxy(rads: float) -> cirq.ControlledGate:
     """Controlled version of ofc.Ryxxy"""
-    return CYXXYPowGate(exponent=2 * rads / np.pi)
+    return cirq.ControlledGate(
+        cirq.PhasedISwapPowGate(exponent=2 * rads / np.pi))
 
 
 CXXYY = CXXYYPowGate()

@@ -22,7 +22,7 @@ import sympy
 import cirq
 import openfermion
 
-from openfermioncirq import YXXYPowGate, swap_network
+from openfermioncirq import swap_network
 from openfermioncirq.variational.ansatz import VariationalAnsatz
 from openfermioncirq.variational.letter_with_subscripts import (
         LetterWithSubscripts)
@@ -39,78 +39,82 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
     Example: The ansatz on 4 qubits with one iteration and all gates included
     has the circuit::
 
-        0       1                2                3
-        │       │                │                │
-        iSwap───iSwap^(-T_0_1_0) iSwap────────────iSwap^(-T_2_3_0)
-        │       │                │                │
-        YXXY────#2^W_0_1_0       YXXY─────────────#2^W_2_3_0
-        │       │                │                │
-        @───────@^V_0_1_0        @────────────────@^V_2_3_0
-        │       │                │                │
-        ×ᶠ──────×ᶠ               ×ᶠ───────────────×ᶠ
-        │       │                │                │
-        │       iSwap────────────iSwap^(-T_0_3_0) │
-        │       │                │                │
-        │       YXXY─────────────#2^W_0_3_0       │
-        │       │                │                │
-        │       @────────────────@^V_0_3_0        │
-        │       │                │                │
-        │       ×ᶠ───────────────×ᶠ               │
-        │       │                │                │
-        iSwap───iSwap^(-T_1_3_0) iSwap────────────iSwap^(-T_0_2_0)
-        │       │                │                │
-        YXXY────#2^W_1_3_0       YXXY─────────────#2^W_0_2_0
-        │       │                │                │
-        @───────@^V_1_3_0        @────────────────@^V_0_2_0
-        │       │                │                │
-        ×ᶠ──────×ᶠ               ×ᶠ───────────────×ᶠ
-        │       │                │                │
-        Z^U_3_0 iSwap────────────iSwap^(-T_1_2_0) Z^U_0_0
-        │       │                │                │
-        │       YXXY─────────────#2^W_1_2_0       │
-        │       │                │                │
-        │       @────────────────@^V_1_2_0        │
-        │       │                │                │
-        │       ×ᶠ───────────────×ᶠ               │
-        │       │                │                │
-        │       Z^U_2_0          Z^U_1_0          │
-        │       │                │                │
-        │       @────────────────@^V_1_2_0        │
-        │       │                │                │
-        │       #2───────────────YXXY^W_1_2_0     │
-        │       │                │                │
-        │       iSwap────────────iSwap^(-T_1_2_0) │
-        │       │                │                │
-        │       ×ᶠ───────────────×ᶠ               │
-        │       │                │                │
-        @───────@^V_1_3_0        @────────────────@^V_0_2_0
-        │       │                │                │
-        #2──────YXXY^W_1_3_0     #2───────────────YXXY^W_0_2_0
-        │       │                │                │
-        iSwap───iSwap^(-T_1_3_0) iSwap────────────iSwap^(-T_0_2_0)
-        │       │                │                │
-        ×ᶠ──────×ᶠ               ×ᶠ───────────────×ᶠ
-        │       │                │                │
-        │       @────────────────@^V_0_3_0        │
-        │       │                │                │
-        │       #2───────────────YXXY^W_0_3_0     │
-        │       │                │                │
-        │       iSwap────────────iSwap^(-T_0_3_0) │
-        │       │                │                │
-        │       ×ᶠ───────────────×ᶠ               │
-        │       │                │                │
-        @───────@^V_0_1_0        @────────────────@^V_2_3_0
-        │       │                │                │
-        #2──────YXXY^W_0_1_0     #2───────────────YXXY^W_2_3_0
-        │       │                │                │
-        iSwap───iSwap^(-T_0_1_0) iSwap────────────iSwap^(-T_2_3_0)
-        │       │                │                │
-        ×ᶠ──────×ᶠ               ×ᶠ───────────────×ᶠ
-        │       │                │                │
+    # pylint: disable=line-too-long
 
-    The Hamiltonian associated with the ansatz determines which ISWAP, YXXY, CZ,
-    and Z gates are included. This basic template can be repeated, with each
-    iteration introducing a new set of parameters.
+        0             1                     2                     3
+        │             │                     │                     │
+        iSwap─────────iSwap^(-T_0_1_0)      iSwap─────────────────iSwap^(-T_2_3_0)
+        │             │                     │                     │
+        PhISwap(0.25)─PhISwap(0.25)^W_0_1_0 PhISwap(0.25)─────────PhISwap(0.25)^W_2_3_0
+        │             │                     │                     │
+        @─────────────@^V_0_1_0             @─────────────────────@^V_2_3_0
+        │             │                     │                     │
+        ×ᶠ────────────×ᶠ                    ×ᶠ────────────────────×ᶠ
+        │             │                     │                     │
+        │             iSwap─────────────────iSwap^(-T_0_3_0)      │
+        │             │                     │                     │
+        │             PhISwap(0.25)─────────PhISwap(0.25)^W_0_3_0 │
+        │             │                     │                     │
+        │             @─────────────────────@^V_0_3_0             │
+        │             │                     │                     │
+        │             ×ᶠ────────────────────×ᶠ                    │
+        │             │                     │                     │
+        iSwap─────────iSwap^(-T_1_3_0)      iSwap─────────────────iSwap^(-T_0_2_0)
+        │             │                     │                     │
+        PhISwap(0.25)─PhISwap(0.25)^W_1_3_0 PhISwap(0.25)─────────PhISwap(0.25)^W_0_2_0
+        │             │                     │                     │
+        @─────────────@^V_1_3_0             @─────────────────────@^V_0_2_0
+        │             │                     │                     │
+        ×ᶠ────────────×ᶠ                    ×ᶠ────────────────────×ᶠ
+        │             │                     │                     │
+        Z^U_3_0       iSwap─────────────────iSwap^(-T_1_2_0)      Z^U_0_0
+        │             │                     │                     │
+        │             PhISwap(0.25)─────────PhISwap(0.25)^W_1_2_0 │
+        │             │                     │                     │
+        │             @─────────────────────@^V_1_2_0             │
+        │             │                     │                     │
+        │             ×ᶠ────────────────────×ᶠ                    │
+        │             │                     │                     │
+        │             Z^U_2_0               Z^U_1_0               │
+        │             │                     │                     │
+        │             @─────────────────────@^V_1_2_0             │
+        │             │                     │                     │
+        │             PhISwap(0.25)─────────PhISwap(0.25)^W_1_2_0 │
+        │             │                     │                     │
+        │             iSwap─────────────────iSwap^(-T_1_2_0)      │
+        │             │                     │                     │
+        │             ×ᶠ────────────────────×ᶠ                    │
+        │             │                     │                     │
+        @─────────────@^V_1_3_0             @─────────────────────@^V_0_2_0
+        │             │                     │                     │
+        PhISwap(0.25)─PhISwap(0.25)^W_1_3_0 PhISwap(0.25)─────────PhISwap(0.25)^W_0_2_0
+        │             │                     │                     │
+        iSwap─────────iSwap^(-T_1_3_0)      iSwap─────────────────iSwap^(-T_0_2_0)
+        │             │                     │                     │
+        ×ᶠ────────────×ᶠ                    ×ᶠ────────────────────×ᶠ
+        │             │                     │                     │
+        │             @─────────────────────@^V_0_3_0             │
+        │             │                     │                     │
+        │             PhISwap(0.25)─────────PhISwap(0.25)^W_0_3_0 │
+        │             │                     │                     │
+        │             iSwap─────────────────iSwap^(-T_0_3_0)      │
+        │             │                     │                     │
+        │             ×ᶠ────────────────────×ᶠ                    │
+        │             │                     │                     │
+        @─────────────@^V_0_1_0             @─────────────────────@^V_2_3_0
+        │             │                     │                     │
+        PhISwap(0.25)─PhISwap(0.25)^W_0_1_0 PhISwap(0.25)─────────PhISwap(0.25)^W_2_3_0
+        │             │                     │                     │
+        iSwap─────────iSwap^(-T_0_1_0)      iSwap─────────────────iSwap^(-T_2_3_0)
+        │             │                     │                     │
+        ×ᶠ────────────×ᶠ                    ×ᶠ────────────────────×ᶠ
+        │             │                     │                     │
+
+    # pylint: enable=line-too-long
+
+    The Hamiltonian associated with the ansatz determines which ISWAP,
+    PhasedISWAP, CZ, and Z gates are included. This basic template can
+    be repeated, with each iteration introducing a new set of parameters.
 
     The default initial parameters of the ansatz are chosen
     so that the ansatz circuit consists of a sequence of second-order
@@ -153,7 +157,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
             include_all_xxyy: Whether to include all possible ISWAP-type
                 parameterized gates in the ansatz (irrespective of the ansatz
                 Hamiltonian)
-            include_all_yxxy: Whether to include all possible YXXY-type
+            include_all_yxxy: Whether to include all possible PhasedISWAP-type
                 parameterized gates in the ansatz (irrespective of the ansatz
                 Hamiltonian)
             include_all_cz: Whether to include all possible CZ-type
@@ -234,7 +238,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if t_symbol in param_set:
                     yield cirq.ISwapPowGate(exponent=-t_symbol).on(a, b)
                 if w_symbol in param_set:
-                    yield YXXYPowGate(exponent=w_symbol).on(a, b)
+                    yield cirq.PhasedISwapPowGate(exponent=w_symbol).on(a, b)
                 if v_symbol in param_set:
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
             yield swap_network(
@@ -257,7 +261,7 @@ class SwapNetworkTrotterAnsatz(VariationalAnsatz):
                 if v_symbol in param_set:
                     yield cirq.CZPowGate(exponent=v_symbol).on(a, b)
                 if w_symbol in param_set:
-                    yield YXXYPowGate(exponent=w_symbol).on(a, b)
+                    yield cirq.PhasedISwapPowGate(exponent=w_symbol).on(a, b)
                 if t_symbol in param_set:
                     yield cirq.ISwapPowGate(exponent=-t_symbol).on(a, b)
             yield swap_network(

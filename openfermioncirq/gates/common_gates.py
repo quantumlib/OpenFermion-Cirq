@@ -41,7 +41,6 @@ class FSwapPowGate(cirq.EigenGate,
     `ofc.FSWAP` is an instance of this gate at exponent=1. It swaps adjacent
     fermionic modes under the Jordan-Wigner Transform.
     """
-
     def num_qubits(self):
         return 2
 
@@ -184,6 +183,10 @@ class YXXYPowGate(cirq.EigenGate,
 
     `ofc.YXXY` is an instance of this gate at exponent=1.
     """
+    @deprecation.deprecated(deprecated_in='v0.4.0', removed_in='v0.5.0',
+            details='Use cirq.PhasedISwapPowGate, instead.')
+    def __init__(self, *args, **kwargs):
+        super(YXXYPowGate, self).__init__(*args, **kwargs)
 
     def num_qubits(self):
         return 2
@@ -231,25 +234,25 @@ class YXXYPowGate(cirq.EigenGate,
         return 'YXXY**{!r}'.format(self.exponent)
 
 
-def Rxxyy(rads: float) -> XXYYPowGate:
+def Rxxyy(rads: float) -> cirq.ISwapPowGate:
     """Returns a gate with the matrix exp(-i rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
     return cirq.ISwapPowGate(exponent=-2 * rads / pi)
 
 
-def Ryxxy(rads: float) -> YXXYPowGate:
+def Ryxxy(rads: float) -> cirq.PhasedISwapPowGate:
     """Returns a gate with the matrix exp(-i rads (Y⊗X - X⊗Y) / 2)."""
     pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
-    return YXXYPowGate(exponent=2 * rads / pi)
+    return cirq.PhasedISwapPowGate(exponent=2 * rads / pi)
 
 
-def Rzz(rads: float):
+def Rzz(rads: float) -> cirq.ZZPowGate:
     """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
     pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
     return cirq.ZZPowGate(exponent=2 * rads / pi, global_shift=-0.5)
 
 
-def rot11(rads: float):
+def rot11(rads: float) -> cirq.CZPowGate:
     """Phases the |11> state of two qubits by e^{i rads}."""
     pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
     return cirq.CZ**(rads / pi)
