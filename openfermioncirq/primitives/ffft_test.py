@@ -111,7 +111,7 @@ def _single_fermionic_modes_state(amplitudes: List[complex]) -> np.ndarray:
     state = np.zeros(1 << n, dtype=complex)
     for m in range(len(amplitudes)):
         state[1 << (n - 1 - m)] = amplitudes[m]
-    return state
+    return state / np.linalg.norm(state)
 
 
 def _multi_fermionic_mode_base_state(
@@ -145,7 +145,7 @@ def _multi_fermionic_mode_base_state(
          [1j, 0],
          [0, 1],
          [0, -1j],
-         [np.sqrt(2), np.sqrt(2)]]
+         [1, 1]]
 )
 def test_F0Gate_transform(amplitudes):
     qubits = LineQubit.range(2)
