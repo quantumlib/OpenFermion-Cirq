@@ -129,7 +129,7 @@ def test_three_qubit_rotation_gates_on_simulator(gate: cirq.Gate,
                                                  initial_state: np.ndarray,
                                                  correct_state: np.ndarray):
     op = gate(*cirq.LineQubit.range(3))
-    result = cirq.Circuit(op).apply_unitary_effect_to_state(
+    result = cirq.Circuit(op).final_wavefunction(
         initial_state, dtype=np.complex128)
     cirq.testing.assert_allclose_up_to_global_phase(result,
                                                     correct_state,

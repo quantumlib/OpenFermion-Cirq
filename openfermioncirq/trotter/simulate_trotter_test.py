@@ -151,7 +151,7 @@ def test_simulate_trotter_simulate(
     circuit = cirq.Circuit(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm))
 
-    final_state = circuit.apply_unitary_effect_to_state(start_state)
+    final_state = circuit.final_wavefunction(start_state)
     correct_state = exact_state
     assert fidelity(final_state, correct_state) > result_fidelity
     # Make sure the time wasn't too small
@@ -202,7 +202,7 @@ def test_simulate_trotter_simulate_controlled(
     circuit = cirq.Circuit(simulate_trotter(
         qubits, hamiltonian, time, n_steps, order, algorithm, control))
 
-    final_state = circuit.apply_unitary_effect_to_state(start_state)
+    final_state = circuit.final_wavefunction(start_state)
     correct_state = (numpy.kron(zero, initial_state)
                      + numpy.kron(one, exact_state)) / numpy.sqrt(2)
     assert fidelity(final_state, correct_state) > result_fidelity

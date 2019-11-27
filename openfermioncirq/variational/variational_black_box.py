@@ -91,11 +91,11 @@ class UnitarySimulateVariationalBlackBox(VariationalBlackBox):
     def evaluate_noiseless(self,
                            x: numpy.ndarray) -> float:
         """Evaluate parameters with a noiseless simulation."""
-        # Default: evaluate using apply_unitary_effect_to_state
+        # Default: evaluate using final_wavefunction
         circuit = cirq.resolve_parameters(
                 self.preparation_circuit + self.ansatz.circuit,
                 self.ansatz.param_resolver(x))
-        final_state = circuit.apply_unitary_effect_to_state(
+        final_state = circuit.final_wavefunction(
                 self.initial_state,
                 qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
         return self.objective.value(final_state)

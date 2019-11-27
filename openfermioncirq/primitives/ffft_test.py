@@ -154,7 +154,7 @@ def test_F0Gate_transform(amplitudes):
         _fourier_transform_single_fermionic_modes(amplitudes))
 
     circuit = cirq.Circuit(_F0Gate().on(*qubits))
-    state = circuit.apply_unitary_effect_to_state(initial_state)
+    state = circuit.final_wavefunction(initial_state)
 
     assert np.allclose(state, expected_state, rtol=0.0)
 
@@ -194,7 +194,7 @@ def test_TwiddleGate_transform(k, n, qubit, initial, expected):
     expected_state = _single_fermionic_modes_state(expected)
 
     circuit = cirq.Circuit(_TwiddleGate(k, n).on(qubits[qubit]))
-    state = circuit.apply_unitary_effect_to_state(
+    state = circuit.final_wavefunction(
         initial_state,
         qubits_that_should_be_present=qubits
     )
@@ -247,7 +247,7 @@ def test_ffft_single_fermionic_modes(amplitudes):
 
     circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
-    state = circuit.apply_unitary_effect_to_state(
+    state = circuit.final_wavefunction(
         initial_state, qubits_that_should_be_present=qubits)
 
     assert np.allclose(state, expected_state, rtol=0.0)
@@ -277,7 +277,7 @@ def test_ffft_single_fermionic_modes_non_power_of_2(amplitudes):
 
     circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
-    state = circuit.apply_unitary_effect_to_state(
+    state = circuit.final_wavefunction(
         initial_state, qubits_that_should_be_present=qubits)
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -308,7 +308,7 @@ def test_ffft_multi_fermionic_mode(n, initial):
 
     circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
-    state = circuit.apply_unitary_effect_to_state(
+    state = circuit.final_wavefunction(
         initial_state, qubits_that_should_be_present=qubits)
 
     assert np.allclose(state, expected_state, rtol=0.0)
@@ -330,7 +330,7 @@ def test_ffft_multi_fermionic_mode_non_power_of_2(n, initial):
 
     circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
-    state = circuit.apply_unitary_effect_to_state(
+    state = circuit.final_wavefunction(
         initial_state, qubits_that_should_be_present=qubits)
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -388,13 +388,13 @@ def test_ffft_equal_to_bogoliubov(size):
 
     ffft_circuit = cirq.Circuit(
         ffft(qubits), strategy=cirq.InsertStrategy.EARLIEST)
-    ffft_matrix = ffft_circuit.to_unitary_matrix(
+    ffft_matrix = ffft_circuit.unitary(
         qubits_that_should_be_present=qubits)
 
     bogoliubov_circuit = cirq.Circuit(
         bogoliubov_transform(qubits, fourier_transform_matrix()),
         strategy=cirq.InsertStrategy.EARLIEST)
-    bogoliubov_matrix = bogoliubov_circuit.to_unitary_matrix(
+    bogoliubov_matrix = bogoliubov_circuit.unitary(
         qubits_that_should_be_present=qubits)
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -410,7 +410,7 @@ def test_ffft_inverse(size):
     ffft_circuit = cirq.Circuit(ffft(qubits),
                                 strategy=cirq.InsertStrategy.EARLIEST)
     ffft_circuit.append(cirq.inverse(ffft(qubits)))
-    ffft_matrix = ffft_circuit.to_unitary_matrix(
+    ffft_matrix = ffft_circuit.unitary(
         qubits_that_should_be_present=qubits)
 
     cirq.testing.assert_allclose_up_to_global_phase(

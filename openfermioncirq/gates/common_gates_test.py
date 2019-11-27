@@ -255,7 +255,7 @@ def test_two_qubit_rotation_gates_on_simulator(
         gate, exponent, initial_state, correct_state, atol):
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(gate(a, b)**exponent)
-    result = circuit.apply_unitary_effect_to_state(initial_state)
+    result = circuit.final_wavefunction(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
         result, correct_state, atol=atol)
 

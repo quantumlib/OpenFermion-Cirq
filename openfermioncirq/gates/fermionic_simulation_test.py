@@ -92,7 +92,7 @@ def test_quadratic_fermionic_simulation_gate_unitary(
     circuit = cirq.Circuit(symbolic_gate._decompose_(qubits))
     resolver = {'w0': weights[0], 'w1': weights[1], 't': exponent}
     resolved_circuit = cirq.resolve_parameters(circuit, resolver)
-    decomp_unitary = resolved_circuit.to_unitary_matrix(qubit_order=qubits)
+    decomp_unitary = resolved_circuit.unitary(qubit_order=qubits)
 
     assert np.allclose(expected_unitary, decomp_unitary)
 
@@ -261,7 +261,7 @@ def test_quartic_fermionic_simulation_on_simulator(
 
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(gate(a, b, c, d)**exponent)
-    result = circuit.apply_unitary_effect_to_state(initial_state)
+    result = circuit.final_wavefunction(initial_state)
     cirq.testing.assert_allclose_up_to_global_phase(
         result, correct_state, atol=atol)
 
