@@ -85,7 +85,7 @@ class SymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.Rz(rads=
+        yield (cirq.rz(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -152,7 +152,7 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                 fermionic=True, offset=True)
 
         # Apply phase from constant term
-        yield cirq.Rz(rads=
+        yield cirq.rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
 class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
@@ -178,7 +178,7 @@ class AsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         qubits = qubits[::-1]
 
         # Apply one-body potential for the full time
-        yield (cirq.Rz(rads=
+        yield (cirq.rz(rads=
                    -self.hamiltonian.one_body[i, i].real * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -232,7 +232,7 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
                for i in range(n_qubits))
 
         # Apply phase from constant term
-        yield cirq.Rz(rads=
+        yield cirq.rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,

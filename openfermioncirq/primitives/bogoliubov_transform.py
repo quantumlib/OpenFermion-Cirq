@@ -162,7 +162,7 @@ def _slater_basis_change(qubits: Sequence[cirq.Qid],
         circuit_description = list(reversed(decomposition))
         # The initial state is not a computational basis state so the
         # phases left on the diagonal in the decomposition matter
-        yield (cirq.Rz(rads=numpy.angle(diagonal[j])).on(qubits[j])
+        yield (cirq.rz(rads=numpy.angle(diagonal[j])).on(qubits[j])
                for j in range(n_qubits))
     else:
         initially_occupied_orbitals = cast(
@@ -206,7 +206,7 @@ def _gaussian_basis_change(qubits: Sequence[cirq.Qid],
         if initially_occupied_orbitals is None:
             # The initial state is not a computational basis state so the
             # phases left on the diagonal in the Givens decomposition matter
-            yield (cirq.Rz(rads=
+            yield (cirq.rz(rads=
                        numpy.angle(left_diagonal[j])).on(qubits[j])
                    for j in range(n_qubits))
         circuit_description = list(reversed(decomposition + left_decomposition))

@@ -135,7 +135,7 @@ class XXYYPowGate(cirq.EigenGate,
                         ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
-        inner_matrix = cirq.unitary(cirq.Rx(self.exponent * np.pi))
+        inner_matrix = cirq.unitary(cirq.rx(self.exponent * np.pi))
         oi = args.subspace_index(0b01)
         io = args.subspace_index(0b10)
         return cirq.apply_matrix_to_slices(args.target_tensor,
@@ -208,7 +208,7 @@ class YXXYPowGate(cirq.EigenGate,
                         ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
-        inner_matrix = cirq.unitary(cirq.Ry(-self.exponent * np.pi))
+        inner_matrix = cirq.unitary(cirq.ry(-self.exponent * np.pi))
         oi = args.subspace_index(0b01)
         io = args.subspace_index(0b10)
         return cirq.apply_matrix_to_slices(args.target_tensor,

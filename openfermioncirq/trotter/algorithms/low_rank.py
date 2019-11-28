@@ -157,7 +157,7 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
         # Simulate the one-body terms.
         for p in range(n_qubits):
-            yield cirq.Rz(rads=
+            yield cirq.rz(rads=
                     -self.one_body_energies[p] * time
                     ).on(qubits[p])
 
@@ -185,7 +185,7 @@ class AsymmetricLowRankTrotterStep(LowRankTrotterStep):
 
             # Simulate the diagonal two-body terms.
             for p in range(n_qubits):
-                yield cirq.Rz(rads=
+                yield cirq.rz(rads=
                         -two_body_coefficients[p, p] * time
                         ).on(qubits[p])
 
@@ -276,7 +276,7 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
         yield bogoliubov_transform(qubits, prior_basis_matrix)
 
         # Apply phase from constant term
-        yield cirq.Rz(rads=
+        yield cirq.rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,

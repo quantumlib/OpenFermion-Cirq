@@ -80,7 +80,7 @@ class DoubleExcitationGate(cirq.EigenGate):
                         ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
-        inner_matrix = cirq.unitary(cirq.Rx(-2 * np.pi * self.exponent))
+        inner_matrix = cirq.unitary(cirq.rx(-2 * np.pi * self.exponent))
         a = args.subspace_index(0b0011)
         b = args.subspace_index(0b1100)
         return cirq.apply_matrix_to_slices(args.target_tensor,

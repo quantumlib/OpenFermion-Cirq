@@ -90,7 +90,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         n_qubits = len(qubits)
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.Rz(rads=
+        yield (cirq.rz(rads=
                    -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -110,7 +110,7 @@ class SymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for half of the full time
-        yield (cirq.Rz(rads=
+        yield (cirq.rz(rads=
                    -0.5 * self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -183,7 +183,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                for i in range(n_qubits))
 
         # Apply phase from constant term
-        yield cirq.Rz(rads=
+        yield cirq.rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
@@ -231,7 +231,7 @@ class AsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
                 bogoliubov_transform(qubits, self.basis_change_matrix))
 
         # Simulate the one-body terms for the full time
-        yield (cirq.Rz(rads=
+        yield (cirq.rz(rads=
                    -self.orbital_energies[i] * time).on(qubits[i])
                for i in range(n_qubits))
 
@@ -290,7 +290,7 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         yield bogoliubov_transform(qubits, self.basis_change_matrix)
 
         # Apply phase from constant term
-        yield cirq.Rz(rads=
+        yield cirq.rz(rads=
                 -self.hamiltonian.constant * time).on(control_qubit)
 
     def step_qubit_permutation(self,
