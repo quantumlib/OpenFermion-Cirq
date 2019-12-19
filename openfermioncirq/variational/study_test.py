@@ -27,7 +27,7 @@ from openfermioncirq.variational.study import (
         VariationalStudy)
 from openfermioncirq.variational.variational_black_box import (
         UnitarySimulateVariationalBlackBox,
-        XmonSimulateVariationalBlackBox)
+        )
 from openfermioncirq.testing import (
         ExampleAlgorithm,
         ExampleAnsatz,
@@ -48,13 +48,13 @@ test_study = VariationalStudy(
         test_ansatz,
         test_objective,
         preparation_circuit=preparation_circuit,
-        black_box_type=variational_black_box.XMON_SIMULATE)
+        black_box_type=variational_black_box.UNITARY_SIMULATE)
 test_study_noisy = VariationalStudy(
         'test_study_noisy',
         test_ansatz,
         test_objective_noisy,
         preparation_circuit=preparation_circuit,
-        black_box_type=variational_black_box.XMON_SIMULATE)
+        black_box_type=variational_black_box.UNITARY_SIMULATE)
 
 
 def test_variational_study_circuit():
@@ -234,21 +234,6 @@ def test_variational_study_save_load():
     # Clean up
     os.remove(os.path.join(datadir, '{}.study'.format(study_name)))
     os.rmdir(datadir)
-
-
-def test_variational_black_box_dimension():
-    black_box = XmonSimulateVariationalBlackBox(test_ansatz, test_objective)
-    assert black_box.dimension == 2
-
-
-def test_variational_black_box_bounds():
-    black_box = XmonSimulateVariationalBlackBox(test_ansatz, test_objective)
-    assert black_box.bounds == test_study.ansatz.param_bounds()
-
-
-def test_variational_black_box_noise_bounds():
-    black_box = XmonSimulateVariationalBlackBox(test_ansatz, test_objective)
-    assert black_box.noise_bounds(100) == (-numpy.inf, numpy.inf)
 
 
 def test_variational_black_box_evaluate():

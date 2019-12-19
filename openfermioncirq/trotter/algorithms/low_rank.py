@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 
 class LowRankTrotterAlgorithm(TrotterAlgorithm):
-    """A Trotter algorithm using the low rank decomposition strategy.
+    r"""A Trotter algorithm using the low rank decomposition strategy.
 
     This algorithm simulates an InteractionOperator with real coefficients.
     The one-body terms are simulated in their diagonal basis; the basis change
@@ -228,6 +228,8 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
             control_qubit: Optional[cirq.Qid]=None
             ) -> cirq.OP_TREE:
 
+        if not isinstance(control_qubit, cirq.Qid):
+            raise NotImplementedError('Control qudit must be specified.')
         n_qubits = len(qubits)
 
         # Change to the basis in which the one-body term is diagonal

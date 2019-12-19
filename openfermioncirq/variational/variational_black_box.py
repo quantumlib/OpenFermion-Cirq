@@ -108,28 +108,5 @@ class UnitarySimulateVariationalStatefulBlackBox(
     pass
 
 
-class XmonSimulateVariationalBlackBox(VariationalBlackBox):
-
-    def evaluate_noiseless(self,
-                           x: numpy.ndarray) -> float:
-        """Evaluate parameters with a noiseless simulation."""
-        # Default: evaluate using Xmon simulator
-        simulator = cirq.google.XmonSimulator()
-        result = simulator.simulate(
-                self.preparation_circuit + self.ansatz.circuit,
-                initial_state=self.initial_state,
-                param_resolver=self.ansatz.param_resolver(x),
-                qubit_order=self.ansatz.qubit_permutation(self.ansatz.qubits))
-        return self.objective.value(result)
-
-
-class XmonSimulateVariationalStatefulBlackBox(XmonSimulateVariationalBlackBox,
-                                              StatefulBlackBox):
-    """A stateful black box encapsulating a variational objective function."""
-    pass
-
-
 UNITARY_SIMULATE = UnitarySimulateVariationalBlackBox
 UNITARY_SIMULATE_STATEFUL = UnitarySimulateVariationalStatefulBlackBox
-XMON_SIMULATE = XmonSimulateVariationalBlackBox
-XMON_SIMULATE_STATEFUL = XmonSimulateVariationalStatefulBlackBox

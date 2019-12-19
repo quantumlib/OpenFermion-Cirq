@@ -12,7 +12,7 @@
 
 """The linear swap network."""
 
-from typing import Callable, Sequence, List
+from typing import Callable, cast, Iterable, List, Sequence
 
 import cirq
 
@@ -130,7 +130,8 @@ def swap_network(qubits: Sequence[cirq.Qid],
         for i, j in active_pairs:
             p, q = order[i], order[j]
             extra_ops = operation(p, q, qubits[i], qubits[j])
-            result.extend(cirq.flatten_op_tree(extra_ops))
+            result.extend(cast(Iterable[cirq.Operation],
+                cirq.flatten_op_tree(extra_ops)))
             result.append(swap_gate(qubits[i], qubits[j]))
             order[i], order[j] = q, p
 
