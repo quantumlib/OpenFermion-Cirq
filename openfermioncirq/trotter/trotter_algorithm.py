@@ -80,7 +80,6 @@ class TrotterStep(metaclass=abc.ABCMeta):
             time: The evolution time.
             control_qubit: The control qubit, if the algorithm is controlled.
         """
-        pass
 
     def step_qubit_permutation(self,
                                qubits: Sequence[cirq.Qid],

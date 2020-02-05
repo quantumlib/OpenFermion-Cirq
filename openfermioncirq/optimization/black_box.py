@@ -63,7 +63,6 @@ class BlackBox(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def dimension(self) -> int:
         """The dimension of the array accepted by the objective function."""
-        pass
 
     @property
     def bounds(self) -> Optional[Sequence[Tuple[float, float]]]:
@@ -82,7 +81,6 @@ class BlackBox(metaclass=abc.ABCMeta):
 
         Implement this method when defining a BlackBox.
         """
-        pass
 
     def _evaluate_with_cost(self,
                             x: numpy.ndarray,

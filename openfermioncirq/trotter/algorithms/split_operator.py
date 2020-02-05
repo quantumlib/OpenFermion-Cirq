@@ -12,7 +12,7 @@
 
 """A Trotter algorithm using a split-operator approach."""
 
-from typing import Optional, Sequence, Tuple
+from typing import cast, Optional, Sequence, Tuple
 
 import cirq
 from openfermion import DiagonalCoulombHamiltonian, QuadraticHamiltonian
@@ -155,6 +155,9 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         n_qubits = len(qubits)
 
+        if not isinstance(control_qubit, cirq.Qid):
+            raise TypeError('Control qudit must be specified.')
+
         # Simulate the one-body terms for half of the full time
         yield (rot11(rads=
                    -0.5 * self.orbital_energies[i] * time).on(
@@ -167,7 +170,7 @@ class ControlledSymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
-                control_qubit, a, b)
+                cast(cirq.Qid, control_qubit), a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
         qubits = qubits[::-1]
@@ -268,10 +271,13 @@ class ControlledAsymmetricSplitOperatorTrotterStep(SplitOperatorTrotterStep):
 
         n_qubits = len(qubits)
 
+        if not isinstance(control_qubit, cirq.Qid):
+            raise TypeError('Control qudit must be specified.')
+
         # Simulate the two-body terms for the full time
         def two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
-                control_qubit, a, b)
+                cast(cirq.Qid, control_qubit), a, b)
         yield swap_network(qubits, two_body_interaction)
         # The qubit ordering has been reversed
         qubits = qubits[::-1]

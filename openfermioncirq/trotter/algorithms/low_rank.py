@@ -12,7 +12,7 @@
 
 """A Trotter algorithm using the low rank decomposition strategy."""
 
-from typing import Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import cast, Optional, Sequence, TYPE_CHECKING, Tuple
 
 import numpy
 
@@ -229,7 +229,8 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
             ) -> cirq.OP_TREE:
 
         if not isinstance(control_qubit, cirq.Qid):
-            raise NotImplementedError('Control qudit must be specified.')
+            raise TypeError('Control qudit must be specified.')
+
         n_qubits = len(qubits)
 
         # Change to the basis in which the one-body term is diagonal
@@ -262,7 +263,7 @@ class ControlledAsymmetricLowRankTrotterStep(LowRankTrotterStep):
                     qubits,
                     lambda p, q, a, b: rot111(
                         -2 * two_body_coefficients[p, q] * time).on(
-                            control_qubit, a, b))
+                            cast(cirq.Qid, control_qubit), a, b))
             qubits = qubits[::-1]
 
             # Simulate the diagonal two-body terms.

@@ -418,7 +418,7 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
         combined_rotations[3] = individual_rotations[0]
 
         controlled_rotations = {i: cirq.ControlledGate(
-            cirq.SingleQubitMatrixGate(combined_rotations[i]))
+            cirq.MatrixGate(combined_rotations[i], qid_shape=(2,)))
             for i in range(4)}
 
         a, b, c, d = qubits

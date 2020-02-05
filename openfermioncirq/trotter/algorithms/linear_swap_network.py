@@ -12,7 +12,7 @@
 
 """A Trotter algorithm using the "fermionic simulation gate"."""
 
-from typing import Optional, Sequence, Tuple
+from typing import cast, Optional, Sequence, Tuple
 
 import cirq
 from openfermion import DiagonalCoulombHamiltonian
@@ -115,16 +115,19 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         n_qubits = len(qubits)
 
+        if not isinstance(control_qubit, cirq.Qid):
+            raise TypeError('Control qudit must be specified.')
+
         # Apply one- and two-body interactions for half of the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield CRxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
             yield CRyxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
             yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
         yield swap_network(
                 qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
@@ -141,13 +144,13 @@ class ControlledSymmetricLinearSwapNetworkTrotterStep(TrotterStep):
         def one_and_two_body_interaction_reverse_order(p, q, a, b
                 ) -> cirq.OP_TREE:
             yield rot111(-self.hamiltonian.two_body[p, q] * time).on(
-                control_qubit, a, b)
+                cast(cirq.Qid, control_qubit), a, b)
             yield CRyxxy(
                     0.5 * self.hamiltonian.one_body[p, q].imag * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
             yield CRxxyy(
                     0.5 * self.hamiltonian.one_body[p, q].real * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
         yield swap_network(qubits, one_and_two_body_interaction_reverse_order,
                 fermionic=True, offset=True)
 
@@ -212,16 +215,19 @@ class ControlledAsymmetricLinearSwapNetworkTrotterStep(TrotterStep):
 
         n_qubits = len(qubits)
 
+        if not isinstance(control_qubit, cirq.Qid):
+            raise TypeError('Control qudit must be specified.')
+
         # Apply one- and two-body interactions for the full time
         def one_and_two_body_interaction(p, q, a, b) -> cirq.OP_TREE:
             yield CRxxyy(
                     self.hamiltonian.one_body[p, q].real * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
             yield CRyxxy(
                     self.hamiltonian.one_body[p, q].imag * time).on(
-                            control_qubit, a, b)
+                            cast(cirq.Qid, control_qubit), a, b)
             yield rot111(-2 * self.hamiltonian.two_body[p, q] * time).on(
-                control_qubit, a, b)
+                cast(cirq.Qid, control_qubit), a, b)
         yield swap_network(qubits, one_and_two_body_interaction, fermionic=True)
         qubits = qubits[::-1]
 

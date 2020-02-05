@@ -23,7 +23,7 @@ from openfermioncirq import FSWAP
 from openfermioncirq.primitives import bogoliubov_transform
 
 
-class _F0Gate(cirq.TwoQubitMatrixGate):
+class _F0Gate(cirq.MatrixGate):
     r"""Two-qubit gate that performs fermionic Fourier transform of size 2.
 
     Realizes unitary gate :math:`F_0` that transforms Fermionic creation
@@ -62,12 +62,13 @@ class _F0Gate(cirq.TwoQubitMatrixGate):
 
     def __init__(self):
         """Initializes :math:`F_0` gate."""
-        cirq.TwoQubitMatrixGate.__init__(
+        cirq.MatrixGate.__init__(
             self,
             np.array([[1,          0,         0,  0],
                       [0, -2**(-0.5), 2**(-0.5),  0],
                       [0,  2**(-0.5), 2**(-0.5),  0],
-                      [0,          0,         0, -1]]))
+                      [0,          0,         0, -1]]),
+            qid_shape = (2, 2))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                ) -> cirq.CircuitDiagramInfo:

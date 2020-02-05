@@ -92,7 +92,7 @@ class HamiltonianObjective(VariationalObjective):
             return openfermion.expectation(
                     self._hamiltonian_linear_op,
                     circuit_output).real
-        elif isinstance(circuit_output, cirq.SimulationTrialResult):
+        elif isinstance(circuit_output, cirq.WaveFunctionTrialResult):
             return openfermion.expectation(
                     self._hamiltonian_linear_op,
                     circuit_output.final_state).real

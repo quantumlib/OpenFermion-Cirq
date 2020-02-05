@@ -21,11 +21,12 @@ import openfermion
 
 from openfermioncirq import simulate_trotter
 from openfermioncirq.trotter import (
-        SPLIT_OPERATOR,
         LINEAR_SWAP_NETWORK,
         LOW_RANK,
         LowRankTrotterAlgorithm,
-        TrotterAlgorithm)
+        SPLIT_OPERATOR,
+        TrotterAlgorithm,
+)
 from openfermioncirq.trotter.trotter_algorithm import Hamiltonian
 
 
@@ -307,3 +308,24 @@ def test_simulate_trotter_unsupported_trotter_step_raises_error():
     with pytest.raises(ValueError):
         _ = next(simulate_trotter(qubits, hamiltonian, time, order=1,
                                   algorithm=algorithm, control_qubit=control))
+
+
+@pytest.mark.parametrize('algorithm_type,hamiltonian', [
+    (LINEAR_SWAP_NETWORK, openfermion.random_diagonal_coulomb_hamiltonian(2)),
+    (LOW_RANK, openfermion.random_interaction_operator(2)),
+    (SPLIT_OPERATOR, openfermion.random_diagonal_coulomb_hamiltonian(2)),
+])
+def test_trotter_misspecified_control_raises_error(algorithm_type, hamiltonian):
+    qubits = cirq.LineQubit.range(2)
+    time = 2.
+
+    algorithms = [algorithm_type.controlled_asymmetric(hamiltonian),
+                  algorithm_type.controlled_symmetric(hamiltonian)]
+
+    for algorithm in algorithms:
+        if algorithm is None:
+            continue
+        with pytest.raises(TypeError):
+            next(algorithm.trotter_step(qubits, time))
+        with pytest.raises(TypeError):
+            next(algorithm.trotter_step(qubits, time, control_qubit=2))

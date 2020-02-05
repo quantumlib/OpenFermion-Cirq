@@ -68,7 +68,6 @@ class OptimizationAlgorithm(metaclass=abc.ABCMeta):
                 initial points. This is a 2d numpy array with each row
                 representing one initial point.
         """
-        pass
 
     @property
     def name(self) -> str:

@@ -45,7 +45,6 @@ class VariationalObjective(metaclass=abc.ABCMeta):
         A variational quantum algorithm will attempt to minimize this value over
         possible settings of the parameters.
         """
-        pass
 
     def noise(self, cost: Optional[float]=None) -> float:
         """Artificial noise that may be added to the true objective value.

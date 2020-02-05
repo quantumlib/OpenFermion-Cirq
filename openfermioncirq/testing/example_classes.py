@@ -98,7 +98,6 @@ class ExampleBlackBoxNoisy(ExampleBlackBox):
 
 class ExampleStatefulBlackBox(ExampleBlackBox, StatefulBlackBox):
     """Returns the sum of the squares of the inputs."""
-    pass
 
 
 class ExampleAnsatz(VariationalAnsatz):

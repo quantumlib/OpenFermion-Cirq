@@ -63,7 +63,6 @@ class VariationalBlackBox(BlackBox):
     def evaluate_noiseless(self,
                            x: numpy.ndarray) -> float:
         """Evaluate parameters with a noiseless simulation."""
-        pass
 
     def _evaluate(self,
                   x: numpy.ndarray) -> float:
@@ -105,7 +104,6 @@ class UnitarySimulateVariationalStatefulBlackBox(
         UnitarySimulateVariationalBlackBox,
         StatefulBlackBox):
     """A stateful black box encapsulating a variational objective function."""
-    pass
 
 
 UNITARY_SIMULATE = UnitarySimulateVariationalBlackBox
