@@ -18,10 +18,15 @@ from openfermioncirq.testing.example_classes import (
     ExampleStatefulBlackBox,
     ExampleVariationalObjective,
     ExampleVariationalObjectiveNoisy,
-    LazyAlgorithm)
+    LazyAlgorithm,
+)
+
+from openfermioncirq.testing.random import (
+    random_interaction_operator_term,
+)
 
 from openfermioncirq.testing.wrapped import (
+    assert_eigengate_implements_consistent_protocols,
     assert_equivalent_repr,
     assert_implements_consistent_protocols,
-    assert_eigengate_implements_consistent_protocols,
 )
