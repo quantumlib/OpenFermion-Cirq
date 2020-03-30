@@ -17,6 +17,7 @@ import sympy
 
 import cirq
 import openfermioncirq as ofc
+from openfermioncirq._compat import deprecated_test
 
 
 def test_fswap_interchangeable():
@@ -61,12 +62,14 @@ def test_fswap_matrix():
         val=ofc.FSWAP, exponents=[1])
 
 
+@deprecated_test
 def test_xxyy_init():
     assert ofc.XXYYPowGate(exponent=0.5).exponent == 0.5
     assert ofc.XXYYPowGate(exponent=1.5).exponent == 1.5
     assert ofc.XXYYPowGate(exponent=5).exponent == 5
 
 
+@deprecated_test
 def test_xxyy_eq():
     eq = cirq.testing.EqualsTester()
 
@@ -85,17 +88,20 @@ def test_xxyy_interchangeable():
     assert ofc.XXYY(a, b) == ofc.XXYY(b, a)
 
 
+@deprecated_test
 def test_xxyy_repr():
     assert repr(ofc.XXYYPowGate(exponent=1)) == 'XXYY'
     assert repr(ofc.XXYYPowGate(exponent=0.5)) == 'XXYY**0.5'
 
 
+@deprecated_test
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_xxyy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
             ofc.XXYY**exponent)
 
 
+@deprecated_test
 def test_xxyy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.XXYY,
@@ -137,6 +143,7 @@ def test_xxyy_matrix():
                                   expm(-1j * np.pi * 0.25 * (XX + YY) / 4))
 
 
+@deprecated_test
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_compare_xxyy_to_cirq_equivalent(exponent):
     old_gate = ofc.XXYYPowGate(exponent=exponent)
@@ -144,12 +151,14 @@ def test_compare_xxyy_to_cirq_equivalent(exponent):
     np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
 
 
+@deprecated_test
 def test_yxxy_init():
     assert ofc.YXXYPowGate(exponent=0.5).exponent == 0.5
     assert ofc.YXXYPowGate(exponent=1.5).exponent == 1.5
     assert ofc.YXXYPowGate(exponent=5).exponent == 5
 
 
+@deprecated_test
 def test_yxxy_eq():
     eq = cirq.testing.EqualsTester()
 
@@ -163,17 +172,20 @@ def test_yxxy_eq():
     eq.make_equality_group(lambda: ofc.YXXYPowGate(exponent=0.5))
 
 
+@deprecated_test
 def test_yxxy_repr():
     assert repr(ofc.YXXYPowGate(exponent=1)) == 'YXXY'
     assert repr(ofc.YXXYPowGate(exponent=0.5)) == 'YXXY**0.5'
 
 
+@deprecated_test
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_yxxy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
             ofc.YXXY**exponent)
 
 
+@deprecated_test
 def test_yxxy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.YXXY,
@@ -216,6 +228,7 @@ def test_yxxy_matrix():
                                   expm(-1j * np.pi * 0.25 * (YX - XY) / 4))
 
 
+@deprecated_test
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_compare_yxxy_to_cirq_equivalent(exponent):
     old_gate = ofc.YXXYPowGate(exponent=exponent)
@@ -227,10 +240,11 @@ def test_compare_yxxy_to_cirq_equivalent(exponent):
     2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
 def test_compare_ryxxy_to_cirq_equivalent(rads):
     old_gate = ofc.Ryxxy(rads=rads)
-    new_gate = cirq.GivensRotation(angle_rads=rads)
+    new_gate = cirq.givens(angle_rads=rads)
     np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
 
 
+@deprecated_test
 @pytest.mark.parametrize(
         'gate, exponent, initial_state, correct_state, atol', [
             (ofc.XXYY, 1.0, np.array([0, 1, 1, 0]) / np.sqrt(2),
@@ -292,6 +306,7 @@ def test_rzz_unitary(rads):
                                expm(-1j * ZZ * rads))
 
 
+@deprecated_test
 def test_common_gate_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
