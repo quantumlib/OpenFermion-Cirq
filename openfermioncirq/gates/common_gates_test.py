@@ -18,7 +18,7 @@ import sympy
 
 import cirq
 import openfermioncirq as ofc
-from openfermioncirq._compat import deprecated_test
+from openfermioncirq._compat_test import deprecated_test
 
 
 def test_fswap_interchangeable():

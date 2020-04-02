@@ -9,32 +9,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from typing import Any, Callable, Dict, Tuple
+from typing import Dict, Tuple
 from types import ModuleType
-import functools
 import warnings
-
-import pytest
-
-
-def deprecated_test(test: Callable) -> Callable:
-    """Marks a test as using deprecated functionality.
-
-    Ensures the test is executed within the `pytest.deprecated_call()` context.
-
-    Args:
-        test: The test.
-
-    Returns:
-        The decorated test.
-    """
-
-    @functools.wraps(test)
-    def decorated_test(*args, **kwargs) -> Any:
-        with pytest.deprecated_call():
-            test(*args, **kwargs)
-
-    return decorated_test
 
 
 def wrap_module(module: ModuleType,
