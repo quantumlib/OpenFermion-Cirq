@@ -9,3 +9,6 @@ twine
 
 # For verifying behavior of qasm output.
 qiskit==0.6.*
+
+# For testing example notebooks
+nbformat
