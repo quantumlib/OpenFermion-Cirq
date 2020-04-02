@@ -194,6 +194,7 @@ def test_double_excitation_gate_text_diagrams_no_unicode():
     d = cirq.NamedQubit('d')
 
     circuit = cirq.Circuit(ofc.DoubleExcitation(a, b, c, d))
+    # pylint: disable=anomalous-backslash-in-string
     cirq.testing.assert_has_diagram(circuit, """
 a: ---/\ \/---
       |

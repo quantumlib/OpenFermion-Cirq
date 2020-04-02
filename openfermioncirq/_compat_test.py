@@ -10,9 +10,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 import warnings
+
+import pytest
 import deprecation
 
-from openfermioncirq._compat import deprecated_test
+import openfermioncirq as ofc
+from openfermioncirq._compat import deprecated_test, wrap_module
 
 
 @deprecation.deprecated()
@@ -24,3 +27,10 @@ def f():
 def test_deprecated_test():
     warnings.simplefilter('error')
     f()
+
+
+def test_wrap_module():
+    ofc.deprecated_attribute = None
+    wrapped_ofc = wrap_module(ofc, {'deprecated_attribute': ('', '')})
+    with pytest.deprecated_call():
+        _ = wrapped_ofc.deprecated_attribute

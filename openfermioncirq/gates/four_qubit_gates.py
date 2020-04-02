@@ -13,7 +13,7 @@
 """Gates that target four qubits."""
 
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union
 
 import numpy as np
 import sympy
@@ -132,6 +132,7 @@ class DoubleExcitationGate(cirq.EigenGate):
         if args.use_unicode_characters:
             wire_symbols = ('⇅', '⇅', '⇵', '⇵')
         else:
+            # pylint: disable=anomalous-backslash-in-string
             wire_symbols = (r'/\ \/',
                             r'/\ \/',
                             '\/ /\\',

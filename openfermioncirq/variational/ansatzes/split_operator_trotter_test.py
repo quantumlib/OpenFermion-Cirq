@@ -11,9 +11,9 @@
 #   limitations under the License.
 
 import numpy
+import sympy
 
 import openfermion
-import sympy
 
 from openfermioncirq.variational.ansatzes import SplitOperatorTrotterAnsatz
 

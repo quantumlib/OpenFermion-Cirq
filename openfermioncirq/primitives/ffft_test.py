@@ -10,7 +10,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from typing import (Dict, List)
+from typing import List, TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -22,6 +22,9 @@ from openfermioncirq.primitives.ffft import (
     _F0Gate,
     _TwiddleGate,
 )
+
+if TYPE_CHECKING:
+    from typing import Dict
 
 
 def _fourier_transform_single_fermionic_modes(

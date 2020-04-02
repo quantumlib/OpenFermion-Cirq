@@ -9,6 +9,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+import warnings
 
 import numpy as np
 import pytest
@@ -46,17 +47,14 @@ def test_fswap_repr():
 
 
 def test_fswap_matrix():
-    np.testing.assert_allclose(cirq.unitary(ofc.FSWAP),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 1, 0, 0],
-                                               [0, 0, 0, -1]]))
+    np.testing.assert_allclose(
+        cirq.unitary(ofc.FSWAP),
+        np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, -1]]))
 
-    np.testing.assert_allclose(cirq.unitary(ofc.FSWAP**0.5),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0.5+0.5j, 0.5-0.5j, 0],
-                                               [0, 0.5-0.5j, 0.5+0.5j, 0],
-                                               [0, 0, 0, 1j]]))
+    np.testing.assert_allclose(
+        cirq.unitary(ofc.FSWAP**0.5),
+        np.array([[1, 0, 0, 0], [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                  [0, 0.5 - 0.5j, 0.5 + 0.5j, 0], [0, 0, 0, 1j]]))
 
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         val=ofc.FSWAP, exponents=[1])
@@ -83,6 +81,7 @@ def test_xxyy_eq():
     eq.make_equality_group(lambda: ofc.XXYYPowGate(exponent=0.5))
 
 
+@deprecated_test
 def test_xxyy_interchangeable():
     a, b = cirq.LineQubit(0), cirq.LineQubit(1)
     assert ofc.XXYY(a, b) == ofc.XXYY(b, a)
@@ -98,49 +97,42 @@ def test_xxyy_repr():
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_xxyy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
-            ofc.XXYY**exponent)
+        ofc.XXYY**exponent)
 
 
 @deprecated_test
 def test_xxyy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.XXYY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1,
+                   sympy.Symbol('s')])
 
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=2)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, -1, 0, 0],
-                                               [0, 0, -1, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, -1, 0, 0],
+                                         [0, 0, -1, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=1)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0, -1j, 0],
-                                               [0, -1j, 0, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 0, -1j, 0],
+                                         [0, -1j, 0, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=0)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 1, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 1, 0, 0],
+                                         [0, 0, 1, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=-1)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0, 1j, 0],
-                                               [0, 1j, 0, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 0, 1j, 0],
+                                         [0, 1j, 0, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
     XX = kron(X, X)
     YY = kron(Y, Y)
     np.testing.assert_allclose(cirq.unitary(ofc.XXYYPowGate(exponent=0.25)),
-                                  expm(-1j * np.pi * 0.25 * (XX + YY) / 4))
+                               expm(-1j * np.pi * 0.25 * (XX + YY) / 4))
 
 
 @deprecated_test
@@ -182,50 +174,42 @@ def test_yxxy_repr():
 @pytest.mark.parametrize('exponent', [1.0, 0.5, 0.25, 0.1, 0.0, -0.5])
 def test_yxxy_decompose(exponent):
     cirq.testing.assert_decompose_is_consistent_with_unitary(
-            ofc.YXXY**exponent)
+        ofc.YXXY**exponent)
 
 
 @deprecated_test
 def test_yxxy_matrix():
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
         ofc.YXXY,
-        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1, sympy.Symbol('s')])
-
+        exponents=[1, -0.5, 0.5, 0.25, -0.25, 0.1,
+                   sympy.Symbol('s')])
 
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=2)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, -1, 0, 0],
-                                               [0, 0, -1, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, -1, 0, 0],
+                                         [0, 0, -1, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=1)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0, -1, 0],
-                                               [0, 1, 0, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 0, -1, 0],
+                                         [0, 1, 0, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=0)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 1, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 1, 0, 0],
+                                         [0, 0, 1, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=-1)),
-                                  np.array([[1, 0, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, -1, 0, 0],
-                                               [0, 0, 0, 1]]),
-                                  atol=1e-8)
+                               np.array([[1, 0, 0, 0], [0, 0, 1, 0],
+                                         [0, -1, 0, 0], [0, 0, 0, 1]]),
+                               atol=1e-8)
 
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
     YX = kron(Y, X)
     XY = kron(X, Y)
     np.testing.assert_allclose(cirq.unitary(ofc.YXXYPowGate(exponent=0.25)),
-                                  expm(-1j * np.pi * 0.25 * (YX - XY) / 4))
+                               expm(-1j * np.pi * 0.25 * (YX - XY) / 4))
 
 
 @deprecated_test
@@ -237,45 +221,49 @@ def test_compare_yxxy_to_cirq_equivalent(exponent):
 
 
 @pytest.mark.parametrize('rads', [
-    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+    2 * np.pi, np.pi, 0.5 * np.pi, 0.25 * np.pi, 0.1 * np.pi, 0.0, -0.5 * np.pi
+])
 def test_compare_ryxxy_to_cirq_equivalent(rads):
     old_gate = ofc.Ryxxy(rads=rads)
     new_gate = cirq.givens(angle_rads=rads)
     np.testing.assert_allclose(cirq.unitary(old_gate), cirq.unitary(new_gate))
 
 
+# Deprecated test
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    args = [
+        (ofc.XXYY, 1.0, np.array([0, 1, 1, 0]) / np.sqrt(2),
+         np.array([0, -1j, -1j, 0]) / np.sqrt(2), 1e-7),
+        (ofc.XXYY, 0.5, np.array([1, 1, 0, 0]) / np.sqrt(2),
+         np.array([1 / np.sqrt(2), 0.5, -0.5j, 0]), 1e-7),
+        (ofc.XXYY, -0.5, np.array([1, 1, 0, 0]) / np.sqrt(2),
+         np.array([1 / np.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
+        (ofc.YXXY, 1.0, np.array([0, 1, 1, 0]) / np.sqrt(2),
+         np.array([0, 1, -1, 0]) / np.sqrt(2), 1e-7),
+        (ofc.YXXY, 0.5, np.array([0, 1, 1, 0]) / np.sqrt(2),
+         np.array([0, 0, 1, 0]), 1e-7),
+        (ofc.YXXY, -0.5, np.array([0, 1, 1, 0]) / np.sqrt(2),
+         np.array([0, 1, 0, 0]), 1e-7),
+    ]
+
+
 @deprecated_test
-@pytest.mark.parametrize(
-        'gate, exponent, initial_state, correct_state, atol', [
-            (ofc.XXYY, 1.0, np.array([0, 1, 1, 0]) / np.sqrt(2),
-                  np.array([0, -1j, -1j, 0]) / np.sqrt(2), 1e-7),
-
-            (ofc.XXYY, 0.5, np.array([1, 1, 0, 0]) / np.sqrt(2),
-                  np.array([1 / np.sqrt(2), 0.5, -0.5j, 0]), 1e-7),
-
-            (ofc.XXYY, -0.5, np.array([1, 1, 0, 0]) / np.sqrt(2),
-                   np.array([1 / np.sqrt(2), 0.5, 0.5j, 0]), 1e-7),
-
-            (ofc.YXXY, 1.0, np.array([0, 1, 1, 0]) / np.sqrt(2),
-                  np.array([0, 1, -1, 0]) / np.sqrt(2), 1e-7),
-
-            (ofc.YXXY, 0.5, np.array([0, 1, 1, 0]) / np.sqrt(2),
-                  np.array([0, 0, 1, 0]), 1e-7),
-
-            (ofc.YXXY, -0.5, np.array([0, 1, 1, 0]) / np.sqrt(2),
-                   np.array([0, 1, 0, 0]), 1e-7),
-])
-def test_two_qubit_rotation_gates_on_simulator(
-        gate, exponent, initial_state, correct_state, atol):
+@pytest.mark.parametrize('gate, exponent, initial_state, correct_state, atol',
+                         args)
+def test_two_qubit_rotation_gates_on_simulator(gate, exponent, initial_state,
+                                               correct_state, atol):
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(gate(a, b)**exponent)
     result = circuit.final_wavefunction(initial_state)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        result, correct_state, atol=atol)
+    cirq.testing.assert_allclose_up_to_global_phase(result,
+                                                    correct_state,
+                                                    atol=atol)
 
 
 @pytest.mark.parametrize('rads', [
-    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+    2 * np.pi, np.pi, 0.5 * np.pi, 0.25 * np.pi, 0.1 * np.pi, 0.0, -0.5 * np.pi
+])
 def test_rxxyy_unitary(rads):
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
@@ -287,7 +275,8 @@ def test_rxxyy_unitary(rads):
 
 
 @pytest.mark.parametrize('rads', [
-    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+    2 * np.pi, np.pi, 0.5 * np.pi, 0.25 * np.pi, 0.1 * np.pi, 0.0, -0.5 * np.pi
+])
 def test_ryxxy_unitary(rads):
     X = np.array([[0, 1], [1, 0]])
     Y = np.array([[0, -1j], [1j, 0]])
@@ -299,7 +288,8 @@ def test_ryxxy_unitary(rads):
 
 
 @pytest.mark.parametrize('rads', [
-    2*np.pi, np.pi, 0.5*np.pi, 0.25*np.pi, 0.1*np.pi, 0.0, -0.5*np.pi])
+    2 * np.pi, np.pi, 0.5 * np.pi, 0.25 * np.pi, 0.1 * np.pi, 0.0, -0.5 * np.pi
+])
 def test_rzz_unitary(rads):
     ZZ = np.diag([1, -1, -1, 1])
     np.testing.assert_allclose(cirq.unitary(ofc.Rzz(rads)),
@@ -311,27 +301,27 @@ def test_common_gate_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    circuit = cirq.Circuit(
-        ofc.FSWAP(a, b),
-        ofc.FSWAP(a, b)**0.5,
-        ofc.XXYY(a, b),
-        ofc.YXXY(a, b))
-    cirq.testing.assert_has_diagram(circuit, """
+    circuit = cirq.Circuit(ofc.FSWAP(a, b),
+                           ofc.FSWAP(a, b)**0.5, ofc.XXYY(a, b),
+                           ofc.YXXY(a, b))
+    cirq.testing.assert_has_diagram(
+        circuit, """
 a: ───×ᶠ───×ᶠ───────XXYY───YXXY───
       │    │        │      │
 b: ───×ᶠ───×ᶠ^0.5───XXYY───#2─────
 """)
 
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit,
+                                    """
 a: ---fswap---fswap-------XXYY---YXXY---
       |       |           |      |
 b: ---fswap---fswap^0.5---XXYY---#2-----
-""", use_unicode_characters=False)
+""",
+                                    use_unicode_characters=False)
 
-    circuit = cirq.Circuit(
-        ofc.XXYY(a, b)**0.5,
-        ofc.YXXY(a, b)**0.5)
-    cirq.testing.assert_has_diagram(circuit, """
+    circuit = cirq.Circuit(ofc.XXYY(a, b)**0.5, ofc.YXXY(a, b)**0.5)
+    cirq.testing.assert_has_diagram(
+        circuit, """
 a: ───XXYY───────YXXY─────
       │          │
 b: ───XXYY^0.5───#2^0.5───

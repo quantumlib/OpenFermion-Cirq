@@ -90,7 +90,7 @@ class QuadraticFermionicSimulationGate(
         cirq.EigenGate,
         cirq.InterchangeableQubitsGate,
         cirq.TwoQubitGate):
-    """(w0 |10><01| + h.c.) + w1 * |11><11| interaction.
+    r"""(w0 |10><01| + h.c.) + w1 * |11><11| interaction.
 
     With weights :math:`(w_0, w_1)` and exponent :math:`t`, this gate's matrix
     is defined as
@@ -101,14 +101,14 @@ class QuadraticFermionicSimulationGate(
     where
 
     .. math::
-        H = \left(w_0 \left| 10 \\right\\rangle\left\langle 01 \\right| +
-                \\text{h.c.}\\right) -
-            w_1 \left| 11 \\right\\rangle \left\langle 11 \\right|.
+        H = \left(w_0 \left| 10 \right\rangle\left\langle 01 \right| +
+                \text{h.c.}\right) -
+            w_1 \left| 11 \right\rangle \left\langle 11 \right|.
 
     This corresponds to the Jordan-Wigner transform of
 
     .. math::
-        H = (w_0 a^{\dagger}_i a_{i+1} + \\text{h.c.}) +
+        H = (w_0 a^{\dagger}_i a_{i+1} + \text{h.c.}) +
              w_1 a_{i}^{\dagger} a_{i+1}^{\dagger} a_{i} a_{i+1},
 
     where :math:`a_i` and  :math:`a_{i+1}` are the annihilation operators for
@@ -167,7 +167,7 @@ class QuadraticFermionicSimulationGate(
 class CubicFermionicSimulationGate(
         cirq.EigenGate,
         cirq.ThreeQubitGate):
-    """w0 * |110><101| + w1 * |110><011| + w2 * |101><011| + hc interaction.
+    r"""w0 * |110><101| + w1 * |110><011| + w2 * |101><011| + hc interaction.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
     matrix is defined as
@@ -178,22 +178,22 @@ class CubicFermionicSimulationGate(
     where
 
     .. math::
-        H = \left(w_0 \left| 110 \\right\\rangle\left\langle 101 \\right| +
-                \\text{h.c.}\\right) +
-            \left(w_1 \left| 110 \\right\\rangle\left\langle 011 \\right| +
-                \\text{h.c.}\\right) +
-            \left(w_2 \left| 101 \\right\\rangle\left\langle 011 \\right| +
-                \\text{h.c.}\\right)
+        H = \left(w_0 \left| 110 \right\rangle\left\langle 101 \right| +
+                \text{h.c.}\right) +
+            \left(w_1 \left| 110 \right\rangle\left\langle 011 \right| +
+                \text{h.c.}\right) +
+            \left(w_2 \left| 101 \right\rangle\left\langle 011 \right| +
+                \text{h.c.}\right)
 
     This corresponds to the Jordan-Wigner transform of
 
     .. math::
         H = -\left(w_0 a^{\dagger}_i a^{\dagger}_{i+1} a_{i} a_{i+2} +
-                   \\text{h.c.}\\right) -
+                   \text{h.c.}\right) -
             \left(w_1 a^{\dagger}_i a^{\dagger}_{i+1} a_{i+1} a_{i+2} +
-                  \\text{h.c.}\\right) -
+                  \text{h.c.}\right) -
             \left(w_2 a^{\dagger}_i a^{\dagger}_{i+2} a_{i+1} a_{i+2} +
-                  \\text{h.c.}\\right),
+                  \text{h.c.}\right),
 
     where :math:`a_i`, :math:`a_{i+1}`, :math:`a_{i+2}` are the annihilation
     operators for the fermionic modes :math:`i`, :math:`(i+1)` :math:`(i+2)`,
@@ -253,7 +253,7 @@ class CubicFermionicSimulationGate(
 
 @cirq.value_equality(approximate=True)
 class QuarticFermionicSimulationGate(cirq.EigenGate):
-    """Rotates Hamming-weight 2 states into their bitwise complements.
+    r"""Rotates Hamming-weight 2 states into their bitwise complements.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
     matrix is defined as
@@ -264,22 +264,22 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
     where
 
     .. math::
-        H = \left(w_0 \left| 1001 \\right\\rangle\left\langle 0110 \\right| +
-                \\text{h.c.}\\right) +
-            \left(w_1 \left| 1010 \\right\\rangle\left\langle 0101 \\right| +
-                \\text{h.c.}\\right) +
-            \left(w_2 \left| 1100 \\right\\rangle\left\langle 0011 \\right| +
-                \\text{h.c.}\\right)
+        H = \left(w_0 \left| 1001 \right\rangle\left\langle 0110 \right| +
+                \text{h.c.}\right) +
+            \left(w_1 \left| 1010 \right\rangle\left\langle 0101 \right| +
+                \text{h.c.}\right) +
+            \left(w_2 \left| 1100 \right\rangle\left\langle 0011 \right| +
+                \text{h.c.}\right)
 
     This corresponds to the Jordan-Wigner transform of
 
     .. math::
         H = -\left(w_0 a^{\dagger}_i a^{\dagger}_{i+3} a_{i+1} a_{i+2} +
-                   \\text{h.c.}\\right) -
+                   \text{h.c.}\right) -
             \left(w_1 a^{\dagger}_i a^{\dagger}_{i+2} a_{i+1} a_{i+3} +
-                  \\text{h.c.}\\right) -
+                  \text{h.c.}\right) -
             \left(w_2 a^{\dagger}_i a^{\dagger}_{i+1} a_{i+2} a_{i+3} +
-                  \\text{h.c.}\\right),
+                  \text{h.c.}\right),
 
     where :math:`a_i`, ..., :math:`a_{i+3}` are the annihilation operators for
     the fermionic modes :math:`i`, ..., :math:`(i+3)`, respectively

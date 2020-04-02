@@ -9,8 +9,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-from typing import Any, Callable
+from typing import Any, Callable, Dict, Tuple
+from types import ModuleType
 import functools
+import warnings
 
 import pytest
 
@@ -33,3 +35,34 @@ def deprecated_test(test: Callable) -> Callable:
             test(*args, **kwargs)
 
     return decorated_test
+
+
+def wrap_module(module: ModuleType,
+                deprecated_attributes: Dict[str, Tuple[str, str]]):
+    """Wrap a module with deprecated attributes.
+
+    Args:
+        module: The module to wrap.
+        deprecated_attributes: A dictionary from attribute name to pair of
+            strings, where the first string gives the version that the attribute
+            will be removed in, and the second string describes what the user
+            should do instead of accessing this deprecated attribute.
+
+    Returns:
+        Wrapped module with deprecated attributes.
+    """
+
+    class Wrapped:
+        def __getattr__(self, name):
+            if name in deprecated_attributes:
+                version, fix = deprecated_attributes[name]
+                warnings.warn(
+                    f'{name} was used but is deprecated.\n'
+                    f'It will be removed in '
+                    f'openfermioncirq {version}.\n'
+                    f'{fix}\n',
+                    DeprecationWarning,
+                    stacklevel=2)
+            return getattr(module, name)
+
+    return Wrapped()

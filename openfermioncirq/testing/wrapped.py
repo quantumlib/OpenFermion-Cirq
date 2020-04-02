@@ -13,8 +13,9 @@
 
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
-import cirq
 import sympy
+
+import cirq
 
 
 _setup_code = ('import cirq\n'

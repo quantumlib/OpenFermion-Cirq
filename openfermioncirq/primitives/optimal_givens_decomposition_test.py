@@ -24,7 +24,7 @@ from openfermioncirq.primitives.optimal_givens_decomposition import \
 
 
 def test_givens_inverse():
-    """
+    r"""
     The Givens rotation in OpenFermion is defined as
 
     .. math::

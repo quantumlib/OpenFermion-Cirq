@@ -9,7 +9,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Gates useful for simulating fermions."""
 
 from openfermioncirq.gates.common_gates import (
@@ -22,7 +21,8 @@ from openfermioncirq.gates.common_gates import (
     XXYY,
     XXYYPowGate,
     YXXY,
-    YXXYPowGate)
+    YXXYPowGate,
+)
 
 from openfermioncirq.gates.three_qubit_gates import (
     CRxxyy,
@@ -31,13 +31,31 @@ from openfermioncirq.gates.three_qubit_gates import (
     CYXXY,
     CXXYYPowGate,
     CYXXYPowGate,
-    rot111)
+    rot111,
+)
 
 from openfermioncirq.gates.fermionic_simulation import (
     QuadraticFermionicSimulationGate,
     CubicFermionicSimulationGate,
-    QuarticFermionicSimulationGate)
+    QuarticFermionicSimulationGate,
+)
 
 from openfermioncirq.gates.four_qubit_gates import (
     DoubleExcitation,
-    DoubleExcitationGate)
+    DoubleExcitationGate,
+)
+
+# Deprecated
+# pylint: disable=wrong-import-order
+import sys as _sys
+from openfermioncirq._compat import wrap_module as _wrap_module
+deprecated_constants = {
+    'XXYY': ('v0.5.0', 'Use cirq.ISWAP with negated exponent, instead'),
+    'YXXY': ('v0.5.0', 'Use cirq.PhasedISwapPowGate, instead.'),
+    'CXXYY': ('v0.5.0', 'Use cirq.ControlledGate and cirq.ISWAP with '
+              'negated exponent, instead'),
+    'CYXXY': ('v0.5.0', 'Use cirq.ControlledGate and '
+              'cirq.PhasedISwapPowGate, instead.'),
+}
+_sys.modules[__name__] = _wrap_module(_sys.modules[__name__],
+                                      deprecated_constants)

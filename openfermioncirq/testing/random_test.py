@@ -13,9 +13,9 @@
 import random
 
 import numpy as np
-import openfermion
 import pytest
 
+import openfermion
 
 import openfermioncirq.testing.random  as ofctr
 
