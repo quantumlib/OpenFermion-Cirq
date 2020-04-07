@@ -45,10 +45,17 @@ def f():
     pass
 
 
-@deprecated_test
 def test_deprecated_test():
-    warnings.simplefilter('error')
-    f()
+
+    @deprecated_test
+    def test():
+        f()
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('ignore')
+        warnings.simplefilter('default', DeprecationWarning)
+        test()
+        assert len(w) == 0
 
 
 def test_wrap_module():
