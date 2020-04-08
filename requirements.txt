@@ -3,6 +3,7 @@ numpy
 pandas
 scipy
 sympy
+joblib
 
 # NOTE: switch to non-dev versions when releasing!
 cirq==0.7.0
