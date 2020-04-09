@@ -10,13 +10,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import abc
 from typing import Optional, Tuple, Union
 
+import cirq
 import numpy as np
+import openfermion
 import scipy.linalg as la
 import sympy
-
-import cirq
 
 
 def _arg(x):
@@ -33,11 +34,11 @@ def _canonicalize_weight(w):
     if cirq.is_parameterized(w):
         return (cirq.PeriodicValue(abs(w), 2 * sympy.pi), sympy.arg(w))
     period = 2 * np.pi
-    return (np.round((w % period) if (w == np.real(w)) else
-        (abs(w) % period) * w / abs(w), 8), 0)
+    return (np.round((w.real % period) if (w == np.real(w)) else
+                     (abs(w) % period) * w / abs(w), 8), 0)
 
 
-def state_swap_eigen_component(x: str, y: str, sign: int = 1, angle: float=0):
+def state_swap_eigen_component(x: str, y: str, sign: int = 1, angle: float = 0):
     """The +/- eigen-component of the operation that swaps states x and y.
 
     For example, state_swap_eigen_component('01', '10', ±1) with angle θ returns
@@ -76,20 +77,120 @@ def state_swap_eigen_component(x: str, y: str, sign: int = 1, angle: float=0):
     if sign not in (-1, 1):
         raise ValueError('sign not in (-1, 1)')
 
-    dim = 2 ** len(x)
+    dim = 2**len(x)
     i, j = int(x, 2), int(y, 2)
 
     component = np.zeros((dim, dim), dtype=np.complex128)
     component[i, i] = component[j, j] = 0.5
-    component[j, i]= sign * 0.5 * 1j**(angle * 2 / np.pi)
-    component[i, j]= sign * 0.5 * 1j**(-angle * 2 / np.pi)
+    component[j, i] = sign * 0.5 * 1j**(angle * 2 / np.pi)
+    component[i, j] = sign * 0.5 * 1j**(-angle * 2 / np.pi)
     return component
 
 
-class QuadraticFermionicSimulationGate(
-        cirq.EigenGate,
-        cirq.InterchangeableQubitsGate,
-        cirq.TwoQubitGate):
+@cirq.value_equality(approximate=True)
+class ParityPreservingFermionicGate(cirq.Gate, metaclass=abc.ABCMeta):
+    r"""The Jordan-Wigner transform of :math:`\exp(-i H)` for a fermionic
+    Hamiltonian :math:`H`.
+
+    Each subclass corresponds to a set of generators :math:`\{G_i\}`
+    corresponding to the family of Hamiltonians :math:`\sum_i w_i G_i +
+    \text{h.c.}`, where the weights :math:`w_i \in \mathbb C` are specified by
+    the instance.
+
+    The Jordan-Wigner mapping maps the fermionic modes :math:`(0, \ldots, n -
+    1)` to qubits :math:`(0, \ldots, n - 1)`, respectively.
+
+    Each generator :math:`G_i` must be a linear combination of fermionic
+    monomials consisting of an even number of creation/annihilation operators.
+    This is so that the Jordan-Wigner transform acts only on the gate's qubits,
+    even when the fermionic modes are offset as part of a larger Jordan-Wigner
+    string.
+    """
+
+    def __init__(
+            self,
+            weights: Optional[Tuple[complex, ...]] = None,
+            absorb_exponent: bool = False,
+            exponent: cirq.TParamVal = 1.0,
+            global_shift: float = 0.0,
+    ) -> None:
+        """A fermionic interaction.
+
+        Args:
+            weights: The weights of the terms in the Hamiltonian.
+            absorb_exponent: Whether to absorb the given exponent into the
+                weights. If true, the exponent of the return gate is `1`.
+                Defaults to `False`.
+        """
+        if weights is None:
+            weights = (1.,) * self.num_weights
+        self.weights = weights
+
+        self._exponent = exponent
+        self._global_shift = global_shift
+        self._canonical_exponent_cached = None
+
+        if absorb_exponent:
+            self.absorb_exponent_into_weights()
+
+    @abc.abstractproperty
+    def fermion_generator_components(self
+                                    ) -> Tuple[openfermion.FermionOperator]:
+        r"""The FermionOperators :math:`(G_i)_i` such that the gate's fermionic
+        generator is :math:`\sum_i w_i G_i + \text{h.c.}` where :math:`(w_i)_i`
+        are the gate's weights."""
+
+    @property
+    def num_weights(self) -> int:
+        """The number of parameters (weights) in the generator."""
+        return len(self.fermion_generator_components)
+
+    @property
+    def qubit_generator_matrix(self) -> np.ndarray:
+        """The matrix G such that the gate's unitary is exp(-i t G) with
+        exponent t."""
+        return openfermion.jordan_wigner_sparse(self.fermion_generator,
+                                                self.num_qubits()).toarray()
+
+    @property
+    def fermion_generator(self) -> openfermion.FermionOperator:
+        """The FermionOperator G such that the gate's unitary is exp(-i t G)
+        with exponent t using the Jordan-Wigner transformation."""
+        half_generator = sum(
+            (w * G
+             for w, G in zip(self.weights, self.fermion_generator_components)),
+            openfermion.FermionOperator())
+        return half_generator + openfermion.hermitian_conjugated(half_generator)
+
+    def _value_equality_values_(self):
+        return tuple(
+            _canonicalize_weight(w * self.exponent)
+            for w in list(self.weights) + [self._global_shift])
+
+    def _is_parameterized_(self) -> bool:
+        return any(
+            cirq.is_parameterized(v)
+            for V in self._value_equality_values_()
+            for v in V)
+
+    def absorb_exponent_into_weights(self):
+        period = (2 * sympy.pi) if self._is_parameterized_() else 2 * (np.pi)
+        new_weights = []
+        for weight in self.weights:
+            if not weight:
+                new_weights.append(weight)
+                continue
+            old_abs = abs(weight)
+            new_abs = (old_abs * self._exponent) % period
+            new_weights.append(weight * new_abs / old_abs)
+        self.weights = tuple(new_weights)
+        self._global_shift *= self._exponent
+        self._exponent = 1
+
+
+class QuadraticFermionicSimulationGate(ParityPreservingFermionicGate,
+                                       cirq.InterchangeableQubitsGate,
+                                       cirq.TwoQubitGate, cirq.EigenGate):
     r"""(w0 |10><01| + h.c.) + w1 * |11><11| interaction.
 
     With weights :math:`(w_0, w_1)` and exponent :math:`t`, this gate's matrix
@@ -119,54 +220,60 @@ class QuadraticFermionicSimulationGate(
         weights: The weights of the terms in the Hamiltonian.
     """
 
-    def __init__(self,
-                 weights: Tuple[float, float]=(1, 1),
-                 **kwargs) -> None:
-        self.weights = weights
-
-        super().__init__(**kwargs)
-
-    def num_qubits(self):
+    @property
+    def num_weights(self):
         return 2
 
     def _decompose_(self, qubits):
         r = 2 * abs(self.weights[0]) / np.pi
         theta = _arg(self.weights[0]) / np.pi
-        yield cirq.Z(qubits[0]) ** -theta
+        yield cirq.Z(qubits[0])**-theta
         yield cirq.ISwapPowGate(exponent=-r * self.exponent)(*qubits)
-        yield cirq.Z(qubits[0]) ** theta
-        yield cirq.CZPowGate(
-                exponent=-self.weights[1] * self.exponent / np.pi)(*qubits)
+        yield cirq.Z(qubits[0])**theta
+        yield cirq.CZPowGate(exponent=-self.weights[1] * self.exponent /
+                             np.pi)(*qubits)
 
     def _eigen_components(self):
-        components = [
-            (0, np.diag([1, 0, 0, 0])),
-            (-self.weights[1] / np.pi, np.diag([0, 0, 0, 1]))
-            ]
+        components = [(0, np.diag([1, 0, 0, 0])),
+                      (-self.weights[1] / np.pi, np.diag([0, 0, 0, 1]))]
         r = abs(self.weights[0]) / np.pi
         theta = 2 * _arg(self.weights[0]) / np.pi
         for s in (-1, 1):
-            components.append((-s * r,
-                np.array([
-                    [0, 0, 0, 0],
-                    [0, 1, s * 1j**(-theta), 0],
-                    [0, s * 1j**(theta), 1, 0],
-                    [0, 0, 0, 0]
-                ]) / 2))
+            components.append(
+                (-s * r,
+                 np.array([[0, 0, 0, 0], [0, 1, s * 1j**(-theta), 0],
+                           [0, s * 1j**(theta), 1, 0], [0, 0, 0, 0]]) / 2))
         return components
 
     def __repr__(self):
-        exponent_str = ('' if self.exponent == 1 else
-                ', exponent=' + cirq._compat.proper_repr(self.exponent))
+        exponent_str = ('' if self.exponent == 1 else ', exponent=' +
+                        cirq._compat.proper_repr(self.exponent))
         return ('ofc.QuadraticFermionicSimulationGate(({}){})'.format(
-                ', '.join(cirq._compat.proper_repr(v) for v in self.weights),
-                exponent_str))
+            ', '.join(cirq._compat.proper_repr(v) for v in self.weights),
+            exponent_str))
+
+    @property
+    def qubit_generator_matrix(self):
+        generator = np.zeros((4, 4), dtype=np.complex128)
+        # w0 |10><01| + h.c.
+        generator[2, 1] = self.weights[0]
+        generator[1, 2] = self.weights[0].conjugate()
+        # w1 |11><11|
+        generator[3, 3] = self.weights[1]
+        return generator
+
+    @property
+    def fermion_generator_components(self):
+        return (
+            openfermion.FermionOperator(((0, 1), (1, 0))),
+            openfermion.FermionOperator(((0, 1), (0, 0), (1, 1), (1, 0)), 0.5),
+        )
 
 
-@cirq.value_equality(approximate=True)
 class CubicFermionicSimulationGate(
-        cirq.EigenGate,
-        cirq.ThreeQubitGate):
+        ParityPreservingFermionicGate,
+        cirq.ThreeQubitGate,
+        cirq.EigenGate):
     r"""w0 * |110><101| + w1 * |110><011| + w2 * |101><011| + hc interaction.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
@@ -203,14 +310,9 @@ class CubicFermionicSimulationGate(
         weights: The weights of the terms in the Hamiltonian.
     """
 
-    def __init__(self,
-                 weights: Tuple[complex, complex, complex]=(1., 1., 1.),
-                 **kwargs) -> None:
-
-        assert len(weights) == 3
-        self.weights = weights
-
-        super().__init__(**kwargs)
+    @property
+    def num_weights(self):
+        return 3
 
     def _eigen_components(self):
         components = [(0, np.diag([1, 1, 1, 0, 1, 0, 0, 1]))]
@@ -218,41 +320,52 @@ class CubicFermionicSimulationGate(
         for ij, w in zip([(1, 2), (0, 2), (0, 1)], self.weights):
             nontrivial_part[ij] = w
             nontrivial_part[ij[::-1]] = w.conjugate()
-        assert(np.allclose(nontrivial_part, nontrivial_part.conj().T))
+        assert np.allclose(nontrivial_part, nontrivial_part.conj().T)
         eig_vals, eig_vecs = np.linalg.eigh(nontrivial_part)
         for eig_val, eig_vec in zip(eig_vals, eig_vecs.T):
             exp_factor = -eig_val / np.pi
             proj = np.zeros((8, 8), dtype=np.complex128)
             nontrivial_indices = np.array([3, 5, 6], dtype=np.intp)
             proj[nontrivial_indices[:, np.newaxis], nontrivial_indices] = (
-                    np.outer(eig_vec.conjugate(), eig_vec))
+                np.outer(eig_vec.conjugate(), eig_vec))
             components.append((exp_factor, proj))
         return components
 
-    def _value_equality_values_(self):
-        return tuple((w * self.exponent,)
-                for w in list(self.weights) + [self._global_shift])
-
-    def _is_parameterized_(self) -> bool:
-        return any(cirq.is_parameterized(v)
-                for V in self._value_equality_values_()
-                for v in V)
-
     def __repr__(self):
+        return ('ofc.CubicFermionicSimulationGate(' + '({})'.format(' ,'.join(
+            cirq._compat.proper_repr(w) for w in self.weights)) +
+                ('' if self.exponent == 1 else
+                 (', exponent=' + cirq._compat.proper_repr(self.exponent))) +
+                ('' if self._global_shift == 0 else
+                 (', global_shift=' +
+                  cirq._compat.proper_repr(self._global_shift))) + ')')
+
+    @property
+    def qubit_generator_matrix(self):
+        generator = np.zeros((8, 8), dtype=np.complex128)
+        # w0 |110><101| + h.c.
+        generator[6, 5] = self.weights[0]
+        generator[5, 6] = self.weights[0].conjugate()
+        # w1 |110><011| + h.c.
+        generator[6, 3] = self.weights[1]
+        generator[3, 6] = self.weights[1].conjugate()
+        # w2 |101><011| + h.c.
+        generator[5, 3] = self.weights[2]
+        generator[3, 5] = self.weights[2].conjugate()
+        return generator
+
+    @property
+    def fermion_generator_components(self):
         return (
-            'ofc.CubicFermionicSimulationGate(' +
-            '({})'.format(' ,'.join(
-                cirq._compat.proper_repr(w) for w in self.weights)) +
-            ('' if self.exponent == 1 else
-             (', exponent=' + cirq._compat.proper_repr(self.exponent))) +
-            ('' if self._global_shift == 0 else
-             (', global_shift=' +
-                 cirq._compat.proper_repr(self._global_shift))) +
-            ')')
+            openfermion.FermionOperator(((0, 1), (0, 0), (1, 1), (2, 0))),
+            openfermion.FermionOperator(((0, 1), (1, 1), (1, 0), (2, 0)), -1),
+            openfermion.FermionOperator(((0, 1), (1, 0), (2, 1), (2, 0))),
+        )
 
 
-@cirq.value_equality(approximate=True)
-class QuarticFermionicSimulationGate(cirq.EigenGate):
+class QuarticFermionicSimulationGate(
+        ParityPreservingFermionicGate,
+        cirq.EigenGate):
     r"""Rotates Hamming-weight 2 states into their bitwise complements.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
@@ -290,52 +403,9 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
         weights: The weights of the terms in the Hamiltonian.
     """
 
-    def __init__(self,
-                 weights: Tuple[complex, complex, complex]=(1, 1, 1),
-                 absorb_exponent: bool=True,
-                 *,  # Forces keyword args.
-                 exponent: Optional[Union[sympy.Symbol, float]]=None,
-                 rads: Optional[float]=None,
-                 degs: Optional[float]=None,
-                 duration: Optional[float]=None
-                 ) -> None:
-        """Initialize the gate.
-
-        At most one of exponent, rads, degs, or duration may be specified.
-        If more are specified, the result is considered ambiguous and an
-        error is thrown. If no argument is given, the default value of one
-        half-turn is used.
-
-        Args:
-            weights: The weights of the terms in the Hamiltonian.
-            absorb_exponent: Whether to absorb the given exponent into the
-                weights. If true, the exponent of the returned gate is 1.
-            exponent: The exponent angle, in half-turns.
-            rads: The exponent angle, in radians.
-            degs: The exponent angle, in degrees.
-            duration: The exponent as a duration of time.
-        """
-
-        assert len(weights) == 3
-        self.weights = weights
-
-        if len([1 for e in [exponent, rads, degs, duration]
-                if e is not None]) > 1:
-            raise ValueError('Redundant exponent specification. '
-                             'Use ONE of exponent, rads, degs, or duration.')
-
-        if duration is not None:
-            exponent = 2 * duration / np.pi
-        else:
-            exponent = cirq.chosen_angle_to_half_turns(
-                half_turns=exponent,
-                rads=rads,
-                degs=degs)
-
-        super().__init__(exponent=exponent)
-
-        if absorb_exponent:
-            self.absorb_exponent_into_weights()
+    @property
+    def num_weights(self):
+        return 3
 
     def num_qubits(self):
         return 4
@@ -343,25 +413,22 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
     def _eigen_components(self):
         # projector onto subspace spanned by basis states with
         # Hamming weight != 2
-        zero_component = np.diag([int(bin(i).count('1') != 2)
-                                  for i in range(16)])
+        zero_component = np.diag(
+            [int(bin(i).count('1') != 2) for i in range(16)])
 
-        state_pairs = (('0110', '1001'),
-                       ('0101', '1010'),
-                       ('0011', '1100'))
+        state_pairs = (('0110', '1001'), ('0101', '1010'), ('0011', '1100'))
 
         plus_minus_components = tuple(
             (-abs(weight) * sign / np.pi,
-             state_swap_eigen_component(
-                 state_pair[0], state_pair[1], sign, np.angle(weight)))
+             state_swap_eigen_component(state_pair[0], state_pair[1], sign,
+                                        np.angle(weight)))
             for weight, state_pair in zip(self.weights, state_pairs)
             for sign in (-1, 1))
 
         return ((0, zero_component),) + plus_minus_components
 
-    def _with_exponent(self,
-                       exponent: Union[sympy.Symbol, float]
-                       ) -> 'QuarticFermionicSimulationGate':
+    def _with_exponent(self, exponent: Union[sympy.Symbol, float]
+                      ) -> 'QuarticFermionicSimulationGate':
         gate = QuarticFermionicSimulationGate(self.weights)
         gate._exponent = exponent
         return gate
@@ -400,52 +467,55 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
             return NotImplemented
 
         individual_rotations = [
-            la.expm(0.5j * self.exponent * np.array([
-                [np.real(w), 1j * s * np.imag(w)],
-                [-1j * s * np.imag(w), -np.real(w)]]))
-            for s, w in zip([1, -1, -1], self.weights)]
+            la.expm(0.5j * self.exponent *
+                    np.array([[np.real(w), 1j * s * np.imag(w)],
+                              [-1j * s * np.imag(w), -np.real(w)]]))
+            for s, w in zip([1, -1, -1], self.weights)
+        ]
 
         combined_rotations = {}
-        combined_rotations[0] = la.sqrtm(np.linalg.multi_dot([
-                la.inv(individual_rotations[1]),
-                individual_rotations[0],
-                individual_rotations[2]]))
+        combined_rotations[0] = la.sqrtm(
+            np.linalg.multi_dot([
+                la.inv(individual_rotations[1]), individual_rotations[0],
+                individual_rotations[2]
+            ]))
         combined_rotations[1] = la.inv(combined_rotations[0])
         combined_rotations[2] = np.linalg.multi_dot([
-                la.inv(individual_rotations[0]),
-                individual_rotations[1],
-                combined_rotations[0]])
+            la.inv(individual_rotations[0]), individual_rotations[1],
+            combined_rotations[0]
+        ])
         combined_rotations[3] = individual_rotations[0]
 
-        controlled_rotations = {i: cirq.ControlledGate(
-            cirq.MatrixGate(combined_rotations[i], qid_shape=(2,)))
-            for i in range(4)}
+        controlled_rotations = {
+            i: cirq.ControlledGate(
+                cirq.MatrixGate(combined_rotations[i], qid_shape=(2,)))
+            for i in range(4)
+        }
 
         a, b, c, d = qubits
 
-        basis_change = list(cirq.flatten_op_tree([
-            cirq.CNOT(b, a),
-            cirq.CNOT(c, b),
-            cirq.CNOT(d, c),
-            cirq.CNOT(c, b),
-            cirq.CNOT(b, a),
-            cirq.CNOT(a, b),
-            cirq.CNOT(b, c),
-            cirq.CNOT(a, b),
-            [cirq.X(c), cirq.X(d)],
-            [cirq.CNOT(c, d), cirq.CNOT(d, c)],
-            [cirq.X(c), cirq.X(d)],
+        basis_change = list(
+            cirq.flatten_op_tree([
+                cirq.CNOT(b, a),
+                cirq.CNOT(c, b),
+                cirq.CNOT(d, c),
+                cirq.CNOT(c, b),
+                cirq.CNOT(b, a),
+                cirq.CNOT(a, b),
+                cirq.CNOT(b, c),
+                cirq.CNOT(a, b),
+                [cirq.X(c), cirq.X(d)],
+                [cirq.CNOT(c, d), cirq.CNOT(d, c)],
+                [cirq.X(c), cirq.X(d)],
             ]))
 
-        controlled_rotations = list(cirq.flatten_op_tree([
-            controlled_rotations[0](b, c),
-            cirq.CNOT(a, b),
-            controlled_rotations[1](b, c),
-            cirq.CNOT(b, a),
-            cirq.CNOT(a, b),
-            controlled_rotations[2](b, c),
-            cirq.CNOT(a, b),
-            controlled_rotations[3](b, c)
+        controlled_rotations = list(
+            cirq.flatten_op_tree([
+                controlled_rotations[0](b, c),
+                cirq.CNOT(a, b), controlled_rotations[1](b, c),
+                cirq.CNOT(b, a),
+                cirq.CNOT(a, b), controlled_rotations[2](b, c),
+                cirq.CNOT(a, b), controlled_rotations[3](b, c)
             ]))
 
         controlled_swaps = [
@@ -455,12 +525,12 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
             cirq.CNOT(d, c),
             [cirq.inverse(op) for op in reversed(controlled_rotations)],
             [cirq.H(c), cirq.CNOT(c, d)],
-            ]
+        ]
 
         return [basis_change, controlled_swaps, basis_change[::-1]]
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                               ) -> cirq.CircuitDiagramInfo:
+                              ) -> cirq.CircuitDiagramInfo:
         if args.use_unicode_characters:
             wire_symbols = ('⇊⇈',) * 4
         else:
@@ -468,26 +538,13 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
                                        exponent=self._diagram_exponent(args))
 
-    def absorb_exponent_into_weights(self):
-        period = (2 * sympy.pi) if self._is_parameterized_() else 2 * (np.pi)
-        new_weights = []
-        for weight in self.weights:
-            if not weight:
-                new_weights.append(weight)
-                continue
-            old_abs = abs(weight)
-            new_abs = (old_abs * self._exponent) % period
-            new_weights.append(weight * new_abs / old_abs)
-        self.weights = tuple(new_weights)
-        self._exponent = 1
-
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self,
+                        args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return NotImplemented
 
         am, bm, cm = (la.expm(-1j * self.exponent *
-                      np.array([[0, w], [w.conjugate(), 0]]))
+                              np.array([[0, w], [w.conjugate(), 0]]))
                       for w in self.weights)
 
         a1 = args.subspace_index(0b1001)
@@ -511,19 +568,37 @@ class QuarticFermionicSimulationGate(cirq.EigenGate):
                                            slices=[c1, c2],
                                            out=args.available_buffer)
 
-    def _value_equality_values_(self):
-        return tuple(_canonicalize_weight(w * self.exponent)
-                for w in list(self.weights) + [self._global_shift])
-
-    def _is_parameterized_(self) -> bool:
-        return any(cirq.is_parameterized(v)
-                for V in self._value_equality_values_()
-                for v in V)
-
     def __repr__(self):
+        return ('ofc.QuarticFermionicSimulationGate(({}), '
+                'absorb_exponent=False, '
+                'exponent={})'.format(
+                    ', '.join(
+                        cirq._compat.proper_repr(v) for v in self.weights),
+                    cirq._compat.proper_repr(self.exponent)))
+
+    @property
+    def qubit_generator_matrix(self):
+        """The (Hermitian) matrix G such that the gate's unitary is
+        exp(-i * G).
+        """
+
+        generator = np.zeros((1 << 4,) * 2, dtype=np.complex128)
+
+        # w0 |1001><0110| + h.c.
+        generator[9, 6] = self.weights[0]
+        generator[6, 9] = self.weights[0].conjugate()
+        # w1 |1010><0101| + h.c.
+        generator[10, 5] = self.weights[1]
+        generator[5, 10] = self.weights[1].conjugate()
+        # w2 |1100><0011| + h.c.
+        generator[12, 3] = self.weights[2]
+        generator[3, 12] = self.weights[2].conjugate()
+        return generator
+
+    @property
+    def fermion_generator_components(self):
         return (
-            'ofc.QuarticFermionicSimulationGate(({}), '
-            'absorb_exponent=False, '
-            'exponent={})'.format(
-                ', '.join(cirq._compat.proper_repr(v) for v in self.weights),
-                cirq._compat.proper_repr(self.exponent)))
+            openfermion.FermionOperator(((0, 1), (1, 0), (2, 0), (3, 1)), -1),
+            openfermion.FermionOperator(((0, 1), (1, 0), (2, 1), (3, 0))),
+            openfermion.FermionOperator(((0, 1), (1, 1), (2, 0), (3, 0)), -1),
+        )

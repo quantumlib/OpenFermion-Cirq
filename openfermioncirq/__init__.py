@@ -26,6 +26,7 @@ from openfermioncirq.gates import (
     rot111,
     XXYYPowGate,
     YXXYPowGate,
+    ParityPreservingFermionicGate,
     QuadraticFermionicSimulationGate,
     CubicFermionicSimulationGate,
     QuarticFermionicSimulationGate,
