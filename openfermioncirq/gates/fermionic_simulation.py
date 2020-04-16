@@ -11,7 +11,7 @@
 #   limitations under the License.
 
 import abc
-from typing import Optional, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 import cirq
 import numpy as np
@@ -140,6 +140,11 @@ class ParityPreservingFermionicGate(cirq.Gate, metaclass=abc.ABCMeta):
         generator is :math:`\sum_i w_i G_i + \text{h.c.}` where :math:`(w_i)_i`
         are the gate's weights."""
 
+    @abc.abstractmethod
+    def fswap(self, i: int):
+        """Update the weights of the gate to effect conjugation by an FSWAP on
+        the i-th and (i+1)th qubits."""
+
     @property
     def num_weights(self) -> int:
         """The number of parameters (weights) in the generator."""
@@ -186,6 +191,38 @@ class ParityPreservingFermionicGate(cirq.Gate, metaclass=abc.ABCMeta):
         self.weights = tuple(new_weights)
         self._global_shift *= self._exponent
         self._exponent = 1
+
+    def permute(self, init_pos: Sequence[int]):
+        """An in-place version of permuted."""
+        I = range(self.num_qubits())
+        if sorted(init_pos) != list(I):
+            raise ValueError(f'{init_pos} is not a permutation of {I}.')
+        curr_pos = list(init_pos)
+        for i in I:
+            for j in I[i % 2:-1:2]:
+                if curr_pos[j] > curr_pos[j + 1]:
+                    self.fswap(j)
+                    curr_pos[j:j + 2] = reversed(curr_pos[j:j + 2])
+        assert curr_pos == list(I)
+
+    def permuted(self, init_pos: Sequence[int]):
+        """Returns a gate with the Jordan-Wigner ordering changed.
+
+        If the Jordan-Wigner ordering of the original gate is given by
+        init_pos, then the returned gate has Jordan-Wigner ordering
+        (0, ..., n - 1), where n is the number of qubits on which the gate acts.
+
+        Args:
+            init_pos: A permutation of (0, ..., n - 1).
+        """
+        gate = self.__copy__()
+        gate.permute(init_pos)
+        return gate
+
+    def __copy__(self):
+        return type(self)(self.weights,
+                          exponent=self.exponent,
+                          global_shift=self._global_shift)
 
 
 class QuadraticFermionicSimulationGate(ParityPreservingFermionicGate,
@@ -269,11 +306,14 @@ class QuadraticFermionicSimulationGate(ParityPreservingFermionicGate,
             openfermion.FermionOperator(((0, 1), (0, 0), (1, 1), (1, 0)), 0.5),
         )
 
+    def fswap(self, i: int = 0):
+        if i != 0:
+            raise ValueError(f'{i} != 0')
+        self.weights = (self.weights[0].conjugate(), self.weights[1])
 
-class CubicFermionicSimulationGate(
-        ParityPreservingFermionicGate,
-        cirq.ThreeQubitGate,
-        cirq.EigenGate):
+
+class CubicFermionicSimulationGate(ParityPreservingFermionicGate,
+                                   cirq.ThreeQubitGate, cirq.EigenGate):
     r"""w0 * |110><101| + w1 * |110><011| + w2 * |101><011| + hc interaction.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
@@ -362,10 +402,19 @@ class CubicFermionicSimulationGate(
             openfermion.FermionOperator(((0, 1), (1, 0), (2, 1), (2, 0))),
         )
 
+    def fswap(self, i: int):
+        if i == 0:
+            self.weights = (-self.weights[1], -self.weights[0],
+                            self.weights[2].conjugate())
+        elif i == 1:
+            self.weights = (self.weights[0].conjugate(), -self.weights[2],
+                            -self.weights[1])
+        else:
+            raise ValueError(f'{i} not in (0, 1)')
 
-class QuarticFermionicSimulationGate(
-        ParityPreservingFermionicGate,
-        cirq.EigenGate):
+
+class QuarticFermionicSimulationGate(ParityPreservingFermionicGate,
+                                     cirq.EigenGate):
     r"""Rotates Hamming-weight 2 states into their bitwise complements.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
@@ -602,3 +651,14 @@ class QuarticFermionicSimulationGate(
             openfermion.FermionOperator(((0, 1), (1, 0), (2, 1), (3, 0))),
             openfermion.FermionOperator(((0, 1), (1, 1), (2, 0), (3, 0)), -1),
         )
+
+    def fswap(self, i: int):
+        if i == 0:
+            self.weights = (self.weights[1].conjugate(),
+                            self.weights[0].conjugate(), -self.weights[2])
+        elif i == 1:
+            self.weights = (-self.weights[0], self.weights[2], self.weights[1])
+        elif i == 2:
+            self.weights = (self.weights[1], self.weights[0], -self.weights[2])
+        else:
+            raise ValueError(f'{i} not in (0, 1, 2)')

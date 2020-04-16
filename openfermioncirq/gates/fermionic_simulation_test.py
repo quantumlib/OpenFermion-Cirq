@@ -14,6 +14,7 @@ import itertools
 from typing import cast, Tuple
 
 import cirq
+import cirq.contrib.acquaintance as cca
 import numpy as np
 import pytest
 import scipy.linalg as la
@@ -81,6 +82,49 @@ def assert_generators_consistent(gate):
     assert np.allclose(qubit_generator, qubit_generator_from_fermion_generator)
 
 
+def assert_fswap_consistent(gate):
+    gate = gate.__copy__()
+    n_qubits = gate.num_qubits()
+    for i in range(n_qubits - 1):
+        fswap = cirq.kron(np.eye(1 << i), cirq.unitary(ofc.FSWAP),
+                np.eye(1 << (n_qubits - i - 2)))
+        assert fswap.shape == (1 << n_qubits,) * 2
+        generator = gate.qubit_generator_matrix
+        fswapped_generator = np.linalg.multi_dot([fswap, generator, fswap])
+        gate.fswap(i)
+        assert np.allclose(gate.qubit_generator_matrix, fswapped_generator)
+    for i in (-1, n_qubits):
+        with pytest.raises(ValueError):
+            gate.fswap(i)
+
+
+def assert_permute_consistent(gate):
+    gate = gate.__copy__()
+    n_qubits = gate.num_qubits()
+    qubits = cirq.LineQubit.range(n_qubits)
+    for pos in itertools.permutations(range(n_qubits)):
+        permuted_gate = gate.__copy__()
+        gate.permute(pos)
+        assert permuted_gate.permuted(pos) == gate
+        actual_unitary = cirq.unitary(permuted_gate)
+
+        ops = [
+            cca.LinearPermutationGate(n_qubits,
+                dict(zip(range(n_qubits), pos)), ofc.FSWAP)(*qubits),
+            gate(*qubits),
+            cca.LinearPermutationGate(n_qubits,
+                dict(zip(pos, range(n_qubits))), ofc.FSWAP)(*qubits)
+            ]
+        circuit = cirq.Circuit(ops)
+        expected_unitary = cirq.unitary(circuit)
+        assert np.allclose(actual_unitary, expected_unitary)
+
+    with pytest.raises(ValueError):
+        gate.permute(range(1, n_qubits))
+    with pytest.raises(ValueError):
+        gate.permute([1] * n_qubits)
+
+
 random_quadratic_gates = [
         random_fermionic_simulation_gate(2) for _ in range(5)]
 manual_quadratic_gates = [ofc.QuadraticFermionicSimulationGate(weights)
@@ -103,6 +147,8 @@ def test_fermionic_simulation_gate(gate):
     actual_unitary = cirq.unitary(gate)
     assert np.allclose(expected_unitary, actual_unitary)
 
+    assert_fswap_consistent(gate)
+    assert_permute_consistent(gate)
     assert_generators_consistent(gate)
 
     assert gate.num_weights == super(type(gate), gate).num_weights
