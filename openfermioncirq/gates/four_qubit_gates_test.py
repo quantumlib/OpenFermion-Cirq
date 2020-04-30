@@ -11,11 +11,11 @@
 #   limitations under the License.
 
 import numpy
-import pytest
 import scipy
-
 import cirq
 import openfermion
+import pytest
+
 import openfermioncirq as ofc
 
 

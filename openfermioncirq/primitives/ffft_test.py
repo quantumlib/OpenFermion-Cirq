@@ -13,10 +13,11 @@
 from typing import List, TYPE_CHECKING
 
 import numpy as np
-import pytest
 
 import cirq
 from cirq import LineQubit
+import pytest
+
 from openfermioncirq import (bogoliubov_transform, ffft)
 from openfermioncirq.primitives.ffft import (
     _F0Gate,

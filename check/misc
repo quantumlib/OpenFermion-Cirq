@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs misc custom checks on repistory.
+#
+# Usage:
+#     check/misc
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Check for non-contrib references to contrib.
+results=$(grep -Rl "\bopenfermioncirq\.contrib\b" openfermioncirq | grep -v "openfermioncirq/contrib" | grep -v "__")
+RESULT=$?
+if [ $RESULT -eq 0 ]; then
+  echo -e "\033[31m'openfermioncirq.contrib' mentioned in non-contrib files:\033[0m"
+  echo "${results}"
+  echo
+  echo -e "\033[31mSource files outside openfermioncirq.contrib must not reference openfermioncirq.contrib, as this can cause errors for users who 'pip install openfermioncirq' instead of 'pip install openfermioncirq[contrib]'.\033[0m"
+  exit 1
+fi
+
+echo -e "\033[32mNo issues\033[0m."

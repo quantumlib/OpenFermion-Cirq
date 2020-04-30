@@ -1,7 +1,8 @@
-import pytest
 import cirq
 import numpy as np
 import scipy as sp
+import pytest
+
 from openfermioncirq.experiments.hfvqe.circuits import (
                             rhf_params_to_matrix,
                             ryxxy,

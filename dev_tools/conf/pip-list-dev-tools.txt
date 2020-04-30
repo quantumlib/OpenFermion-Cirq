@@ -1,8 +1,9 @@
 # For testing and analyzing code.
-mypy==0.641.*
-pylint==2.1.*
+mypy~=0.701.0
+pylint~=2.3.0
 pytest~=5.4.1
 pytest-cov==2.5.*
+yapf~=0.27.0
 
 # For uploading packages to pypi.
 twine

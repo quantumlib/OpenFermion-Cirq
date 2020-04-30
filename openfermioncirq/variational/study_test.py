@@ -13,9 +13,8 @@
 import os
 
 import numpy
-import pytest
-
 import cirq
+import pytest
 
 from openfermioncirq import VariationalObjective, VariationalStudy
 from openfermioncirq.optimization import (

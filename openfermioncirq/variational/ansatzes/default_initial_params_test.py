@@ -11,10 +11,9 @@
 #   limitations under the License.
 
 import numpy
-import pytest
-
 import cirq
 import openfermion
+import pytest
 
 from openfermioncirq import (
         HamiltonianObjective,

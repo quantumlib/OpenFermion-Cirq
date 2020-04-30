@@ -13,14 +13,13 @@
 from typing import Container
 
 import numpy
-import pytest
-
 import cirq
 from cirq import LineQubit
 import openfermion
 from openfermion import get_sparse_operator
 from openfermion.utils import (
         random_quadratic_hamiltonian, random_unitary_matrix)
+import pytest
 
 from openfermioncirq import bogoliubov_transform
 

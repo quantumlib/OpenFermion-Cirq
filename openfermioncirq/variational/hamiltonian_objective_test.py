@@ -11,11 +11,10 @@
 #   limitations under the License.
 
 import numpy
-import pytest
-
 import cirq
 import openfermion
 from openfermion import random_diagonal_coulomb_hamiltonian
+import pytest
 
 from openfermioncirq import HamiltonianObjective
 

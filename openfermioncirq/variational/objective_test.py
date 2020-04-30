@@ -11,9 +11,8 @@
 #   limitations under the License.
 
 import numpy
-import pytest
-
 import cirq
+import pytest
 
 from openfermioncirq import VariationalObjective
 from openfermioncirq.testing import (
