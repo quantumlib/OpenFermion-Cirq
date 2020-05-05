@@ -56,4 +56,4 @@ enable=
 # Ignore long lines containing urls or pylint directives.
 ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
 
-known-third-party=cirq, numpy, openfermion, scipy, sympy
+known-third-party=cirq, numpy, openfermion, pytest, scipy, sympy

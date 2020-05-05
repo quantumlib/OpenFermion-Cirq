@@ -35,6 +35,7 @@ from openfermioncirq.gates.three_qubit_gates import (
 )
 
 from openfermioncirq.gates.fermionic_simulation import (
+    fermionic_simulation_gates_from_interaction_operator,
     ParityPreservingFermionicGate,
     QuadraticFermionicSimulationGate,
     CubicFermionicSimulationGate,

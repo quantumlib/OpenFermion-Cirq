@@ -16,13 +16,16 @@ from typing import cast, Tuple
 import cirq
 import cirq.contrib.acquaintance as cca
 import numpy as np
+import openfermion
+import pytest
 import scipy.linalg as la
 import sympy
-import pytest
 
 import openfermioncirq as ofc
 from openfermioncirq.gates.fermionic_simulation import (
-    state_swap_eigen_component)
+    sum_of_interaction_operator_gate_generators,
+    state_swap_eigen_component,
+)
 
 
 def test_state_swap_eigen_component_args():
@@ -53,6 +56,25 @@ def test_state_swap_eigen_component(index_pair, n_qubits):
         expected_component[i, i] = expected_component[j, j] = 0.5
         expected_component[i, j] = expected_component[j, i] = sign * 0.5
         assert np.allclose(actual_component, expected_component)
+
+
+@pytest.mark.parametrize('n_modes, seed',
+                         [(7, np.random.randint(1 << 30)) for _ in range(2)])
+def test_interaction_operator_interconversion(n_modes, seed):
+    operator = openfermion.random_interaction_operator(n_modes,
+                                                       real=False,
+                                                       seed=seed)
+    gates = ofc.fermionic_simulation_gates_from_interaction_operator(operator)
+    other_operator = sum_of_interaction_operator_gate_generators(n_modes, gates)
+    operator = openfermion.normal_ordered(operator)
+    other_operator = openfermion.normal_ordered(other_operator)
+    assert operator == other_operator
+
+
+def test_interaction_operator_from_bad_gates():
+    for gates in [{(): 'bad'}, {(0,): cirq.X}]:
+        with pytest.raises(TypeError):
+            sum_of_interaction_operator_gate_generators(5, gates)
 
 
 def random_real(size=None, mag=20):
@@ -125,6 +147,27 @@ def assert_permute_consistent(gate):
         gate.permute([1] * n_qubits)
 
 
+def assert_interaction_operator_consistent(gate):
+    interaction_op = gate.interaction_operator_generator()
+    other_gate = gate.from_interaction_operator(operator=interaction_op)
+    if other_gate is None:
+        assert np.allclose(gate.weights, 0)
+    else:
+        assert cirq.approx_eq(gate, other_gate)
+    interaction_op = openfermion.normal_ordered(interaction_op)
+    other_interaction_op = openfermion.InteractionOperator.zero(
+        interaction_op.n_qubits)
+    super(type(gate),
+          gate).interaction_operator_generator(operator=other_interaction_op)
+    other_interaction_op = openfermion.normal_ordered(interaction_op)
+    assert interaction_op == other_interaction_op
+
+    other_interaction_op = super(type(gate),
+                                 gate).interaction_operator_generator()
+    other_interaction_op = openfermion.normal_ordered(interaction_op)
+    assert interaction_op == other_interaction_op
+
+
 random_quadratic_gates = [random_fermionic_simulation_gate(2) for _ in range(5)]
 manual_quadratic_gates = [
     ofc.QuadraticFermionicSimulationGate(weights)
@@ -150,8 +193,9 @@ def test_fermionic_simulation_gate(gate):
     assert_fswap_consistent(gate)
     assert_permute_consistent(gate)
     assert_generators_consistent(gate)
+    assert_interaction_operator_consistent(gate)
 
-    assert gate.num_weights == super(type(gate), gate).num_weights
+    assert gate.num_weights() == super(type(gate), gate).num_weights()
 
 
 def test_quadratic_fermionic_simulation_gate():
@@ -159,11 +203,20 @@ def test_quadratic_fermionic_simulation_gate():
         ofc.QuadraticFermionicSimulationGate())
 
 
-def test_quadratic_fermionic_simulation_gate_zero_weights():
-    gate = ofc.QuadraticFermionicSimulationGate((0, 0))
+def test_zero_weights():
+    for gate_type in [
+            ofc.QuadraticFermionicSimulationGate,
+            ofc.CubicFermionicSimulationGate, ofc.QuarticFermionicSimulationGate
+    ]:
+        weights = (0,) * gate_type.num_weights()
+        gate = gate_type(weights)
+        n_qubits = gate.num_qubits()
 
-    assert np.allclose(cirq.unitary(gate), np.eye(4))
-    cirq.testing.assert_decompose_is_consistent_with_unitary(gate)
+        assert np.allclose(cirq.unitary(gate), np.eye(2**n_qubits))
+        cirq.testing.assert_decompose_is_consistent_with_unitary(gate)
+
+        operator = openfermion.InteractionOperator.zero(n_qubits)
+        assert gate_type.from_interaction_operator(operator=operator) is None
 
 
 @pytest.mark.parametrize(
