@@ -1,4 +1,3 @@
-
 from itertools import product
 import numpy as np
 import scipy as sp
@@ -12,6 +11,8 @@ from openfermioncirq.experiments.hfvqe.analysis import (
     mcweeny_purification
     )
 from openfermioncirq.experiments.hfvqe.molecular_example import make_h6_1_3
+from openfermioncirq.experiments.hfvqe.molecular_example_odd_qubits import (
+    make_h3_2_5)
 from openfermioncirq.experiments.hfvqe.gradient_hf import rhf_func_generator
 # pylint: disable=C
 
@@ -29,7 +30,7 @@ def test_trace_distance():
 
 
 def test_energy_from_opdm():
-    """Build test assiming sampling functions work"""
+    """Build test assuming sampling functions work"""
 
     rhf_objective, molecule, parameters, obi, tbi = make_h6_1_3()
     unitary, energy, _ = rhf_func_generator(rhf_objective)
@@ -44,6 +45,23 @@ def test_energy_from_opdm():
     true_energy = energy(parameters)
     assert np.allclose(test_energy, true_energy)
 
+def test_energy_from_opdm_odd_qubit():
+    """Build test assuming sampling functions work"""
+
+    rhf_objective, molecule, parameters, obi, tbi = make_h3_2_5()
+    unitary, energy, _ = rhf_func_generator(rhf_objective)
+
+    parameters = np.array([0.1, 0.2])
+    initial_opdm = np.diag([1] * 1 + [0] * 2)
+    print(initial_opdm)
+    final_opdm = unitary(parameters) @ initial_opdm @ unitary(
+        parameters).conj().T
+    test_energy = energy_from_opdm(final_opdm,
+                                   constant=molecule.nuclear_repulsion,
+                                   one_body_tensor=obi,
+                                   two_body_tensor=tbi)
+    true_energy = energy(parameters)
+    assert np.allclose(test_energy, true_energy)
 
 def test_mcweeny():
     np.random.seed(82)

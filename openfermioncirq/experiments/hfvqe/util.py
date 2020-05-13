@@ -7,7 +7,11 @@ from scipy.linalg import expm
 def generate_permutations(n_orbitals: int,
                           no_truncation: Optional[bool] = False):
     qubit_orderings = [list(range(n_orbitals))]
-    for _ in range(n_orbitals // 2):
+    if n_orbitals % 2 == 0:
+        perm_order = n_orbitals // 2
+    else:
+        perm_order = n_orbitals // 2 + 1
+    for _ in range(perm_order):
         qubit_orderings.append(swap_forward(qubit_orderings[-1],
                                             starting_index=0))
         qubit_orderings.append(swap_forward(qubit_orderings[-1],

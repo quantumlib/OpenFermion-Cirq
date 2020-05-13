@@ -114,6 +114,7 @@ def generate_circuits_from_params_or_u(qubits: List[cirq.Qid],
 def xxyy_basis_rotation(pairs, clean_xxyy = False):
     """Generate the measurement circuits"""
     all_ops = []
+
     for a, b in pairs:
         if clean_xxyy:
             all_ops += [cirq.rz(-np.pi*0.25).on(a),
@@ -129,9 +130,10 @@ def xxyy_basis_rotation(pairs, clean_xxyy = False):
 def circuits_with_measurements(qubits, circuits, clean_xxyy = False):  # testpragma: no cover
     """Append the appropriate measurements to each of the permutation circuits"""
     num_qubits = len(qubits)
-    even_pairs = [qubits[idx:idx+2] for idx in np.arange(0, num_qubits, 2)]
-    odd_pairs = [qubits[idx:idx+2] for idx in np.arange(1, num_qubits-1, 2)]
-
+    even_pairs = [
+        qubits[idx:idx + 2] for idx in np.arange(0, num_qubits - 1, 2)
+    ]
+    odd_pairs = [qubits[idx:idx + 2] for idx in np.arange(1, num_qubits - 1, 2)]
     measure_labels = ['z', 'xy_even', 'xy_odd']
     all_circuits_with_measurements = {label: {} for label in measure_labels}
     for circuit_index in range(len(circuits)):

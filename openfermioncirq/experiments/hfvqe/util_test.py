@@ -36,6 +36,11 @@ def test_gen_fswap_unitaries():
 
 
 def test_permutation_generator():
+    perms = generate_permutations(3)
+    assert len(perms) == 2  # N//2+1 circuits
+    assert perms[0] == [0, 1, 2]
+    assert perms[1] == [1, 2, 0]
+
     perms = generate_permutations(4)
     assert len(perms) == 2  # N/2 circuits
     assert perms[0] == [0, 1, 2, 3]
