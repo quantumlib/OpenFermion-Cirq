@@ -83,7 +83,7 @@ with _warnings.catch_warnings():
         CXXYY,
         CYXXY,
     )
-deprecated_constants = {
+_deprecated_constants = {
     'XXYY': ('v0.5.0', 'Use cirq.ISWAP with negated exponent, instead'),
     'YXXY': ('v0.5.0', 'Use cirq.PhasedISwapPowGate, instead.'),
     'CXXYY': ('v0.5.0', 'Use cirq.ControlledGate and cirq.ISWAP with '
@@ -92,4 +92,4 @@ deprecated_constants = {
               'cirq.PhasedISwapPowGate, instead.'),
 }
 _sys.modules[__name__] = _wrap_module(_sys.modules[__name__],
-                                      deprecated_constants)
+                                      _deprecated_constants)

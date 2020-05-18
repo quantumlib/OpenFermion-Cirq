@@ -1,7 +1,6 @@
-.. currentmodule:: openfermioncirq
-
 API Reference
 =============
+
 
 Gates
 --------
@@ -12,14 +11,16 @@ Two-Qubit Gates
 .. autosummary::
     :toctree: generated/
 
-    FermionicSwapGate
-    XXYYGate
-    YXXYGate
-    ZZGate
-    FSWAP
-    XXYY
-    YXXY
-    ZZ
+    openfermioncirq.FSWAP
+    openfermioncirq.XXYY
+    openfermioncirq.YXXY
+    openfermioncirq.rot11
+    openfermioncirq.FSwapPowGate
+    openfermioncirq.Rxxyy
+    openfermioncirq.Ryxxy
+    openfermioncirq.Rzz
+    openfermioncirq.XXYYPowGate
+    openfermioncirq.YXXYPowGate
 
 Three-Qubit Gates
 ^^^^^^^^^^^^^^^^^
@@ -27,24 +28,34 @@ Three-Qubit Gates
 .. autosummary::
     :toctree: generated/
 
-    ControlledXXYYGate
-    ControlledYXXYGate
-    Rot111Gate
-    CXXYY
-    CYXXY
-    CCZ
+    openfermioncirq.CXXYY
+    openfermioncirq.CYXXY
+    openfermioncirq.rot111
+    openfermioncirq.CRxxyy
+    openfermioncirq.CRyxxy
+    openfermioncirq.CXXYYPowGate
+    openfermioncirq.CYXXYPowGate
 
-Fermionic Simulation Gates
-^^^^^^^^^^^^^^^
+Four-Qubit Gates
+^^^^^^^^^^^^^^^^^
 
 .. autosummary::
     :toctree: generated/
 
-    fermionic_simulation_gates_from_interaction_operator
-    ParityPreservingFermionicGate
-    QuadraticFermionicSimulationGate
-    CubicFermionicSimulationGate
-    QuarticFermionicSimulationGate
+    openfermioncirq.DoubleExcitation
+    openfermioncirq.DoubleExcitationGate
+
+Fermionic Simulation Gates
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+    :toctree: generated/
+
+    openfermioncirq.fermionic_simulation_gates_from_interaction_operator
+    openfermioncirq.CubicFermionicSimulationGate
+    openfermioncirq.ParityPreservingFermionicGate
+    openfermioncirq.QuadraticFermionicSimulationGate
+    openfermioncirq.QuarticFermionicSimulationGate
 
 
 Primitives
@@ -53,11 +64,11 @@ Primitives
 .. autosummary::
     :toctree: generated/
 
-    bogoliubov_transform
-    ffft
-    prepare_gaussian_state
-    prepare_slater_determinant
-    swap_network
+    openfermioncirq.bogoliubov_transform
+    openfermioncirq.ffft
+    openfermioncirq.prepare_gaussian_state
+    openfermioncirq.prepare_slater_determinant
+    openfermioncirq.swap_network
 
 
 Hamiltonian Simulation
@@ -66,13 +77,12 @@ Hamiltonian Simulation
 .. autosummary::
     :toctree: generated/
 
-    simulate_trotter
-    trotter.TrotterStep
-    trotter.TrotterAlgorithm
-    trotter.LINEAR_SWAP_NETWORK
-    trotter.SPLIT_OPERATOR
-    trotter.LOW_RANK
-
+    openfermioncirq.simulate_trotter
+    openfermioncirq.trotter.LINEAR_SWAP_NETWORK
+    openfermioncirq.trotter.LOW_RANK
+    openfermioncirq.trotter.SPLIT_OPERATOR
+    openfermioncirq.trotter.TrotterAlgorithm
+    openfermioncirq.trotter.TrotterStep
 
 Trotter Algorithms
 ^^^^^^^^^^^^^^^^^^
@@ -80,9 +90,9 @@ Trotter Algorithms
 .. autosummary::
     :toctree: generated/
 
-    trotter.LinearSwapNetworkTrotterAlgorithm
-    trotter.SplitOperatorTrotterAlgorithm
-    trotter.LowRankTrotterAlgorithm
+    openfermioncirq.trotter.LinearSwapNetworkTrotterAlgorithm
+    openfermioncirq.trotter.LowRankTrotterAlgorithm
+    openfermioncirq.trotter.SplitOperatorTrotterAlgorithm
 
 
 Variational Algorithms
@@ -91,9 +101,10 @@ Variational Algorithms
 .. autosummary::
     :toctree: generated/
 
-    VariationalAnsatz
-    VariationalStudy
-    HamiltonianVariationalStudy
+    openfermioncirq.HamiltonianObjective
+    openfermioncirq.VariationalAnsatz
+    openfermioncirq.VariationalObjective
+    openfermioncirq.VariationalStudy
 
 Variational Ansatzes
 ^^^^^^^^^^^^^^^^^^^^
@@ -101,8 +112,10 @@ Variational Ansatzes
 .. autosummary::
     :toctree: generated/
 
-    SwapNetworkTrotterAnsatz
-    SplitOperatorTrotterAnsatz
+    openfermioncirq.LowRankTrotterAnsatz
+    openfermioncirq.SplitOperatorTrotterAnsatz
+    openfermioncirq.SwapNetworkTrotterAnsatz
+    openfermioncirq.SwapNetworkTrotterHubbardAnsatz
 
 
 Optimization
@@ -111,12 +124,14 @@ Optimization
 .. autosummary::
     :toctree: generated/
 
-    optimization.OptimizationAlgorithm
-    optimization.OptimizationParams
-    optimization.OptimizationResult
-    optimization.OptimizationTrialResult
-    optimization.ScipyOptimizationAlgorithm
-    optimization.COBYLA
-    optimization.L_BFGS_B
-    optimization.NELDER_MEAD
-    optimization.SLSQP
+    openfermioncirq.optimization.COBYLA
+    openfermioncirq.optimization.L_BFGS_B
+    openfermioncirq.optimization.NELDER_MEAD
+    openfermioncirq.optimization.SLSQP
+    openfermioncirq.optimization.BlackBox
+    openfermioncirq.optimization.OptimizationAlgorithm
+    openfermioncirq.optimization.OptimizationParams
+    openfermioncirq.optimization.OptimizationResult
+    openfermioncirq.optimization.OptimizationTrialResult
+    openfermioncirq.optimization.ScipyOptimizationAlgorithm
+    openfermioncirq.optimization.StatefulBlackBox

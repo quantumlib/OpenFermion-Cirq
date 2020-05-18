@@ -42,6 +42,7 @@ class VariationalStudy:
     and saving and loading the results.
 
     Example::
+
         ansatz = SomeVariationalAnsatz()
         objective = SomeVariationalObjective()
         study = SomeVariationalStudy('my_study', ansatz, objective)

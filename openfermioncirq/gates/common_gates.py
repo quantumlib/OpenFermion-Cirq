@@ -25,15 +25,18 @@ class FSwapPowGate(cirq.EigenGate, cirq.InterchangeableQubitsGate,
     """The FSWAP gate, possibly raised to a power.
 
     FSwapPowGate()**t = FSwapPowGate(exponent=t) and acts on two qubits in the
-    computational basis as the matrix
+    computational basis as the matrix:
+
         [[1, 0, 0, 0],
          [0, g·c, -i·g·s, 0],
          [0, -i·g·s, g·c, 0],
          [0, 0, 0, p]]
-    where
+
+    where:
+
         c = cos(π·t/2)
         s = sin(π·t/2)
-        g = exp(i·π·t/2).
+        g = exp(i·π·t/2)
         p = exp(i·π·t).
 
     `ofc.FSWAP` is an instance of this gate at exponent=1. It swaps adjacent
@@ -99,15 +102,20 @@ class XXYYPowGate(cirq.EigenGate, cirq.InterchangeableQubitsGate,
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by -i. More
     generally, this gate's matrix is defined as follows:
+
         XXYY**t ≡ exp(-i π t (X⊗X + Y⊗Y) / 4)
-    which is given by the matrix
+
+    which is given by the matrix:
+
         [[1, 0, 0, 0],
          [0, c, -i·s, 0],
          [0, -i·s, c, 0],
          [0, 0, 0, 1]]
-    where
+
+    where:
+
         c = cos(π·t/2)
-        s = sin(π·t/2)
+        s = sin(π·t/2).
 
     `ofc.XXYY` is an instance of this gate at exponent=1.
     """
@@ -175,15 +183,19 @@ class YXXYPowGate(cirq.EigenGate, cirq.TwoQubitGate):
     """YX - XY interaction.
 
     This gate's matrix is defined as follows:
+
         YXXY**t ≡ exp(-i π t (Y⊗X - X⊗Y) / 4)
-    which is given by the matrix
+
+    which is given by the matrix:
+
         [[1, 0, 0, 0],
          [0, c, -s, 0],
          [0, s, c, 0],
          [0, 0, 0, 1]]
+
     where
         c = cos(π·t/2)
-        s = sin(π·t/2)
+        s = sin(π·t/2).
 
     `ofc.YXXY` is an instance of this gate at exponent=1.
     """

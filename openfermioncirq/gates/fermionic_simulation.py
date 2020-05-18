@@ -354,7 +354,7 @@ class InteractionOperatorFermionicGate(ParityPreservingFermionicGate):
 class QuadraticFermionicSimulationGate(InteractionOperatorFermionicGate,
                                        cirq.InterchangeableQubitsGate,
                                        cirq.TwoQubitGate, cirq.EigenGate):
-    r"""(w0 |10><01| + h.c.) + w1 * |11><11| interaction.
+    r"""``(w0 |10⟩⟨01| + h.c.) + w1 |11⟩⟨11|`` interaction.
 
     With weights :math:`(w_0, w_1)` and exponent :math:`t`, this gate's matrix
     is defined as
@@ -481,7 +481,7 @@ class QuadraticFermionicSimulationGate(InteractionOperatorFermionicGate,
 
 class CubicFermionicSimulationGate(InteractionOperatorFermionicGate,
                                    cirq.ThreeQubitGate, cirq.EigenGate):
-    r"""w0 * |110><101| + w1 * |110><011| + w2 * |101><011| + hc interaction.
+    r"""``w0|110⟩⟨101| + w1|110⟩⟨011| + w2|101⟩⟨011|`` + h.c. interaction.
 
     With weights :math:`(w_0, w_1, w_2)` and exponent :math:`t`, this gate's
     matrix is defined as

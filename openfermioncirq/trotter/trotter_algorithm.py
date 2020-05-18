@@ -36,6 +36,7 @@ class TrotterStep(metaclass=abc.ABCMeta):
 
     This class assumes that Hamiltonian evolution using a Trotter-Suzuki product
     formula is performed in the following steps:
+
         1. Perform some preparatory operations (for instance, a basis change).
         2. Perform a number of Trotter steps. Each Trotter step may induce a
            permutation on the ordering in which qubits represent fermionic

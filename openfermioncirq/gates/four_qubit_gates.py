@@ -23,7 +23,7 @@ from cirq._compat import proper_repr
 
 
 class DoubleExcitationGate(cirq.EigenGate):
-    """Evolve under -|0011><1100| + h.c. for some time."""
+    """Evolve under ``-|0011⟩⟨1100|`` + h.c. for some time."""
 
     def __init__(self, *,  # Forces keyword args.
                  exponent: Optional[Union[sympy.Symbol, float]]=None,
