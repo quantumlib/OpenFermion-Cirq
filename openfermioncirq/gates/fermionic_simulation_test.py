@@ -97,11 +97,41 @@ def random_fermionic_simulation_gate(order):
         return ofc.QuarticFermionicSimulationGate(weights, exponent=exponent)
 
 
+def assert_symbolic_decomposition_consistent(gate):
+    expected_unitary = cirq.unitary(gate)
+
+    weights = tuple(sympy.Symbol(f'w{i}') for i in range(gate.num_weights()))
+    exponent = sympy.Symbol('t')
+    symbolic_gate = type(gate)(weights, exponent=exponent)
+    qubits = cirq.LineQubit.range(gate.num_qubits())
+    circuit = cirq.Circuit(symbolic_gate._decompose_(qubits))
+    resolver = {'t': gate.exponent}
+    for i, w in enumerate(gate.weights):
+        resolver[f'w{i}'] = w
+    resolved_circuit = cirq.resolve_parameters(circuit, resolver)
+    decomp_unitary = resolved_circuit.unitary(qubit_order=qubits)
+
+    assert np.allclose(expected_unitary, decomp_unitary)
+
+
 def assert_generators_consistent(gate):
     qubit_generator = gate.qubit_generator_matrix
     qubit_generator_from_fermion_generator = (super(
         type(gate), gate).qubit_generator_matrix)
     assert np.allclose(qubit_generator, qubit_generator_from_fermion_generator)
+
+
+def assert_resolution_consistent(gate):
+    weight_names = [f'w{i}' for i in range(gate.num_weights())]
+    weight_params = [sympy.Symbol(w) for w in weight_names]
+    resolver = dict(zip(weight_names, gate.weights))
+    resolver['s'] = gate._global_shift
+    resolver['e'] = gate._exponent
+    symbolic_gate = type(gate)(weight_params,
+                               exponent=sympy.Symbol('e'),
+                               global_shift=sympy.Symbol('s'))
+    resolved_gate = cirq.resolve_parameters(symbolic_gate, resolver)
+    assert resolved_gate == gate
 
 
 def assert_fswap_consistent(gate):
@@ -193,14 +223,28 @@ def test_fermionic_simulation_gate(gate):
     assert_fswap_consistent(gate)
     assert_permute_consistent(gate)
     assert_generators_consistent(gate)
+    assert_resolution_consistent(gate)
     assert_interaction_operator_consistent(gate)
 
     assert gate.num_weights() == super(type(gate), gate).num_weights()
 
 
-def test_quadratic_fermionic_simulation_gate():
-    ofc.testing.assert_implements_consistent_protocols(
-        ofc.QuadraticFermionicSimulationGate())
+@pytest.mark.parametrize('weights', list(np.random.rand(10, 3)) + [(1, 0, 1)])
+def test_weights_and_exponent(weights):
+    exponents = np.linspace(-1, 1, 8)
+    gates = tuple(
+        ofc.QuarticFermionicSimulationGate(
+            weights / exponent, exponent=exponent, absorb_exponent=True)
+        for exponent in exponents)
+
+    for g1, g2 in itertools.combinations(gates, 2):
+        assert cirq.approx_eq(g1, g2, atol=1e-100)
+
+    for i, (gate, exponent) in enumerate(zip(gates, exponents)):
+        assert gate.exponent == 1
+        new_exponent = exponents[-i]
+        new_gate = gate._with_exponent(new_exponent)
+        assert new_gate.exponent == new_exponent
 
 
 def test_zero_weights():
@@ -247,12 +291,10 @@ def test_quadratic_fermionic_simulation_gate_unitary(weights, exponent):
 
     assert np.allclose(expected_unitary, decomp_unitary)
 
-    cirq.testing.assert_decompose_is_consistent_with_unitary(gate)
 
-
-def test_cubic_fermionic_simulation_gate():
-    ofc.testing.assert_eigengate_implements_consistent_protocols(
-        ofc.CubicFermionicSimulationGate)
+@pytest.mark.parametrize('gate', random_quadratic_gates)
+def test_quadratic_fermionic_simulation_gate_symbolic_decompose(gate):
+    assert_symbolic_decomposition_consistent(gate)
 
 
 def test_cubic_fermionic_simulation_gate_equality():
@@ -324,25 +366,6 @@ def test_cubic_fermionic_simulation_gate_consistency_docstring(
 def test_quartic_fermionic_simulation_consistency():
     ofc.testing.assert_implements_consistent_protocols(
         ofc.QuarticFermionicSimulationGate())
-
-
-@pytest.mark.parametrize('weights', list(np.random.rand(10, 3)) + [(1, 0, 1)])
-def test_weights_and_exponent(weights):
-    exponents = np.linspace(-1, 1, 8)
-    gates = tuple(
-        ofc.QuarticFermionicSimulationGate(
-            weights / exponent, exponent=exponent, absorb_exponent=True)
-        for exponent in exponents)
-
-    for g1 in gates:
-        for g2 in gates:
-            assert cirq.approx_eq(g1, g2, atol=1e-100)
-
-    for i, (gate, exponent) in enumerate(zip(gates, exponents)):
-        assert gate.exponent == 1
-        new_exponent = exponents[-i]
-        new_gate = gate._with_exponent(new_exponent)
-        assert new_gate.exponent == new_exponent
 
 
 quartic_fermionic_simulation_simulator_test_cases = [
@@ -422,42 +445,72 @@ def test_quartic_fermionic_simulation_eq():
         (1., -1., 0.5), exponent=0.75))
 
 
-def test_quartic_fermionic_simulation_gate_text_diagram():
-    gate = ofc.QuarticFermionicSimulationGate((1, 1, 1))
-    qubits = cirq.LineQubit.range(6)
-    circuit = cirq.Circuit([gate(*qubits[:4]), gate(*qubits[-4:])])
+def test_quadratic_fermionic_simulation_gate_text_diagram():
+    gate = ofc.QuadraticFermionicSimulationGate((1, 1))
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit([gate(a, b), gate(b, c)])
 
-    actual_text_diagram = circuit.to_text_diagram()
-    expected_text_diagram = """
-0: ───⇊⇈────────
-      │
-1: ───⇊⇈────────
-      │
-2: ───⇊⇈───⇊⇈───
-      │    │
-3: ───⇊⇈───⇊⇈───
-           │
-4: ────────⇊⇈───
-           │
-5: ────────⇊⇈───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    assert super(type(gate), gate).wire_symbol(False) == type(gate).__name__
+    assert (super(type(gate), gate)._diagram_exponent(
+        cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT) == gate._exponent)
 
-    actual_text_diagram = circuit.to_text_diagram(use_unicode_characters=False)
     expected_text_diagram = """
-0: ---a*a*aa------------
+0: ───↓↑(1, 1)──────────────
+      │
+1: ───↓↑─────────↓↑(1, 1)───
+                 │
+2: ──────────────↓↑─────────
+""".strip()
+    cirq.testing.assert_has_diagram(circuit, expected_text_diagram)
+
+    expected_text_diagram = """
+0: ---a*a(1, 1)---------------
       |
-1: ---a*a*aa------------
+1: ---a*a---------a*a(1, 1)---
+                  |
+2: ---------------a*a---------
+""".strip()
+    cirq.testing.assert_has_diagram(circuit,
+                                    expected_text_diagram,
+                                    use_unicode_characters=False)
+
+
+def test_cubic_fermionic_simulation_gate_text_diagram():
+    gate = ofc.CubicFermionicSimulationGate((1, 1, 1))
+    qubits = cirq.LineQubit.range(5)
+    circuit = cirq.Circuit([gate(*qubits[:3]), gate(*qubits[2:5])])
+
+    assert super(type(gate), gate).wire_symbol(False) == type(gate).__name__
+    assert (super(type(gate), gate)._diagram_exponent(
+        cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT) == gate._exponent)
+
+    expected_text_diagram = """
+0: ───↕↓↑(1, 1, 1)──────────────────
+      │
+1: ───↕↓↑───────────────────────────
+      │
+2: ───↕↓↑────────────↕↓↑(1, 1, 1)───
+                     │
+3: ──────────────────↕↓↑────────────
+                     │
+4: ──────────────────↕↓↑────────────
+""".strip()
+    cirq.testing.assert_has_diagram(circuit, expected_text_diagram)
+
+    expected_text_diagram = """
+0: ---na*a(1, 1, 1)-------------------
       |
-2: ---a*a*aa---a*a*aa---
-      |        |
-3: ---a*a*aa---a*a*aa---
-               |
-4: ------------a*a*aa---
-               |
-5: ------------a*a*aa---
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
+1: ---na*a----------------------------
+      |
+2: ---na*a------------na*a(1, 1, 1)---
+                      |
+3: -------------------na*a------------
+                      |
+4: -------------------na*a------------
+""".strip()
+    cirq.testing.assert_has_diagram(circuit,
+                                    expected_text_diagram,
+                                    use_unicode_characters=False)
 
 
 test_weights = [1.0, 0.5, 0.25, 0.1, 0.0, -0.5]
@@ -495,7 +548,48 @@ def test_quartic_fermionic_simulation_unitary(weights, exponent):
 
     assert np.allclose(expected_unitary, actual_unitary)
 
-    cirq.testing.assert_decompose_is_consistent_with_unitary(gate)
+
+def test_quartic_fermionic_simulation_gate_text_diagram():
+    gate = ofc.QuarticFermionicSimulationGate((1, 1, 1))
+    qubits = cirq.LineQubit.range(6)
+    circuit = cirq.Circuit([gate(*qubits[:4]), gate(*qubits[-4:])])
+
+    assert super(type(gate), gate).wire_symbol(False) == type(gate).__name__
+    for G in (gate, gate._with_exponent('e')):
+        assert (super(type(G), G)._diagram_exponent(
+            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT) == G._exponent)
+
+    expected_text_diagram = """
+0: ───⇊⇈(1, 1, 1)─────────────────
+      │
+1: ───⇊⇈──────────────────────────
+      │
+2: ───⇊⇈────────────⇊⇈(1, 1, 1)───
+      │             │
+3: ───⇊⇈────────────⇊⇈────────────
+                    │
+4: ─────────────────⇊⇈────────────
+                    │
+5: ─────────────────⇊⇈────────────
+""".strip()
+    cirq.testing.assert_has_diagram(circuit, expected_text_diagram)
+
+    expected_text_diagram = """
+0: ---a*a*aa(1, 1, 1)---------------------
+      |
+1: ---a*a*aa------------------------------
+      |
+2: ---a*a*aa------------a*a*aa(1, 1, 1)---
+      |                 |
+3: ---a*a*aa------------a*a*aa------------
+                        |
+4: ---------------------a*a*aa------------
+                        |
+5: ---------------------a*a*aa------------
+""".strip()
+    cirq.testing.assert_has_diagram(circuit,
+                                    expected_text_diagram,
+                                    use_unicode_characters=False)
 
 
 @pytest.mark.parametrize(

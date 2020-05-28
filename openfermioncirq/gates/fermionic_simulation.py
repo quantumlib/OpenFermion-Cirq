@@ -12,13 +12,16 @@
 
 import abc
 import itertools
-from typing import cast, Dict, Optional, Sequence, Tuple, Union
+from typing import (cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union)
 
 import cirq
 import numpy as np
 import openfermion
 import scipy.linalg as la
 import sympy
+
+if TYPE_CHECKING:
+    import openfermioncirq as ofc
 
 
 def _arg(x):
@@ -255,6 +258,31 @@ class ParityPreservingFermionicGate(cirq.Gate, metaclass=abc.ABCMeta):
                              openfermion.FermionOperator())
         return half_generator + openfermion.hermitian_conjugated(half_generator)
 
+    def _diagram_exponent(self,
+                          args: cirq.CircuitDiagramInfoArgs,
+                          *,
+                          ignore_global_phase: bool = True):
+        if not isinstance(self._exponent, (int, float)):
+            return self._exponent
+        result = float(self._exponent)
+        if args.precision is not None:
+            result = np.around(result, args.precision)
+        return result
+
+    @classmethod
+    def wire_symbol(cls, use_unicode: bool):
+        """The symbol to use in circuit diagrams."""
+        return cls.__name__
+
+    def _resolve_parameters_(self, resolver):
+        resolved_weights = cirq.resolve_parameters(self.weights, resolver)
+        resolved_exponent = cirq.resolve_parameters(self._exponent, resolver)
+        resolved_global_shift = cirq.resolve_parameters(self._global_shift,
+                                                        resolver)
+        return type(self)(resolved_weights,
+                          exponent=resolved_exponent,
+                          global_shift=resolved_global_shift)
+
     def _value_equality_values_(self):
         return tuple(
             _canonicalize_weight(w * self.exponent)
@@ -311,6 +339,15 @@ class ParityPreservingFermionicGate(cirq.Gate, metaclass=abc.ABCMeta):
         return type(self)(self.weights,
                           exponent=self.exponent,
                           global_shift=self._global_shift)
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                              ) -> cirq.CircuitDiagramInfo:
+        wire_symbols = [self.wire_symbol(args.use_unicode_characters)
+                       ] * self.num_qubits()
+        wire_symbols[0] += f'{tuple(self.weights)}'
+        exponent = self._diagram_exponent(args)
+        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
+                                       exponent=exponent)
 
 
 class InteractionOperatorFermionicGate(ParityPreservingFermionicGate):
@@ -433,6 +470,10 @@ class QuadraticFermionicSimulationGate(InteractionOperatorFermionicGate,
         )
 
     @classmethod
+    def wire_symbol(cls, use_unicode: bool):
+        return '↓↑' if use_unicode else 'a*a'
+
+    @classmethod
     def from_interaction_operator(
             cls,
             *,
@@ -520,6 +561,10 @@ class CubicFermionicSimulationGate(InteractionOperatorFermionicGate,
     @classmethod
     def num_weights(cls):
         return 3
+
+    @classmethod
+    def wire_symbol(cls, use_unicode: bool):
+        return '↕↓↑' if use_unicode else 'na*a'
 
     def _eigen_components(self):
         components = [(0, np.diag([1, 1, 1, 0, 1, 0, 0, 1]))]
@@ -789,14 +834,9 @@ class QuarticFermionicSimulationGate(InteractionOperatorFermionicGate,
 
         return [basis_change, controlled_swaps, basis_change[::-1]]
 
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                              ) -> cirq.CircuitDiagramInfo:
-        if args.use_unicode_characters:
-            wire_symbols = ('⇊⇈',) * 4
-        else:
-            wire_symbols = ('a*a*aa',) * 4
-        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                       exponent=self._diagram_exponent(args))
+    @classmethod
+    def wire_symbol(cls, use_unicode: bool):
+        return '⇊⇈' if use_unicode else 'a*a*aa'
 
     def _apply_unitary_(self,
                         args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
