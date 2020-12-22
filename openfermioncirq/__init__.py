@@ -10,6 +10,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=wrong-import-position
+
+import warnings
+
+warnings.warn(
+    'OpenFermion-Cirq is deprecated and no longer maintained. '
+    'Its functionality has been merged into OpenFermion. '
+    'To uninstall OpenFermion-Cirq and upgrade to the latest version of '
+    'OpenFermion using pip, execute '
+    '`pip uninstall openfermioncirq` followed by '
+    '`pip install --upgrade openfermion`.',
+    DeprecationWarning,
+    stacklevel=2)
+
 from openfermioncirq.gates import (
     CRxxyy,
     CRyxxy,
